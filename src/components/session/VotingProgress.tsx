@@ -10,7 +10,7 @@ export default function VotingProgress({
   votedCount,
 }: VotingProgressProps) {
   const percentage =
-    totalPlayers > 0 ? Math.round((votedCount / totalPlayers) * 100) : 0;
+    totalPlayers > 0 ? Math.floor((votedCount / totalPlayers) * 100) : 0;
 
   return (
     <div className="card-sport" style={{ padding: "1.25rem 1.5rem" }}>

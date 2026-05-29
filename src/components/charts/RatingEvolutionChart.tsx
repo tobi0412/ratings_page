@@ -89,7 +89,7 @@ function CustomTooltip({ active, payload, label }: any) {
               letterSpacing: "0.04em",
             }}
           >
-            {entry.value?.toFixed(1)}
+            {entry.value?.toFixed(2)}
           </span>
         </div>
       ))}

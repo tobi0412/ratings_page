@@ -160,7 +160,7 @@ export default function ComparisonTable({ stats, totalSessionsCount }: Compariso
                     letterSpacing: "0.04em",
                   }}
                 >
-                  {player.avgTotal.toFixed(1)}
+                  {player.avgTotal.toFixed(2)}
                 </span>
               </td>
 
@@ -183,7 +183,7 @@ export default function ComparisonTable({ stats, totalSessionsCount }: Compariso
                       color: ratingColor(val),
                     }}
                   >
-                    {val.toFixed(1)}
+                    {val.toFixed(2)}
                   </span>
                 </td>
               ))}
@@ -202,7 +202,7 @@ export default function ComparisonTable({ stats, totalSessionsCount }: Compariso
                     const attendancePercentage = totalSessionsCount > 0
                       ? (player.sessionsCount / totalSessionsCount) * 100
                       : 0;
-                    return `${attendancePercentage.toFixed(0)}% (${player.sessionsCount}/${totalSessionsCount})`;
+                    return `${Math.floor(attendancePercentage)}% (${player.sessionsCount}/${totalSessionsCount})`;
                   })()}
                 </span>
               </td>

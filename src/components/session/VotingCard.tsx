@@ -177,7 +177,7 @@ export default function VotingCard({
               lineHeight: 1,
             }}
           >
-            {avgRating.toFixed(1)}
+            {avgRating.toFixed(2)}
           </div>
           <div
             style={{

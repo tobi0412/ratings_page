@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useId } from "react";
 import {
   LineChart,
   Line,
@@ -84,7 +84,7 @@ function CustomTooltip({ active, payload, label }: any) {
               letterSpacing: "0.04em",
             }}
           >
-            {Number(item.value).toFixed(1)}
+            {Number(item.value).toFixed(2)}
           </span>
         </div>
       </div>
@@ -148,7 +148,7 @@ function CustomTooltip({ active, payload, label }: any) {
               letterSpacing: "0.04em",
             }}
           >
-            {entry.value != null ? Number(entry.value).toFixed(1) : "—"}
+            {entry.value != null ? Number(entry.value).toFixed(2) : "—"}
           </span>
         </div>
       ))}
@@ -163,6 +163,7 @@ export default function StatLineChart({
   yDomain,
 }: StatLineChartProps) {
   const isSingleSession = sessions.length === 1;
+  const animationName = `fillBar_${useId().replace(/:/g, "")}`;
 
   if (isSingleSession) {
     if (data.length === 1) {
@@ -285,7 +286,7 @@ export default function StatLineChart({
                   textShadow: `0 0 20px ${color}33`,
                 }}
               >
-                {singleValue.toFixed(1)}
+                {singleValue.toFixed(2)}
               </span>
               <span
                 style={{
@@ -317,8 +318,8 @@ export default function StatLineChart({
                   color: "#a0c4ac",
                 }}
               >
-                <span>Porcentaje de Rendimiento</span>
-                <span>{percentage.toFixed(0)}%</span>
+                <span>Rendimiento</span>
+                <span>{Math.floor(percentage)}%</span>
               </div>
 
               {/* Progress track */}
@@ -339,7 +340,7 @@ export default function StatLineChart({
                     background: `linear-gradient(90deg, ${color}88, ${color})`,
                     borderRadius: "5px",
                     boxShadow: `0 0 10px ${color}88`,
-                    animation: "fillBar 1s cubic-bezier(0.1, 0.8, 0.2, 1) forwards",
+                    animation: `${animationName} 1s cubic-bezier(0.1, 0.8, 0.2, 1) forwards`,
                   }}
                 />
               </div>
@@ -347,7 +348,7 @@ export default function StatLineChart({
           </div>
 
           <style>{`
-            @keyframes fillBar {
+            @keyframes ${animationName} {
               from { width: 0%; }
               to { width: ${percentage}%; }
             }

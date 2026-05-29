@@ -97,32 +97,32 @@ export default function PersonalTab({
     ? [
         {
           label: "Rating",
-          value: selectedPlayer.avgTotal.toFixed(1),
+          value: selectedPlayer.avgTotal.toFixed(2),
           color: "#00e676",
         },
         {
           label: "Habilidad Técnica",
-          value: selectedPlayer.avgTecnica.toFixed(1),
+          value: selectedPlayer.avgTecnica.toFixed(2),
           color: "#40c4ff",
         },
         {
           label: "Esfuerzo Físico",
-          value: selectedPlayer.avgFisico.toFixed(1),
+          value: selectedPlayer.avgFisico.toFixed(2),
           color: "#ff5252",
         },
         {
           label: "Actitud",
-          value: selectedPlayer.avgActitud.toFixed(1),
+          value: selectedPlayer.avgActitud.toFixed(2),
           color: "#ffab40",
         },
         {
           label: "Toma de Decisiones",
-          value: selectedPlayer.avgVision.toFixed(1),
+          value: selectedPlayer.avgVision.toFixed(2),
           color: "#ea80fc",
         },
         {
           label: "Asistencia",
-          value: `${attendancePercentage.toFixed(0)}% (${selectedPlayer.sessionsCount}/${totalSessions})`,
+          value: `${Math.floor(attendancePercentage)}% (${selectedPlayer.sessionsCount}/${totalSessions})`,
           color: "#a0c4ac",
         },
         {
