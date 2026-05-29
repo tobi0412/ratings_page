@@ -57,7 +57,7 @@ export async function getAllPlayersStats() {
       )
     `,
     )
-    .eq("role", "player");
+    .eq("status", "approved");
 
   const statsMap: { [key: string]: any } = {};
 

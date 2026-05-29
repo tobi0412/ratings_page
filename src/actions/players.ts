@@ -14,7 +14,6 @@ export async function getApprovedPlayers(): Promise<Profile[]> {
   const { data } = await supabaseAdmin
     .from("profiles")
     .select("*")
-    .eq("role", "player")
     .eq("status", "approved")
     .order("created_at", { ascending: true });
 
