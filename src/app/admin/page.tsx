@@ -6,7 +6,7 @@ import {
   getAllSessions,
   getActiveSessions,
 } from "@/actions/sessions";
-import { getAllPlayers, approvePlayer, rejectPlayer } from "@/actions/players";
+import { getAllPlayers, approvePlayer, rejectPlayer, getApprovedPlayers } from "@/actions/players";
 import { MatchSession, Profile } from "@/types";
 import { useEffect, useState } from "react";
 
@@ -24,6 +24,7 @@ export default function AdminPage() {
   // ── Jugadores state ───────────────────────────────────────────────────────
   const [players, setPlayers] = useState<Profile[]>([]);
   const [playersLoaded, setPlayersLoaded] = useState(false);
+  const [approvedPlayers, setApprovedPlayers] = useState<Profile[]>([]);
 
   // ── Shared ────────────────────────────────────────────────────────────────
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,13 @@ export default function AdminPage() {
   useEffect(() => {
     loadSessions();
     loadPlayers();
+    loadApprovedPlayers();
   }, []);
+
+  async function loadApprovedPlayers() {
+    const data = await getApprovedPlayers();
+    setApprovedPlayers(data);
+  }
 
   async function loadSessions() {
     const [all, active] = await Promise.all([
@@ -97,7 +104,7 @@ export default function AdminPage() {
     if (result.error) {
       alert("Error: " + result.error);
     } else {
-      await loadPlayers();
+      await Promise.all([loadPlayers(), loadApprovedPlayers()]);
     }
     setLoading(false);
   }
@@ -108,7 +115,7 @@ export default function AdminPage() {
     if (result.error) {
       alert("Error: " + result.error);
     } else {
-      await loadPlayers();
+      await Promise.all([loadPlayers(), loadApprovedPlayers()]);
     }
     setLoading(false);
   }
@@ -312,12 +319,12 @@ export default function AdminPage() {
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
                   <label className="label-sport">Jugadores Participantes</label>
-                  {approved.length > 0 && (
+                  {approvedPlayers.length > 0 && (
                     <button
                       type="button"
                       onClick={() => {
-                        const allSelected = approved.every(p => selectedPlayerIds.includes(p.id));
-                        setSelectedPlayerIds(allSelected ? [] : approved.map(p => p.id));
+                        const allSelected = approvedPlayers.every(p => selectedPlayerIds.includes(p.id));
+                        setSelectedPlayerIds(allSelected ? [] : approvedPlayers.map(p => p.id));
                       }}
                       style={{
                         background: "none",
@@ -332,12 +339,12 @@ export default function AdminPage() {
                         padding: 0,
                       }}
                     >
-                      {approved.every(p => selectedPlayerIds.includes(p.id)) ? "Deseleccionar todos" : "Seleccionar todos"}
+                      {approvedPlayers.every(p => selectedPlayerIds.includes(p.id)) ? "Deseleccionar todos" : "Seleccionar todos"}
                     </button>
                   )}
                 </div>
                 
-                {approved.length === 0 ? (
+                {approvedPlayers.length === 0 ? (
                   <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", padding: "0.5rem 0" }}>
                     No hay jugadores aprobados disponibles.
                   </div>
@@ -355,7 +362,7 @@ export default function AdminPage() {
                       gap: "0.5rem",
                     }}
                   >
-                    {approved.map((player) => {
+                    {approvedPlayers.map((player) => {
                       const isChecked = selectedPlayerIds.includes(player.id);
                       return (
                         <label
