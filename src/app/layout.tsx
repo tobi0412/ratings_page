@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Cotorra Analytics",
-  description: "Sistema de evaluación entre pares para equipos de fútbol",
+  description: "Rendimientos históricos de jugadores de Cotorra",
 };
 
 export default async function RootLayout({
