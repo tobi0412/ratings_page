@@ -2,6 +2,7 @@
 
 import { createSupabaseServerClient, supabaseAdmin } from "@/lib/supabase";
 import { getCurrentProfile } from "./auth";
+import { Profile } from "@/types";
 
 export async function getActiveSessions() {
   const supabase = createSupabaseServerClient();
@@ -22,12 +23,16 @@ export async function getAllSessions() {
   return data || [];
 }
 
-export async function createSession(name: string) {
+export async function createSession(name: string, playerIds: string[]) {
   const supabase = createSupabaseServerClient();
   const profile = await getCurrentProfile();
 
   if (!profile || profile.role !== "admin") {
     return { error: "Only admins can create sessions" };
+  }
+
+  if (!playerIds || playerIds.length === 0) {
+    return { error: "Deberías seleccionar al menos un jugador para la sesión." };
   }
 
   // Close any active session
@@ -36,7 +41,7 @@ export async function createSession(name: string) {
     .update({ is_active: false, closed_at: new Date().toISOString() })
     .eq("is_active", true);
 
-  const { data, error } = await supabase
+  const { data: sessionData, error: sessionError } = await supabase
     .from("match_sessions")
     .insert({
       name,
@@ -46,11 +51,27 @@ export async function createSession(name: string) {
     .select()
     .single();
 
-  if (error) {
-    return { error: error.message };
+  if (sessionError) {
+    return { error: sessionError.message };
   }
 
-  return { data, success: true };
+  // Insert participants
+  const participants = playerIds.map((playerId) => ({
+    match_id: sessionData.id,
+    player_id: playerId,
+  }));
+
+  const { error: participantsError } = await supabase
+    .from("session_participants")
+    .insert(participants);
+
+  if (participantsError) {
+    // Cleanup match session if participants creation failed
+    await supabase.from("match_sessions").delete().eq("id", sessionData.id);
+    return { error: participantsError.message };
+  }
+
+  return { data: sessionData, success: true };
 }
 
 export async function closeSession(sessionId: string) {
@@ -81,4 +102,15 @@ export async function closeSession(sessionId: string) {
   });
 
   return { data, success: true };
+}
+
+export async function getSessionParticipants(sessionId: string): Promise<Profile[]> {
+  const supabase = createSupabaseServerClient();
+  const { data } = await supabase
+    .from("session_participants")
+    .select("player:profiles(*)")
+    .eq("match_id", sessionId);
+
+  if (!data) return [];
+  return data.map((d: any) => d.player).filter(Boolean) as Profile[];
 }
