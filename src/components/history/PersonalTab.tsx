@@ -1,19 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { MatchSession, HistoricalRating, Profile } from "@/types";
+import { MatchSession, HistoricalRating, PlayerStats } from "@/types";
 import StatLineChart from "@/components/charts/StatLineChart";
 import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon } from "@/components/Icons";
-
-interface PlayerStats {
-  profile: Profile;
-  avgTotal: number;
-  avgTecnica: number;
-  avgFisico: number;
-  avgActitud: number;
-  avgVision: number;
-  mvpCount: number;
-}
 
 interface PersonalTabProps {
   sessions: MatchSession[];
@@ -98,6 +88,11 @@ export default function PersonalTab({
     },
   ];
 
+  const totalSessions = sessions.length;
+  const attendancePercentage = totalSessions > 0 && selectedPlayer
+    ? (selectedPlayer.sessionsCount / totalSessions) * 100
+    : 0;
+
   const statCards = selectedPlayer
     ? [
         {
@@ -124,6 +119,11 @@ export default function PersonalTab({
           label: "Toma de Decisiones",
           value: selectedPlayer.avgVision.toFixed(1),
           color: "#ea80fc",
+        },
+        {
+          label: "Asistencia",
+          value: `${attendancePercentage.toFixed(0)}% (${selectedPlayer.sessionsCount}/${totalSessions})`,
+          color: "#a0c4ac",
         },
         {
           label: "MVPs",
