@@ -9,6 +9,7 @@ import {
 import { getAllPlayers, approvePlayer, rejectPlayer, getApprovedPlayers } from "@/actions/players";
 import { MatchSession, Profile } from "@/types";
 import { useEffect, useState } from "react";
+import { SoccerBallIcon, UsersIcon, HourglassIcon, CheckIcon, XIcon } from "@/components/Icons";
 
 type Tab = "sesiones" | "jugadores";
 
@@ -195,7 +196,14 @@ export default function AdminPage() {
               marginBottom: "-1px",
             }}
           >
-            {tab === "sesiones" ? "⚽ Sesiones" : "👥 Jugadores"}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+              {tab === "sesiones" ? (
+                <SoccerBallIcon size={16} style={{ color: activeTab === tab ? "var(--accent-lime)" : "var(--text-muted)" }} />
+              ) : (
+                <UsersIcon size={16} style={{ color: activeTab === tab ? "var(--accent-lime)" : "var(--text-muted)" }} />
+              )}
+              <span>{tab === "sesiones" ? "Sesiones" : "Jugadores"}</span>
+            </div>
           </button>
         ))}
       </div>
@@ -225,7 +233,17 @@ export default function AdminPage() {
                     gap: "0.85rem",
                   }}
                 >
-                  <span style={{ fontSize: "1.5rem" }}>🟢</span>
+                  <span
+                    style={{
+                      width: "12px",
+                      height: "12px",
+                      borderRadius: "50%",
+                      background: "#00e676",
+                      boxShadow: "0 0 10px #00e676",
+                      display: "inline-block",
+                      flexShrink: 0,
+                    }}
+                  />
                   <div>
                     <div
                       style={{
@@ -539,7 +557,7 @@ export default function AdminPage() {
               {/* Pendientes */}
               <PlayerSection
                 title="Pendientes"
-                icon="⏳"
+                icon={<HourglassIcon size={16} style={{ color: "#ffab40" }} />}
                 players={pending}
                 emptyMessage="No hay jugadores pendientes"
                 loading={loading}
@@ -560,7 +578,7 @@ export default function AdminPage() {
               {/* Aprobados */}
               <PlayerSection
                 title="Aprobados"
-                icon="✅"
+                icon={<CheckIcon size={16} style={{ color: "#00e676" }} />}
                 players={approved}
                 emptyMessage="No hay jugadores aprobados"
                 loading={loading}
@@ -575,7 +593,7 @@ export default function AdminPage() {
               {/* Rechazados */}
               <PlayerSection
                 title="Rechazados"
-                icon="❌"
+                icon={<XIcon size={16} style={{ color: "#ff5252" }} />}
                 players={rejected}
                 emptyMessage="No hay jugadores rechazados"
                 loading={loading}
@@ -605,7 +623,7 @@ interface PlayerAction {
 
 interface PlayerSectionProps {
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   players: Profile[];
   emptyMessage: string;
   loading: boolean;
@@ -637,7 +655,7 @@ function PlayerSection({
             gap: "0.5rem",
           }}
         >
-          <span style={{ fontSize: "1.1rem" }}>{icon}</span>
+          <span style={{ display: "inline-flex", alignItems: "center", flexShrink: 0 }}>{icon}</span>
           {title}
           <span
             style={{

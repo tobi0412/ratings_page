@@ -4,6 +4,7 @@ import { signOut } from "@/actions/auth";
 import { Profile } from "@/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SoccerBallIcon } from "@/components/Icons";
 
 interface NavbarProps {
   profile: Profile | null;
@@ -50,14 +51,13 @@ export default function Navbar({ profile }: NavbarProps) {
             textDecoration: "none",
           }}
         >
-          <span
+          <SoccerBallIcon
+            size="1.6rem"
             style={{
-              fontSize: "1.6rem",
-              lineHeight: 1,
+              color: "#00e676",
+              display: "inline-block",
             }}
-          >
-            ⚽
-          </span>
+          />
           <span
             style={{
               fontFamily: "'Bebas Neue', sans-serif",

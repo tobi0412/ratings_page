@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   LineChart,
   Line,
@@ -20,7 +21,7 @@ interface StatLineChartProps {
     color: string;
     values: { sessionId: string; value: number | null }[];
   }[];
-  label: string;
+  label: React.ReactNode;
   yDomain?: [number, number];
 }
 

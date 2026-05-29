@@ -1,6 +1,7 @@
 "use client";
 
 import { Profile } from "@/types";
+import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon, MedalIcon } from "@/components/Icons";
 
 interface PlayerStats {
   profile: Profile;
@@ -23,13 +24,13 @@ function ratingColor(val: number): string {
 }
 
 const HEADERS = [
-  { label: "Jugador", align: "left" },
-  { label: "Rating", align: "center" },
-  { label: "🎯 Hab. Técnica", align: "center" },
-  { label: "💪 Esf. Físico", align: "center" },
-  { label: "🔥 Actitud", align: "center" },
-  { label: "🧠 Toma de Decisiones", align: "center" },
-  { label: "⭐ MVPs", align: "center" },
+  { label: "Jugador", icon: null, align: "left" },
+  { label: "Rating", icon: null, align: "center" },
+  { label: "Hab. Técnica", icon: <TargetIcon size={14} style={{ color: "#40c4ff" }} />, align: "center" },
+  { label: "Esf. Físico", icon: <DumbbellIcon size={14} style={{ color: "#ff5252" }} />, align: "center" },
+  { label: "Actitud", icon: <FlameIcon size={14} style={{ color: "#ffab40" }} />, align: "center" },
+  { label: "Toma de Decisiones", icon: <BrainIcon size={14} style={{ color: "#ea80fc" }} />, align: "center" },
+  { label: "MVPs", icon: <StarIcon size={14} filled style={{ color: "#ffc93c" }} />, align: "center" },
 ];
 
 export default function ComparisonTable({ stats }: ComparisonTableProps) {
@@ -67,7 +68,10 @@ export default function ComparisonTable({ stats }: ComparisonTableProps) {
                   whiteSpace: "nowrap",
                 }}
               >
-                {h.label}
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", justifyContent: h.align === "center" ? "center" : "flex-start" }}>
+                  {h.icon}
+                  <span>{h.label}</span>
+                </div>
               </th>
             ))}
           </tr>
@@ -104,18 +108,23 @@ export default function ComparisonTable({ stats }: ComparisonTableProps) {
                         index === 0
                           ? "#ffc93c"
                           : index === 1
-                            ? "#a8c0ff"
+                            ? "#a0c4ac"
                             : "#3d6e50",
                       minWidth: "20px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    {index === 0
-                      ? "🥇"
-                      : index === 1
-                        ? "🥈"
-                        : index === 2
-                          ? "🥉"
-                          : `#${index + 1}`}
+                    {index === 0 ? (
+                      <MedalIcon size={16} style={{ color: "#ffc93c" }} />
+                    ) : index === 1 ? (
+                      <MedalIcon size={16} style={{ color: "#a0c4ac" }} />
+                    ) : index === 2 ? (
+                      <MedalIcon size={16} style={{ color: "#ff6e40" }} />
+                    ) : (
+                      `#${index + 1}`
+                    )}
                   </span>
                   <div
                     style={{

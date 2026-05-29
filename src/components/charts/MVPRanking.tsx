@@ -1,5 +1,7 @@
 "use client";
 
+import { MedalIcon } from "@/components/Icons";
+
 interface MVPEntry {
   player_id: string;
   username: string;
@@ -8,13 +10,6 @@ interface MVPEntry {
 
 interface MVPRankingProps {
   topMVPs: MVPEntry[];
-}
-
-function rankLabel(index: number): string {
-  if (index === 0) return "🥇";
-  if (index === 1) return "🥈";
-  if (index === 2) return "🥉";
-  return `#${index + 1}`;
 }
 
 export default function MVPRanking({ topMVPs }: MVPRankingProps) {
@@ -60,10 +55,20 @@ export default function MVPRanking({ topMVPs }: MVPRankingProps) {
                 fontSize: "1rem",
                 color: "#3d6e50",
                 minWidth: "28px",
-                textAlign: "center",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              {rankLabel(index)}
+              {index === 0 ? (
+                <MedalIcon size={18} style={{ color: "#ffc93c" }} />
+              ) : index === 1 ? (
+                <MedalIcon size={18} style={{ color: "#a0c4ac" }} />
+              ) : index === 2 ? (
+                <MedalIcon size={18} style={{ color: "#ff6e40" }} />
+              ) : (
+                `#${index + 1}`
+              )}
             </span>
             <span
               style={{

@@ -1,6 +1,7 @@
 "use client";
 
 import { MatchSession } from "@/types";
+import { HourglassIcon, SoccerBallIcon } from "@/components/Icons";
 
 interface SessionStatusProps {
   session: MatchSession | null;
@@ -20,7 +21,10 @@ export default function SessionStatus({ session }: SessionStatusProps) {
           gap: "0.75rem",
         }}
       >
-        <span style={{ fontSize: "1.25rem" }}>⏳</span>
+        <HourglassIcon
+          size="1.25rem"
+          style={{ color: "#ffab40", flexShrink: 0 }}
+        />
         <div>
           <p
             style={{
@@ -64,7 +68,10 @@ export default function SessionStatus({ session }: SessionStatusProps) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <span style={{ fontSize: "1.5rem" }}>⚽</span>
+          <SoccerBallIcon
+            size="1.5rem"
+            style={{ color: "#00e676", flexShrink: 0 }}
+          />
           <div>
             <div
               style={{

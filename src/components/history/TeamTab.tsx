@@ -4,6 +4,7 @@ import { MatchSession, HistoricalRating, Profile } from "@/types";
 import StatLineChart from "@/components/charts/StatLineChart";
 import MVPRanking from "@/components/charts/MVPRanking";
 import ComparisonTable from "@/components/charts/ComparisonTable";
+import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon } from "@/components/Icons";
 
 interface PlayerStats {
   profile: Profile;
@@ -119,22 +120,42 @@ export default function TeamTab({
           }}
         >
           <StatLineChart
-            label="🎯 Habilidad Técnica"
+            label={
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                <TargetIcon size={14} style={{ color: "#40c4ff" }} />
+                <span>Habilidad Técnica</span>
+              </span>
+            }
             sessions={sessions}
             data={buildAllPlayersSeries("avg_tecnica")}
           />
           <StatLineChart
-            label="💪 Esfuerzo Físico"
+            label={
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                <DumbbellIcon size={14} style={{ color: "#ff5252" }} />
+                <span>Esfuerzo Físico</span>
+              </span>
+            }
             sessions={sessions}
             data={buildAllPlayersSeries("avg_fisico")}
           />
           <StatLineChart
-            label="🔥 Actitud"
+            label={
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                <FlameIcon size={14} style={{ color: "#ffab40" }} />
+                <span>Actitud</span>
+              </span>
+            }
             sessions={sessions}
             data={buildAllPlayersSeries("avg_actitud")}
           />
           <StatLineChart
-            label="🧠 Toma de Decisiones"
+            label={
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                <BrainIcon size={14} style={{ color: "#ea80fc" }} />
+                <span>Toma de Decisiones</span>
+              </span>
+            }
             sessions={sessions}
             data={buildAllPlayersSeries("avg_vision_juego")}
           />

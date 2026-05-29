@@ -1,5 +1,6 @@
 import LoginForm from "@/components/auth/LoginForm";
 import Link from "next/link";
+import { SoccerBallIcon } from "@/components/Icons";
 
 export default function LoginPage() {
   return (
@@ -50,11 +51,10 @@ export default function LoginPage() {
               borderRadius: "16px",
               background: "rgba(0,230,118,0.1)",
               border: "1px solid rgba(0,230,118,0.25)",
-              fontSize: "2rem",
               marginBottom: "1rem",
             }}
           >
-            ⚽
+            <SoccerBallIcon size="2rem" style={{ color: "#00e676" }} />
           </div>
           <h1
             style={{

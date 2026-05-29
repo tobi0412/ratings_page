@@ -1043,7 +1043,7 @@ export default function VotingCard({
           className="w-4 h-4"
         />
         <label htmlFor={`mvp-${receiver.id}`} className="text-sm">
-          MVP del partido
+          MVP de la sesión
         </label>
       </div>
 

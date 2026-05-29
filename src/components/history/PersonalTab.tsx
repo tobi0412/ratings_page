@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MatchSession, HistoricalRating, Profile } from "@/types";
 import StatLineChart from "@/components/charts/StatLineChart";
+import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon } from "@/components/Icons";
 
 interface PlayerStats {
   profile: Profile;
@@ -201,7 +202,12 @@ export default function PersonalTab({
             }}
           >
             <StatLineChart
-              label="🎯 Habilidad Técnica"
+              label={
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                  <TargetIcon size={14} style={{ color: "#40c4ff" }} />
+                  <span>Habilidad Técnica</span>
+                </span>
+              }
               data={buildSeries(
                 selectedPlayerId,
                 "avg_tecnica",
@@ -211,7 +217,12 @@ export default function PersonalTab({
               sessions={sessions}
             />
             <StatLineChart
-              label="💪 Esfuerzo Físico"
+              label={
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                  <DumbbellIcon size={14} style={{ color: "#ff5252" }} />
+                  <span>Esfuerzo Físico</span>
+                </span>
+              }
               data={buildSeries(
                 selectedPlayerId,
                 "avg_fisico",
@@ -221,7 +232,12 @@ export default function PersonalTab({
               sessions={sessions}
             />
             <StatLineChart
-              label="🔥 Actitud"
+              label={
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                  <FlameIcon size={14} style={{ color: "#ffab40" }} />
+                  <span>Actitud</span>
+                </span>
+              }
               data={buildSeries(
                 selectedPlayerId,
                 "avg_actitud",
@@ -231,7 +247,12 @@ export default function PersonalTab({
               sessions={sessions}
             />
             <StatLineChart
-              label="🧠 Toma de Decisiones"
+              label={
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                  <BrainIcon size={14} style={{ color: "#ea80fc" }} />
+                  <span>Toma de Decisiones</span>
+                </span>
+              }
               data={buildSeries(
                 selectedPlayerId,
                 "avg_vision_juego",

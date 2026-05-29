@@ -312,7 +312,7 @@ src/
    - Each card has:
      - Player name + avatar
      - 4 sliders/inputs (técnica, físico, actitud, visión_juego) 1-10
-     - Checkbox "MVP del partido"
+     - Checkbox "MVP de la sesión"
      - "Guardar" button
    - Show feedback: "Voto guardado"
 

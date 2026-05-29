@@ -3,6 +3,7 @@
 import { submitRating } from "@/actions/ratings";
 import { Profile, Rating } from "@/types";
 import { useState } from "react";
+import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon, CheckIcon } from "@/components/Icons";
 
 interface VotingCardProps {
   receiver: Profile;
@@ -18,11 +19,11 @@ const METRIC_LABELS: Record<string, string> = {
   vision_juego: "Toma de Decisiones",
 };
 
-const METRIC_ICONS: Record<string, string> = {
-  tecnica: "🎯",
-  fisico: "💪",
-  actitud: "🔥",
-  vision_juego: "🧠",
+const METRIC_ICONS: Record<string, React.ReactNode> = {
+  tecnica: <TargetIcon size={14} style={{ color: "#40c4ff" }} />,
+  fisico: <DumbbellIcon size={14} style={{ color: "#ff5252" }} />,
+  actitud: <FlameIcon size={14} style={{ color: "#ffab40" }} />,
+  vision_juego: <BrainIcon size={14} style={{ color: "#ea80fc" }} />,
 };
 
 function getRatingColor(value: number) {
@@ -146,9 +147,13 @@ export default function VotingCard({
                   color: "#00e676",
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.25rem",
                 }}
               >
-                ✓ Guardado
+                <CheckIcon size={10} strokeWidth={3} />
+                Guardado
               </span>
             )}
           </div>
@@ -216,9 +221,13 @@ export default function VotingCard({
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
                     color: "#3d6e50",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.4rem",
                   }}
                 >
-                  {METRIC_ICONS[metric]} {METRIC_LABELS[metric]}
+                  {METRIC_ICONS[metric]}
+                  <span>{METRIC_LABELS[metric]}</span>
                 </span>
                 <span
                   style={{
@@ -272,7 +281,14 @@ export default function VotingCard({
           onChange={(e) => setIsMvp(e.target.checked)}
           style={{ display: "none" }}
         />
-        <span style={{ fontSize: "1.1rem" }}>{isMvp ? "⭐" : "☆"}</span>
+        <StarIcon
+          size="1.1rem"
+          filled={isMvp}
+          style={{
+            color: isMvp ? "#ffc93c" : "#3d6e50",
+            transition: "all 0.2s ease",
+          }}
+        />
         <span
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
@@ -284,7 +300,7 @@ export default function VotingCard({
             transition: "color 0.2s ease",
           }}
         >
-          MVP del partido
+          MVP de la sesión
         </span>
       </label>
 
@@ -311,11 +327,23 @@ export default function VotingCard({
         className="btn-lime"
         style={{ width: "100%" }}
       >
-        {loading
-          ? "Guardando..."
-          : saved
-            ? "✓ Actualizar voto"
-            : "Guardar voto"}
+        {loading ? (
+          "Guardando..."
+        ) : saved ? (
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              justifyContent: "center",
+            }}
+          >
+            <CheckIcon size={14} strokeWidth={3} />
+            Actualizar voto
+          </span>
+        ) : (
+          "Guardar voto"
+        )}
       </button>
     </div>
   );

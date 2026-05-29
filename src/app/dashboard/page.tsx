@@ -156,7 +156,7 @@ export default function DashboardPage() {
               margin: 0,
             }}
           >
-            No participaste en este partido, por lo que no podés votar en esta sesión.
+            No participaste de la sesión, por lo que no podés votar.
           </p>
         </div>
       </div>
@@ -199,7 +199,7 @@ export default function DashboardPage() {
             margin: 0,
           }}
         >
-          Evaluá el rendimiento de tus compañeros en este partido.
+          Evaluá el rendimiento de tus compañeros en esta sesión.
         </p>
       </div>
 

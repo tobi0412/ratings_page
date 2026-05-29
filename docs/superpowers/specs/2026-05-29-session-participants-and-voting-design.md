@@ -216,7 +216,7 @@ export async function getSessionParticipants(sessionId: string): Promise<Profile
 ### 2. Dashboard Page (`src/app/dashboard/page.tsx`)
 - Call `getSessionParticipants(activeSession.id)` to load participants.
 - Check if the current user is a participant.
-- If not a participant: set `isParticipant` state to `false` and show the "No participaste en este partido" card instead of the voting grid.
+- If not a participant: set `isParticipant` state to `false` and show the "No participaste de la sesión" card instead of the voting grid.
 - If a participant: filter the list of voting cards to display only other session participants.
 
 ---
@@ -237,4 +237,4 @@ export async function getSessionParticipants(sessionId: string): Promise<Profile
      - Verify they see Player B as the only player they can vote on.
      - Verify they can successfully submit a vote.
    - Log in as Player C (who did not play):
-     - Verify they see the message: "No participaste en este partido, por lo que no podés votar."
+     - Verify they see the message: "No participaste de la sesión, por lo que no podés votar."
