@@ -114,3 +114,66 @@ export async function getSessionParticipants(sessionId: string): Promise<Profile
   if (!data) return [];
   return data.map((d: any) => d.player).filter(Boolean) as Profile[];
 }
+
+export async function getLastClosedSessionStatus() {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("match_sessions")
+    .select("id, name, closed_at, mystery_player_id")
+    .eq("is_active", false)
+    .order("closed_at", { ascending: false })
+    .limit(1);
+
+  if (error || !data || data.length === 0) {
+    return null;
+  }
+  
+  const session = data[0];
+  return {
+    id: session.id,
+    name: session.name,
+    closed_at: session.closed_at,
+    hasMysteryPlayer: !!session.mystery_player_id,
+  };
+}
+
+export async function revealMysteryVote(sessionId: string) {
+  const supabase = createSupabaseServerClient();
+  
+  // 1. Fetch session to get mystery_player_id
+  const { data: sessionData, error: sessionError } = await supabase
+    .from("match_sessions")
+    .select("mystery_player_id")
+    .eq("id", sessionId)
+    .single();
+
+  if (sessionError || !sessionData?.mystery_player_id) {
+    return { error: "No mystery player found for this session" };
+  }
+
+  const mysteryPlayerId = sessionData.mystery_player_id;
+
+  // 2. Fetch voter profile
+  const { data: voterProfile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, username, avatar_url")
+    .eq("id", mysteryPlayerId)
+    .single();
+
+  if (profileError || !voterProfile) {
+    return { error: "Voter profile not found" };
+  }
+
+  // 3. Fetch votes cast by this mystery player
+  const { data: votes, error: votesError } = await supabase
+    .from("ratings")
+    .select("*, receiver:profiles!ratings_receiver_id_fkey(*)")
+    .eq("match_id", sessionId)
+    .eq("voter_id", mysteryPlayerId);
+
+  if (votesError) {
+    return { error: votesError.message };
+  }
+
+  return { voter: voterProfile, votes: votes || [] };
+}

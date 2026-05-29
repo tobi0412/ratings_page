@@ -15,6 +15,7 @@ import {
   Cell,
 } from "recharts";
 import { MatchSession } from "@/types";
+import { StarIcon, FlameIcon, ThumbsUpIcon, TrendingUpIcon, AlertTriangleIcon } from "@/components/Icons";
 
 interface StatLineChartProps {
   sessions: MatchSession[];
@@ -173,19 +174,24 @@ export default function StatLineChart({
       const percentage = (singleValue / 10) * 100;
 
       // Determine visual tier
-      let tierText = "Clase Mundial 🌟";
+      let tierText = "Clase Mundial";
+      let tierIcon: React.ReactNode = <StarIcon size="0.85rem" filled style={{ color: "#00e676" }} />;
       let tierColor = "#00e676";
       if (singleValue < 9.0 && singleValue >= 8.0) {
-        tierText = "Destacado 🔥";
+        tierText = "Destacado";
+        tierIcon = <FlameIcon size="0.85rem" style={{ color: "#40c4ff" }} />;
         tierColor = "#40c4ff";
       } else if (singleValue < 8.0 && singleValue >= 7.0) {
-        tierText = "Buen Rendimiento 👍";
+        tierText = "Buen Rendimiento";
+        tierIcon = <ThumbsUpIcon size="0.85rem" style={{ color: "#ffab40" }} />;
         tierColor = "#ffab40";
       } else if (singleValue < 7.0 && singleValue >= 6.0) {
-        tierText = "Regular 📈";
+        tierText = "Regular";
+        tierIcon = <TrendingUpIcon size="0.85rem" style={{ color: "#a0c4ac" }} />;
         tierColor = "#a0c4ac";
       } else if (singleValue < 6.0) {
-        tierText = "Bajo promedio ⚠️";
+        tierText = "Bajo promedio";
+        tierIcon = <AlertTriangleIcon size="0.85rem" style={{ color: "#ff5252" }} />;
         tierColor = "#ff5252";
       }
 
@@ -258,7 +264,10 @@ export default function StatLineChart({
                 textTransform: "uppercase",
               }}
             >
-              {tierText}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                {tierText}
+                {tierIcon}
+              </span>
             </span>
           </div>
 

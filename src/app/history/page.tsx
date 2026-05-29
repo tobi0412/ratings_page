@@ -8,6 +8,7 @@ import {
 import { getCurrentProfile } from "@/actions/auth";
 import PersonalTab from "@/components/history/PersonalTab";
 import TeamTab from "@/components/history/TeamTab";
+import { ChartBarIcon } from "@/components/Icons";
 import { HistoricalRating, MatchSession } from "@/types";
 import { useEffect, useState } from "react";
 
@@ -120,7 +121,7 @@ export default function HistoryPage() {
           className="card-sport animate-slide-up stagger-1"
           style={{ padding: "3rem 2rem", textAlign: "center" }}
         >
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📊</div>
+          <ChartBarIcon size="3rem" style={{ color: "#3d6e50", marginBottom: "1rem" }} />
           <h3
             style={{
               fontFamily: "'Bebas Neue', sans-serif",

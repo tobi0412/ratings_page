@@ -6,6 +6,8 @@ import { getCurrentProfile } from "@/actions/auth";
 import SessionStatus from "@/components/session/SessionStatus";
 import VotingCard from "@/components/session/VotingCard";
 import VotingProgress from "@/components/session/VotingProgress";
+import MysteryVoteWidget from "@/components/session/MysteryVoteWidget";
+import { BanIcon, StadiumIcon } from "@/components/Icons";
 import { MatchSession, Profile, Rating } from "@/types";
 import { useEffect, useState } from "react";
 
@@ -91,9 +93,13 @@ export default function DashboardPage() {
           maxWidth: "640px",
           margin: "0 auto",
           padding: "2.5rem 1.25rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1.5rem",
         }}
       >
         <SessionStatus session={null} />
+        <MysteryVoteWidget />
       </div>
     );
   }
@@ -136,7 +142,7 @@ export default function DashboardPage() {
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🚫</div>
+          <BanIcon size="3rem" style={{ color: "#ff5252", marginBottom: "1rem" }} />
           <h3
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
@@ -265,7 +271,7 @@ export default function DashboardPage() {
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🏟</div>
+          <StadiumIcon size="3rem" style={{ color: "#3d6e50", marginBottom: "1rem" }} />
           <h3
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
