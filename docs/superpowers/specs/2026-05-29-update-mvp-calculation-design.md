@@ -1,61 +1,27 @@
--- 1. Create table session_participants
-CREATE TABLE IF NOT EXISTS session_participants (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  match_id UUID NOT NULL REFERENCES match_sessions(id) ON DELETE CASCADE,
-  player_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  CONSTRAINT unique_match_player UNIQUE(match_id, player_id)
-);
+# Design: Update MVP Calculation Flow
 
--- 2. Performance Indexes
-CREATE INDEX IF NOT EXISTS idx_session_participants_match ON session_participants(match_id);
-CREATE INDEX IF NOT EXISTS idx_session_participants_player ON session_participants(player_id);
+Change the MVP logic when a session is closed. Instead of storing the raw count of individual MVP votes per player in the `historical_ratings` table, we aggregate the votes to determine the winner(s) of the session MVP. The MVP is awarded according to these rules:
+1. When a session is closed, sum the MVP votes (`is_mvp = true` in the `ratings` table) for each participant in that session.
+2. If one player is the most voted and has more than 0 votes, they receive 1 MVP for that session.
+3. If there is a tie between exactly 2 players (both having the maximum number of votes and > 0 votes), both players receive 1 MVP.
+4. If there is a tie between 3 or more players, or if no MVP votes were cast at all, no one receives an MVP (all participants get 0 MVPs).
 
--- 3. Enable RLS and add policies
-ALTER TABLE session_participants ENABLE ROW LEVEL SECURITY;
+## Requirements
 
-DROP POLICY IF EXISTS "All authenticated read session participants" ON session_participants;
-CREATE POLICY "All authenticated read session participants"
-  ON session_participants FOR SELECT
-  TO authenticated
-  USING (true);
+1. **Database Function Update**: Modify `compute_historical_ratings(session_id UUID)` to perform the conditional MVP assignment logic using PostgreSQL CTEs.
+2. **Backward Compatibility**: Ensure that the `historical_ratings.mvp_count` column structure remains unchanged (it stores the integer MVP award for a player in a session, which is now either `1` or `0` instead of the raw vote count).
+3. **No Codebase Commit**: Do not commit any changes to Git, leaving them unstaged for the user's review.
 
-DROP POLICY IF EXISTS "Only admin manages session participants" ON session_participants;
-CREATE POLICY "Only admin manages session participants"
-  ON session_participants FOR ALL
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE auth_id = (SELECT auth.uid()) AND role = 'admin'
-    )
-  );
+---
 
--- 4. Restrict voting via ratings INSERT policy
-DROP POLICY IF EXISTS "Players vote for others in active sessions" ON ratings;
+## Proposed Changes
 
-CREATE POLICY "Players vote for others in active sessions"
-  ON ratings FOR INSERT
-  TO authenticated
-  WITH CHECK (
-    voter_id = (SELECT id FROM profiles WHERE auth_id = (SELECT auth.uid()))
-    AND voter_id != receiver_id
-    AND (SELECT status FROM profiles WHERE auth_id = (SELECT auth.uid())) = 'approved'
-    AND EXISTS (
-      SELECT 1 FROM match_sessions WHERE id = match_id AND is_active = true
-    )
-    -- Verify both voter and receiver are registered participants
-    AND EXISTS (
-      SELECT 1 FROM session_participants
-      WHERE match_id = ratings.match_id AND player_id = ratings.voter_id
-    )
-    AND EXISTS (
-      SELECT 1 FROM session_participants
-      WHERE match_id = ratings.match_id AND player_id = ratings.receiver_id
-    )
-  );
+### Database Migration
 
--- 5. Update compute_historical_ratings function
+#### [MODIFY] [005_add_session_participants.sql](file:///c:/Users/tobia/Desktop/Ratings_Cotorra/supabase/migrations/005_add_session_participants.sql)
+Replace the existing definition of the `compute_historical_ratings` function with the updated SQL query using CTEs:
+
+```sql
 CREATE OR REPLACE FUNCTION compute_historical_ratings(session_id UUID)
 RETURNS void AS $$
 BEGIN
@@ -126,3 +92,19 @@ BEGIN
     computed_at      = NOW();
 END;
 $$ LANGUAGE plpgsql;
+```
+
+---
+
+## Verification Plan
+
+### Automated Verification
+* Ensure the project builds successfully by running `npm run build` or `npm run lint`.
+
+### Manual Verification
+1. **Apply the updated function** locally.
+2. **Execute tests/scenarios**:
+   * **Scenario A (Single Winner)**: Player A gets 2 votes, Player B gets 1 vote. Verify Player A has `mvp_count = 1` and Player B has `mvp_count = 0` in `historical_ratings`.
+   * **Scenario B (2-Way Tie)**: Player A gets 2 votes, Player B gets 2 votes. Verify both have `mvp_count = 1` in `historical_ratings`.
+   * **Scenario C (3-Way Tie)**: Player A gets 2 votes, Player B gets 2 votes, Player C gets 2 votes. Verify all have `mvp_count = 0` in `historical_ratings`.
+   * **Scenario D (No MVP Votes Cast)**: No player receives any MVP votes. Verify all have `mvp_count = 0` in `historical_ratings`.
