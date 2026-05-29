@@ -172,7 +172,17 @@ export default function DashboardPage() {
                 existingRating={myVotes.find(
                   (v) => v.receiver_id === player.id,
                 )}
-                onSuccess={() => {}}
+                onSuccess={(newRating) => {
+                  setMyVotes((prev) => {
+                    const exists = prev.some((v) => v.receiver_id === newRating.receiver_id);
+                    if (exists) {
+                      return prev.map((v) =>
+                        v.receiver_id === newRating.receiver_id ? newRating : v
+                      );
+                    }
+                    return [...prev, newRating];
+                  });
+                }}
               />
             ))}
           </div>
