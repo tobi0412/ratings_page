@@ -1,9 +1,8 @@
 "use client";
 
-import { getActiveSessions } from "@/actions/sessions";
+import { getActiveSessions, getSessionParticipants } from "@/actions/sessions";
 import { getPlayerVotes } from "@/actions/ratings";
 import { getCurrentProfile } from "@/actions/auth";
-import { getApprovedPlayers } from "@/actions/players";
 import SessionStatus from "@/components/session/SessionStatus";
 import VotingCard from "@/components/session/VotingCard";
 import VotingProgress from "@/components/session/VotingProgress";
@@ -14,6 +13,7 @@ export default function DashboardPage() {
   const [session, setSession] = useState<MatchSession | null>(null);
   const [players, setPlayers] = useState<Profile[]>([]);
   const [myVotes, setMyVotes] = useState<Rating[]>([]);
+  const [isParticipant, setIsParticipant] = useState(true);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,12 +29,17 @@ export default function DashboardPage() {
       const activeSession = sessionsData[0];
       setSession(activeSession);
 
-      const votesData = await getPlayerVotes(activeSession.id, profileData.id);
-      setMyVotes(votesData);
+      const participants = await getSessionParticipants(activeSession.id);
+      const participating = participants.some((p) => p.id === profileData.id);
+      setIsParticipant(participating);
 
-      const allPlayers = await getApprovedPlayers();
-      // Exclude yourself from the voting list
-      setPlayers(allPlayers.filter((p) => p.id !== profileData.id));
+      if (participating) {
+        const votesData = await getPlayerVotes(activeSession.id, profileData.id);
+        setMyVotes(votesData);
+
+        // Exclude yourself from the voting list
+        setPlayers(participants.filter((p) => p.id !== profileData.id));
+      }
       setLoading(false);
     }
 
@@ -89,6 +94,71 @@ export default function DashboardPage() {
         }}
       >
         <SessionStatus session={null} />
+      </div>
+    );
+  }
+
+  if (!isParticipant) {
+    return (
+      <div
+        style={{
+          maxWidth: "640px",
+          margin: "0 auto",
+          padding: "2.5rem 1.25rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1.5rem",
+        }}
+      >
+        <div className="animate-slide-up">
+          <h1
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "2.6rem",
+              letterSpacing: "0.06em",
+              color: "#e4f0e8",
+              margin: "0 0 0.25rem",
+              lineHeight: 1,
+            }}
+          >
+            Votación
+          </h1>
+        </div>
+
+        <div className="animate-slide-up stagger-1">
+          <SessionStatus session={session} />
+        </div>
+
+        <div
+          className="card-sport animate-slide-up stagger-2"
+          style={{
+            padding: "3rem 2rem",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🚫</div>
+          <h3
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "1.6rem",
+              color: "#e4f0e8",
+              margin: "0 0 0.5rem",
+              letterSpacing: "0.05em",
+            }}
+          >
+            No participaste
+          </h3>
+          <p
+            style={{
+              fontFamily: "'Barlow', sans-serif",
+              fontSize: "0.9rem",
+              color: "#3d6e50",
+              margin: 0,
+            }}
+          >
+            No participaste en este partido, por lo que no podés votar en esta sesión.
+          </p>
+        </div>
       </div>
     );
   }
