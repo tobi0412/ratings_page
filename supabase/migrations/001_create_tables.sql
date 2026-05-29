@@ -16,12 +16,7 @@ CREATE TABLE match_sessions (
   created_by UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT NOW(),
   closed_at TIMESTAMP,
-  is_active BOOLEAN DEFAULT true,
-  CONSTRAINT only_one_active CHECK (
-    NOT (is_active = true AND (
-      SELECT COUNT(*) FROM match_sessions WHERE is_active = true AND id != match_sessions.id
-    ) > 0)
-  )
+  is_active BOOLEAN DEFAULT true
 );
 
 -- ratings
@@ -62,3 +57,6 @@ CREATE INDEX idx_ratings_voter ON ratings(voter_id);
 CREATE INDEX idx_ratings_receiver ON ratings(receiver_id);
 CREATE INDEX idx_match_sessions_active ON match_sessions(is_active);
 CREATE INDEX idx_historical_player ON historical_ratings(player_id);
+
+-- Enforce only one active session at a time (partial unique index)
+CREATE UNIQUE INDEX idx_only_one_active_session ON match_sessions (is_active) WHERE is_active = true;

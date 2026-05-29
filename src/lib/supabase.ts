@@ -1,5 +1,6 @@
 import { createBrowserClient, createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -10,19 +11,22 @@ export const supabaseClient = createBrowserClient(
   SUPABASE_ANON_KEY,
 );
 
-export const createSupabaseServerClient = (cookieStore: {
-  get: (name: string) => { value: string } | undefined;
-}) => {
+export const createSupabaseServerClient = () => {
+  const cookieStore = cookies();
   return createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
+      getAll() {
+        return cookieStore.getAll();
       },
-      set(_name: string, _value: string, _options: any) {
-        // SSR cookie setting handled by middleware
-      },
-      remove(_name: string, _options: any) {
-        // SSR cookie removal handled by middleware
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options),
+          );
+        } catch {
+          // Called from a Server Component — cookies are read-only there.
+          // The session will still be readable; writes only fail outside actions.
+        }
       },
     },
   });

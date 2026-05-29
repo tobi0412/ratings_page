@@ -1,10 +1,10 @@
--- Enable RLS
+-- 1. Enable RLS
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE match_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ratings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE historical_ratings ENABLE ROW LEVEL SECURITY;
 
--- profiles policies
+-- 2. Profiles Policies
 CREATE POLICY "Authenticated users read profiles"
   ON profiles FOR SELECT
   USING (auth.role() = 'authenticated');
@@ -18,7 +18,7 @@ CREATE POLICY "Users update own profile"
   USING (auth.uid() = auth_id)
   WITH CHECK (auth.uid() = auth_id AND role = 'player');
 
--- match_sessions policies
+-- 3. Match Sessions Policies
 CREATE POLICY "All authenticated read sessions"
   ON match_sessions FOR SELECT
   USING (auth.role() = 'authenticated');
@@ -26,50 +26,54 @@ CREATE POLICY "All authenticated read sessions"
 CREATE POLICY "Only admin creates sessions"
   ON match_sessions FOR INSERT
   WITH CHECK (
-    created_by = (SELECT id FROM profiles WHERE auth_id = auth.uid())
-    AND (SELECT role FROM profiles WHERE auth_id = auth.uid()) = 'admin'
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE auth_id = auth.uid() AND role = 'admin' AND id = created_by
+    )
   );
 
 CREATE POLICY "Only admin closes sessions"
   ON match_sessions FOR UPDATE
   USING (
-    created_by = (SELECT id FROM profiles WHERE auth_id = auth.uid())
-    AND (SELECT role FROM profiles WHERE auth_id = auth.uid()) = 'admin'
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE auth_id = auth.uid() AND role = 'admin' AND id = created_by
+    )
   );
 
--- ratings policies
+-- 4. Ratings Policies
 CREATE POLICY "Players vote for others in active sessions"
   ON ratings FOR INSERT
   WITH CHECK (
     voter_id = (SELECT id FROM profiles WHERE auth_id = auth.uid())
     AND voter_id != receiver_id
-    AND (SELECT is_active FROM match_sessions WHERE id = match_id) = true
+    AND EXISTS (SELECT 1 FROM match_sessions WHERE id = match_id AND is_active = true)
   );
 
 CREATE POLICY "Players edit own votes in active sessions"
   ON ratings FOR UPDATE
   USING (
     voter_id = (SELECT id FROM profiles WHERE auth_id = auth.uid())
-    AND (SELECT is_active FROM match_sessions WHERE id = match_id) = true
+    AND EXISTS (SELECT 1 FROM match_sessions WHERE id = match_id AND is_active = true)
   )
   WITH CHECK (
     voter_id = (SELECT id FROM profiles WHERE auth_id = auth.uid())
-    AND (SELECT is_active FROM match_sessions WHERE id = match_id) = true
+    AND EXISTS (SELECT 1 FROM match_sessions WHERE id = match_id AND is_active = true)
   );
 
 CREATE POLICY "Players see own active votes and all historical"
   ON ratings FOR SELECT
   USING (
     voter_id = (SELECT id FROM profiles WHERE auth_id = auth.uid())
-    OR (SELECT is_active FROM match_sessions WHERE id = match_id) = false
+    OR EXISTS (SELECT 1 FROM match_sessions WHERE id = match_id AND is_active = false)
   );
 
--- historical_ratings policies
+-- 5. Historical Ratings Policies
 CREATE POLICY "All authenticated read historical"
   ON historical_ratings FOR SELECT
   USING (auth.role() = 'authenticated');
 
--- Function to compute historical ratings
+-- 6. Function to compute historical ratings
 CREATE OR REPLACE FUNCTION compute_historical_ratings(session_id UUID)
 RETURNS void AS $$
 BEGIN

@@ -2,7 +2,8 @@ export interface Profile {
   id: string;
   auth_id: string;
   username: string;
-  role: 'admin' | 'player';
+  role: "admin" | "player";
+  status: "pending" | "approved" | "rejected";
   avatar_url: string | null;
   created_at: string;
   updated_at: string;

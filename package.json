@@ -1,7 +1,7 @@
 {
   "name": "ratings_cotorra",
   "version": "1.0.0",
-  "description": "Football team peer-voting web app",
+  "description": "Cotorra Analytics - peer-voting platform",
   "private": true,
   "scripts": {
     "dev": "next dev",

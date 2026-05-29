@@ -1,96 +1,86 @@
-'use server';
+"use server";
 
-import { createSupabaseServerClient } from '@/lib/supabase';
-import { cookies } from 'next/headers';
+import { createSupabaseServerClient } from "@/lib/supabase";
 
 export async function getHistoricalStats() {
-  const supabase = createSupabaseServerClient(cookies());
+  const supabase = createSupabaseServerClient();
 
   const { data: sessions } = await supabase
-    .from('match_sessions')
-    .select('*')
-    .eq('is_active', false)
-    .order('created_at', { ascending: true });
+    .from("match_sessions")
+    .select("*")
+    .eq("is_active", false)
+    .order("created_at", { ascending: true });
 
   const { data: historicalRatings } = await supabase
-    .from('historical_ratings')
-    .select('*')
-    .order('computed_at', { ascending: true });
+    .from("historical_ratings")
+    .select("*")
+    .order("computed_at", { ascending: true });
 
   return { sessions: sessions || [], ratings: historicalRatings || [] };
 }
 
 export async function getPlayerStats(playerId: string) {
-  const supabase = createSupabaseServerClient(cookies());
+  const supabase = createSupabaseServerClient();
 
   const { data } = await supabase
-    .from('historical_ratings')
-    .select('*')
-    .eq('player_id', playerId)
-    .order('computed_at', { ascending: true });
+    .from("historical_ratings")
+    .select("*")
+    .eq("player_id", playerId)
+    .order("computed_at", { ascending: true });
 
   return data || [];
 }
 
 export async function getAllPlayersStats() {
-  const supabase = createSupabaseServerClient(cookies());
+  const supabase = createSupabaseServerClient();
 
+  // Single relational query: Supabase fetches profiles + their historical_ratings
+  // in one round-trip using the FK relationship, avoiding loading all rows into JS
   const { data: profiles } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('role', 'player');
-
-  const { data: historicalRatings } = await supabase
-    .from('historical_ratings')
-    .select('*');
+    .from("profiles")
+    .select(
+      `
+      id,
+      username,
+      avatar_url,
+      role,
+      auth_id,
+      created_at,
+      updated_at,
+      historical_ratings (
+        avg_total,
+        avg_tecnica,
+        avg_fisico,
+        avg_actitud,
+        avg_vision_juego,
+        mvp_count
+      )
+    `,
+    )
+    .eq("role", "player");
 
   const statsMap: { [key: string]: any } = {};
 
   profiles?.forEach((profile) => {
-    const playerRatings = historicalRatings?.filter(
-      (r) => r.player_id === profile.id
-    ) || [];
+    const playerRatings = profile.historical_ratings || [];
+    const count = playerRatings.length;
 
-    const avgTotal =
-      playerRatings.length > 0
-        ? playerRatings.reduce((sum, r) => sum + (r.avg_total || 0), 0) /
-          playerRatings.length
+    const avg = (key: keyof (typeof playerRatings)[0]) =>
+      count > 0
+        ? playerRatings.reduce((sum, r) => sum + (Number(r[key]) || 0), 0) /
+          count
         : 0;
 
-    const avgTecnica =
-      playerRatings.length > 0
-        ? playerRatings.reduce((sum, r) => sum + (r.avg_tecnica || 0), 0) /
-          playerRatings.length
-        : 0;
-
-    const avgFisico =
-      playerRatings.length > 0
-        ? playerRatings.reduce((sum, r) => sum + (r.avg_fisico || 0), 0) /
-          playerRatings.length
-        : 0;
-
-    const avgActitud =
-      playerRatings.length > 0
-        ? playerRatings.reduce((sum, r) => sum + (r.avg_actitud || 0), 0) /
-          playerRatings.length
-        : 0;
-
-    const avgVision =
-      playerRatings.length > 0
-        ? playerRatings.reduce((sum, r) => sum + (r.avg_vision_juego || 0), 0) /
-          playerRatings.length
-        : 0;
-
-    const mvpCount = playerRatings.reduce((sum, r) => sum + r.mvp_count, 0);
+    const { historical_ratings, ...profileData } = profile;
 
     statsMap[profile.id] = {
-      profile,
-      avgTotal,
-      avgTecnica,
-      avgFisico,
-      avgActitud,
-      avgVision,
-      mvpCount,
+      profile: profileData,
+      avgTotal: avg("avg_total"),
+      avgTecnica: avg("avg_tecnica"),
+      avgFisico: avg("avg_fisico"),
+      avgActitud: avg("avg_actitud"),
+      avgVision: avg("avg_vision_juego"),
+      mvpCount: playerRatings.reduce((sum, r) => sum + (r.mvp_count || 0), 0),
     };
   });
 
@@ -98,12 +88,14 @@ export async function getAllPlayersStats() {
 }
 
 export async function getTopMVPs() {
-  const supabase = createSupabaseServerClient(cookies());
+  const supabase = createSupabaseServerClient();
 
   const { data } = await supabase
-    .from('historical_ratings')
-    .select('player_id, profiles!historical_ratings_player_id_fkey(username), mvp_count')
-    .order('mvp_count', { ascending: false })
+    .from("historical_ratings")
+    .select(
+      "player_id, profiles!historical_ratings_player_id_fkey(username), mvp_count",
+    )
+    .order("mvp_count", { ascending: false })
     .limit(3);
 
   return data || [];

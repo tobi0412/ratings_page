@@ -1,18 +1,30 @@
-'use client';
+"use client";
 
 import {
   createSession,
   closeSession,
   getAllSessions,
   getActiveSessions,
-} from '@/actions/sessions';
-import { MatchSession } from '@/types';
-import { useEffect, useState } from 'react';
+} from "@/actions/sessions";
+import { getAllPlayers, approvePlayer, rejectPlayer } from "@/actions/players";
+import { MatchSession, Profile } from "@/types";
+import { useEffect, useState } from "react";
+
+type Tab = "sesiones" | "jugadores";
 
 export default function AdminPage() {
+  const [activeTab, setActiveTab] = useState<Tab>("sesiones");
+
+  // ── Sesiones state ────────────────────────────────────────────────────────
   const [sessions, setSessions] = useState<MatchSession[]>([]);
   const [activeSession, setActiveSession] = useState<MatchSession | null>(null);
-  const [newSessionName, setNewSessionName] = useState('');
+  const [newSessionName, setNewSessionName] = useState("");
+
+  // ── Jugadores state ───────────────────────────────────────────────────────
+  const [players, setPlayers] = useState<Profile[]>([]);
+  const [playersLoaded, setPlayersLoaded] = useState(false);
+
+  // ── Shared ────────────────────────────────────────────────────────────────
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -28,19 +40,31 @@ export default function AdminPage() {
     setActiveSession(active.length > 0 ? active[0] : null);
   }
 
+  async function loadPlayers() {
+    const data = await getAllPlayers();
+    setPlayers(data);
+    setPlayersLoaded(true);
+  }
+
+  function handleTabChange(tab: Tab) {
+    setActiveTab(tab);
+    if (tab === "jugadores" && !playersLoaded) {
+      loadPlayers();
+    }
+  }
+
+  // ── Session handlers ──────────────────────────────────────────────────────
   async function handleCreateSession() {
     if (!newSessionName.trim()) {
-      alert('El nombre de la sesión no puede estar vacío');
+      alert("El nombre de la sesión no puede estar vacío");
       return;
     }
-
     setLoading(true);
     const result = await createSession(newSessionName);
-
     if (result.error) {
-      alert('Error: ' + result.error);
+      alert("Error: " + result.error);
     } else {
-      setNewSessionName('');
+      setNewSessionName("");
       await loadSessions();
     }
     setLoading(false);
@@ -48,99 +72,559 @@ export default function AdminPage() {
 
   async function handleCloseSession() {
     if (!activeSession) return;
-
-    if (!confirm('¿Estás seguro de que quieres cerrar esta sesión?')) {
-      return;
-    }
-
+    if (!confirm("¿Estás seguro de que querés cerrar esta sesión?")) return;
     setLoading(true);
     const result = await closeSession(activeSession.id);
-
     if (result.error) {
-      alert('Error: ' + result.error);
+      alert("Error: " + result.error);
     } else {
       await loadSessions();
     }
     setLoading(false);
   }
 
-  return (
-    <div className="max-w-4xl mx-auto py-8 px-4 space-y-8">
-      <h1 className="text-3xl font-bold">Panel de Admin</h1>
+  // ── Player handlers ───────────────────────────────────────────────────────
+  async function handleApprove(playerId: string) {
+    setLoading(true);
+    const result = await approvePlayer(playerId);
+    if (result.error) {
+      alert("Error: " + result.error);
+    } else {
+      await loadPlayers();
+    }
+    setLoading(false);
+  }
 
-      <div className="bg-white rounded-lg shadow p-6 space-y-4">
-        <h2 className="text-xl font-bold">Crear Nueva Sesión</h2>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newSessionName}
-            onChange={(e) => setNewSessionName(e.target.value)}
-            placeholder="Ej: Fecha 5, Amistoso vs X"
-            className="flex-1 px-3 py-2 border rounded-md"
-          />
-          <button
-            onClick={handleCreateSession}
-            disabled={loading}
-            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            Crear
-          </button>
-        </div>
+  async function handleReject(playerId: string) {
+    setLoading(true);
+    const result = await rejectPlayer(playerId);
+    if (result.error) {
+      alert("Error: " + result.error);
+    } else {
+      await loadPlayers();
+    }
+    setLoading(false);
+  }
+
+  const pending = players.filter((p) => p.status === "pending");
+  const approved = players.filter((p) => p.status === "approved");
+  const rejected = players.filter((p) => p.status === "rejected");
+
+  return (
+    <div
+      style={{
+        maxWidth: "960px",
+        margin: "0 auto",
+        padding: "2rem 1.25rem",
+        display: "flex",
+        flexDirection: "column",
+        gap: "1.75rem",
+      }}
+    >
+      {/* Header */}
+      <div className="animate-slide-up">
+        <h1
+          style={{
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: "2.8rem",
+            letterSpacing: "0.06em",
+            color: "#e4f0e8",
+            margin: "0 0 0.25rem",
+            lineHeight: 1,
+          }}
+        >
+          Panel de Admin
+        </h1>
+        <p
+          style={{
+            fontFamily: "'Barlow', sans-serif",
+            fontSize: "0.9rem",
+            color: "#3d6e50",
+            margin: 0,
+          }}
+        >
+          Gestioná las sesiones y los jugadores del equipo.
+        </p>
       </div>
 
-      {activeSession && (
-        <div className="bg-green-50 rounded-lg shadow p-6 border border-green-200 space-y-4">
-          <h2 className="text-xl font-bold text-green-900">Sesión Activa</h2>
-          <div>
-            <p className="font-bold text-lg">{activeSession.name}</p>
-            <p className="text-sm text-gray-600">
-              Comenzó: {new Date(activeSession.created_at).toLocaleString()}
-            </p>
-          </div>
+      {/* Tab bar */}
+      <div
+        className="animate-slide-up stagger-1"
+        style={{
+          display: "flex",
+          gap: "0.5rem",
+          borderBottom: "1px solid var(--border-subtle)",
+          paddingBottom: "0",
+        }}
+      >
+        {(["sesiones", "jugadores"] as Tab[]).map((tab) => (
           <button
-            onClick={handleCloseSession}
-            disabled={loading}
-            className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 disabled:opacity-50"
+            key={tab}
+            onClick={() => handleTabChange(tab)}
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 700,
+              fontSize: "1rem",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              padding: "0.6rem 1.5rem",
+              border: "none",
+              borderBottom:
+                activeTab === tab
+                  ? "2px solid var(--accent-lime)"
+                  : "2px solid transparent",
+              background: "transparent",
+              color:
+                activeTab === tab ? "var(--accent-lime)" : "var(--text-muted)",
+              cursor: "pointer",
+              transition: "color 0.2s ease, border-color 0.2s ease",
+              marginBottom: "-1px",
+            }}
           >
-            Cerrar Sesión
+            {tab === "sesiones" ? "⚽ Sesiones" : "👥 Jugadores"}
           </button>
-        </div>
+        ))}
+      </div>
+
+      {/* ── TAB: SESIONES ────────────────────────────────────────────────── */}
+      {activeTab === "sesiones" && (
+        <>
+          {/* Active session banner */}
+          {activeSession && (
+            <div
+              className="card-sport-active animate-slide-up animate-glow-pulse stagger-1"
+              style={{ padding: "1.5rem" }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: "1rem",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.85rem",
+                  }}
+                >
+                  <span style={{ fontSize: "1.5rem" }}>🟢</span>
+                  <div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.6rem",
+                        marginBottom: "0.2rem",
+                      }}
+                    >
+                      <h2
+                        style={{
+                          fontFamily: "'Bebas Neue', sans-serif",
+                          fontSize: "1.4rem",
+                          letterSpacing: "0.05em",
+                          color: "#e4f0e8",
+                          margin: 0,
+                        }}
+                      >
+                        {activeSession.name}
+                      </h2>
+                      <span className="badge-active">Activa</span>
+                    </div>
+                    <p
+                      style={{
+                        fontFamily: "'Barlow', sans-serif",
+                        fontSize: "0.8rem",
+                        color: "#3d6e50",
+                        margin: 0,
+                      }}
+                    >
+                      Inicio:{" "}
+                      {new Date(activeSession.created_at).toLocaleString(
+                        "es-AR",
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleCloseSession}
+                  disabled={loading}
+                  className="btn-danger"
+                >
+                  {loading ? "Cerrando..." : "Cerrar sesión"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Create new session */}
+          <div
+            className="card-sport animate-slide-up stagger-2"
+            style={{ padding: "1.5rem" }}
+          >
+            <div className="section-heading">
+              <h2
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: "1.5rem",
+                  letterSpacing: "0.05em",
+                  color: "#e4f0e8",
+                  margin: 0,
+                }}
+              >
+                Nueva Sesión
+              </h2>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "0.75rem",
+                alignItems: "flex-end",
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <label className="label-sport" htmlFor="session-name">
+                  Nombre de la sesión
+                </label>
+                <input
+                  id="session-name"
+                  type="text"
+                  value={newSessionName}
+                  onChange={(e) => setNewSessionName(e.target.value)}
+                  placeholder="Ej: Fecha 5, Amistoso vs Club X"
+                  className="input-sport"
+                  onKeyDown={(e) => e.key === "Enter" && handleCreateSession()}
+                />
+              </div>
+              <button
+                onClick={handleCreateSession}
+                disabled={loading}
+                className="btn-lime"
+                style={{ flexShrink: 0 }}
+              >
+                {loading ? "Creando..." : "Crear"}
+              </button>
+            </div>
+          </div>
+
+          {/* Sessions history */}
+          <div
+            className="card-sport animate-slide-up stagger-3"
+            style={{ padding: "1.5rem" }}
+          >
+            <div className="section-heading">
+              <h2
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: "1.5rem",
+                  letterSpacing: "0.05em",
+                  color: "#e4f0e8",
+                  margin: 0,
+                }}
+              >
+                Historial de Sesiones
+              </h2>
+            </div>
+
+            {sessions.length === 0 ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "2.5rem 1rem",
+                  color: "#3d6e50",
+                  fontFamily: "'Barlow', sans-serif",
+                  fontSize: "0.9rem",
+                }}
+              >
+                No hay sesiones aún. ¡Creá la primera!
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.5rem",
+                }}
+              >
+                {sessions.map((session, index) => (
+                  <div
+                    key={session.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "0.85rem 1rem",
+                      borderRadius: "8px",
+                      background:
+                        index % 2 === 0 ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.1)",
+                      border: session.is_active
+                        ? "1px solid rgba(0,230,118,0.2)"
+                        : "1px solid transparent",
+                    }}
+                  >
+                    <div>
+                      <p
+                        style={{
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          fontWeight: 600,
+                          fontSize: "1rem",
+                          color: "#e4f0e8",
+                          margin: "0 0 0.2rem",
+                          letterSpacing: "0.02em",
+                        }}
+                      >
+                        {session.name}
+                      </p>
+                      <p
+                        style={{
+                          fontFamily: "'Barlow', sans-serif",
+                          fontSize: "0.78rem",
+                          color: "#3d6e50",
+                          margin: 0,
+                        }}
+                      >
+                        {new Date(session.created_at).toLocaleString("es-AR")}
+                        {session.closed_at &&
+                          ` → ${new Date(session.closed_at).toLocaleString("es-AR")}`}
+                      </p>
+                    </div>
+                    <span
+                      className={
+                        session.is_active ? "badge-active" : "badge-closed"
+                      }
+                    >
+                      {session.is_active ? "Activa" : "Cerrada"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
       )}
 
-      <div className="bg-white rounded-lg shadow p-6 space-y-4">
-        <h2 className="text-xl font-bold">Historial de Sesiones</h2>
-        <div className="space-y-2">
-          {sessions.map((session) => (
+      {/* ── TAB: JUGADORES ───────────────────────────────────────────────── */}
+      {activeTab === "jugadores" && (
+        <div
+          className="animate-slide-up"
+          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+        >
+          {!playersLoaded ? (
             <div
-              key={session.id}
-              className="flex justify-between items-center p-3 bg-gray-50 rounded"
+              style={{
+                textAlign: "center",
+                padding: "3rem 1rem",
+                color: "#3d6e50",
+                fontFamily: "'Barlow', sans-serif",
+                fontSize: "0.9rem",
+              }}
+            >
+              Cargando jugadores...
+            </div>
+          ) : (
+            <>
+              {/* Pendientes */}
+              <PlayerSection
+                title="Pendientes"
+                icon="⏳"
+                players={pending}
+                emptyMessage="No hay jugadores pendientes"
+                loading={loading}
+                primaryAction={{
+                  label: "Aprobar",
+                  loadingLabel: "Aprobando...",
+                  className: "btn-lime",
+                  onAction: handleApprove,
+                }}
+                secondaryAction={{
+                  label: "Rechazar",
+                  loadingLabel: "Rechazando...",
+                  className: "btn-danger",
+                  onAction: handleReject,
+                }}
+              />
+
+              {/* Aprobados */}
+              <PlayerSection
+                title="Aprobados"
+                icon="✅"
+                players={approved}
+                emptyMessage="No hay jugadores aprobados"
+                loading={loading}
+                primaryAction={{
+                  label: "Revocar",
+                  loadingLabel: "Revocando...",
+                  className: "btn-amber",
+                  onAction: handleReject,
+                }}
+              />
+
+              {/* Rechazados */}
+              <PlayerSection
+                title="Rechazados"
+                icon="❌"
+                players={rejected}
+                emptyMessage="No hay jugadores rechazados"
+                loading={loading}
+                primaryAction={{
+                  label: "Aprobar",
+                  loadingLabel: "Aprobando...",
+                  className: "btn-outline-lime",
+                  onAction: handleApprove,
+                }}
+              />
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── PlayerSection sub-component ───────────────────────────────────────────────
+
+interface PlayerAction {
+  label: string;
+  loadingLabel: string;
+  className: string;
+  onAction: (playerId: string) => Promise<void>;
+}
+
+interface PlayerSectionProps {
+  title: string;
+  icon: string;
+  players: Profile[];
+  emptyMessage: string;
+  loading: boolean;
+  primaryAction: PlayerAction;
+  secondaryAction?: PlayerAction;
+}
+
+function PlayerSection({
+  title,
+  icon,
+  players,
+  emptyMessage,
+  loading,
+  primaryAction,
+  secondaryAction,
+}: PlayerSectionProps) {
+  return (
+    <div className="card-sport" style={{ padding: "1.5rem" }}>
+      <div className="section-heading">
+        <h2
+          style={{
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: "1.5rem",
+            letterSpacing: "0.05em",
+            color: "#e4f0e8",
+            margin: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          <span style={{ fontSize: "1.1rem" }}>{icon}</span>
+          {title}
+          <span
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: "0.85rem",
+              fontWeight: 600,
+              color: "var(--text-muted)",
+              letterSpacing: "0.08em",
+              marginLeft: "0.25rem",
+            }}
+          >
+            ({players.length})
+          </span>
+        </h2>
+      </div>
+
+      {players.length === 0 ? (
+        <p
+          style={{
+            fontFamily: "'Barlow', sans-serif",
+            fontSize: "0.88rem",
+            color: "var(--text-muted)",
+            margin: 0,
+            padding: "0.5rem 0",
+          }}
+        >
+          {emptyMessage}
+        </p>
+      ) : (
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+        >
+          {players.map((player, index) => (
+            <div
+              key={player.id}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: "0.75rem",
+                padding: "0.85rem 1rem",
+                borderRadius: "8px",
+                background:
+                  index % 2 === 0 ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.1)",
+              }}
             >
               <div>
-                <p className="font-medium">{session.name}</p>
-                <p className="text-sm text-gray-600">
-                  {new Date(session.created_at).toLocaleString()}
-                </p>
-                {session.closed_at && (
-                  <p className="text-sm text-gray-600">
-                    Cerrada: {new Date(session.closed_at).toLocaleString()}
-                  </p>
-                )}
-              </div>
-              <div>
-                <span
-                  className={`px-3 py-1 rounded text-sm font-medium ${
-                    session.is_active
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
+                <p
+                  style={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    color: "#e4f0e8",
+                    margin: "0 0 0.2rem",
+                    letterSpacing: "0.02em",
+                  }}
                 >
-                  {session.is_active ? 'Activa' : 'Cerrada'}
-                </span>
+                  {player.username}
+                </p>
+                <p
+                  style={{
+                    fontFamily: "'Barlow', sans-serif",
+                    fontSize: "0.75rem",
+                    color: "var(--text-muted)",
+                    margin: 0,
+                  }}
+                >
+                  Registrado:{" "}
+                  {new Date(player.created_at).toLocaleDateString("es-AR")}
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
+                {secondaryAction && (
+                  <button
+                    onClick={() => secondaryAction.onAction(player.id)}
+                    disabled={loading}
+                    className={secondaryAction.className}
+                  >
+                    {loading
+                      ? secondaryAction.loadingLabel
+                      : secondaryAction.label}
+                  </button>
+                )}
+                <button
+                  onClick={() => primaryAction.onAction(player.id)}
+                  disabled={loading}
+                  className={primaryAction.className}
+                >
+                  {loading ? primaryAction.loadingLabel : primaryAction.label}
+                </button>
               </div>
             </div>
           ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }

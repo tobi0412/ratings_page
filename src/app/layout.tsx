@@ -4,8 +4,8 @@ import Navbar from "@/components/layouts/Navbar";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Football Team Ratings",
-  description: "Peer evaluation system for football teams",
+  title: "Cotorra Analytics",
+  description: "Sistema de evaluación entre pares para equipos de fútbol",
 };
 
 export default async function RootLayout({
@@ -16,8 +16,8 @@ export default async function RootLayout({
   const profile = await getCurrentProfile();
 
   return (
-    <html lang="en">
-      <body className="bg-gray-100">
+    <html lang="es">
+      <body>
         <Navbar profile={profile} />
         <main>{children}</main>
       </body>

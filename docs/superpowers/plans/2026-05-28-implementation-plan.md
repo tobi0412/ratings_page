@@ -1,4 +1,4 @@
-# Football Team Ratings Implementation Plan
+# Football Team cotorra analytics Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -817,7 +817,7 @@ git commit -m "feat: add session management server actions"
 
 ---
 
-### Task 7: Rating Server Actions
+### Task 7: cotorra analytics Server Actions
 
 **Files:**
 - Create: `src/actions/ratings.ts`
@@ -1889,7 +1889,7 @@ export default function Navbar({ profile }: NavbarProps) {
     <nav className="bg-gray-800 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold">
-          ⚽ Ratings
+          Cotorra Analytics
         </Link>
 
         <div className="flex gap-6 items-center">
@@ -1943,7 +1943,7 @@ import Navbar from '@/components/layouts/Navbar';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Football Team Ratings',
+  title: 'Cotorra Analytics',
   description: 'Peer evaluation system for football teams',
 };
 
@@ -2083,4 +2083,3 @@ git commit -m "config: add environment template and verify build setup"
 2. Populate `.env.local` with real credentials
 3. Run `npm run dev` and test locally
 4. Deploy to Vercel using `deploy-to-vercel` skill
-
