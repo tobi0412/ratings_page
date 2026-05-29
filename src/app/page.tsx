@@ -1,10 +1,32 @@
-export default function Home() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900">Ratings Cotorra</h1>
-        <p className="mt-4 text-gray-600">Football team peer-voting web app</p>
-      </div>
-    </main>
-  );
+"use client";
+
+import { getCurrentProfile } from "@/actions/auth";
+import { getActiveSessions } from "@/actions/sessions";
+import { useEffect } from "react";
+import { redirect } from "next/navigation";
+
+export default function HomePage() {
+  useEffect(() => {
+    async function checkRedirect() {
+      const [profile, activeSessions] = await Promise.all([
+        getCurrentProfile(),
+        getActiveSessions(),
+      ]);
+
+      if (!profile) {
+        redirect("/auth/login");
+      }
+
+      if (activeSessions.length > 0 && profile.role === "player") {
+        // Check if player has pending votes
+        redirect("/dashboard");
+      } else {
+        redirect("/history");
+      }
+    }
+
+    checkRedirect();
+  }, []);
+
+  return <div className="text-center py-8">Redirecting...</div>;
 }
