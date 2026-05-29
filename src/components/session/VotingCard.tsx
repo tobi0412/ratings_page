@@ -8,21 +8,21 @@ interface VotingCardProps {
   receiver: Profile;
   matchId: string;
   existingRating?: Rating;
-  onSuccess?: () => void;
+  onSuccess?: (rating: Rating) => void;
 }
 
 const METRIC_LABELS: Record<string, string> = {
-  tecnica: "Técnica",
-  fisico: "Físico",
+  tecnica: "Habilidad Técnica",
+  fisico: "Esfuerzo Físico",
   actitud: "Actitud",
-  vision_juego: "Visión de Juego",
+  vision_juego: "Toma de Decisiones",
 };
 
 const METRIC_ICONS: Record<string, string> = {
   tecnica: "🎯",
   fisico: "💪",
   actitud: "🔥",
-  vision_juego: "👁",
+  vision_juego: "🧠",
 };
 
 function getRatingColor(value: number) {
@@ -66,7 +66,7 @@ export default function VotingCard({
       setError(result.error);
     } else {
       setSaved(true);
-      onSuccess?.();
+      onSuccess?.(result.data);
     }
     setLoading(false);
   };
