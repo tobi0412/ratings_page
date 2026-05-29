@@ -19,6 +19,7 @@ export default function AdminPage() {
   const [sessions, setSessions] = useState<MatchSession[]>([]);
   const [activeSession, setActiveSession] = useState<MatchSession | null>(null);
   const [newSessionName, setNewSessionName] = useState("");
+  const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
 
   // ── Jugadores state ───────────────────────────────────────────────────────
   const [players, setPlayers] = useState<Profile[]>([]);
@@ -29,6 +30,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     loadSessions();
+    loadPlayers();
   }, []);
 
   async function loadSessions() {
@@ -59,12 +61,17 @@ export default function AdminPage() {
       alert("El nombre de la sesión no puede estar vacío");
       return;
     }
+    if (selectedPlayerIds.length === 0) {
+      alert("Seleccioná al menos un jugador para la sesión.");
+      return;
+    }
     setLoading(true);
-    const result = await createSession(newSessionName);
+    const result = await createSession(newSessionName, selectedPlayerIds);
     if (result.error) {
       alert("Error: " + result.error);
     } else {
       setNewSessionName("");
+      setSelectedPlayerIds([]);
       await loadSessions();
     }
     setLoading(false);
@@ -282,11 +289,11 @@ export default function AdminPage() {
             <div
               style={{
                 display: "flex",
-                gap: "0.75rem",
-                alignItems: "flex-end",
+                flexDirection: "column",
+                gap: "1rem",
               }}
             >
-              <div style={{ flex: 1 }}>
+              <div>
                 <label className="label-sport" htmlFor="session-name">
                   Nombre de la sesión
                 </label>
@@ -300,13 +307,108 @@ export default function AdminPage() {
                   onKeyDown={(e) => e.key === "Enter" && handleCreateSession()}
                 />
               </div>
+
+              {/* Checkbox grid for selecting participants */}
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                  <label className="label-sport">Jugadores Participantes</label>
+                  {approved.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const allSelected = approved.every(p => selectedPlayerIds.includes(p.id));
+                        setSelectedPlayerIds(allSelected ? [] : approved.map(p => p.id));
+                      }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--accent-lime)",
+                        fontSize: "0.75rem",
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        cursor: "pointer",
+                        padding: 0,
+                      }}
+                    >
+                      {approved.every(p => selectedPlayerIds.includes(p.id)) ? "Deseleccionar todos" : "Seleccionar todos"}
+                    </button>
+                  )}
+                </div>
+                
+                {approved.length === 0 ? (
+                  <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", padding: "0.5rem 0" }}>
+                    No hay jugadores aprobados disponibles.
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      maxHeight: "160px",
+                      overflowY: "auto",
+                      border: "1px solid #1c3828",
+                      borderRadius: "8px",
+                      padding: "0.75rem",
+                      background: "rgba(0,0,0,0.25)",
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    {approved.map((player) => {
+                      const isChecked = selectedPlayerIds.includes(player.id);
+                      return (
+                        <label
+                          key={player.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem",
+                            cursor: "pointer",
+                            padding: "0.25rem",
+                            borderRadius: "4px",
+                            transition: "background 0.2s ease",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {
+                              setSelectedPlayerIds((prev) =>
+                                isChecked
+                                  ? prev.filter((id) => id !== player.id)
+                                  : [...prev, player.id]
+                              );
+                            }}
+                            style={{
+                              accentColor: "var(--accent-lime)",
+                              cursor: "pointer",
+                            }}
+                          />
+                          <span
+                            style={{
+                              fontFamily: "'Barlow', sans-serif",
+                              fontSize: "0.85rem",
+                              color: isChecked ? "#e4f0e8" : "var(--text-muted)",
+                              transition: "color 0.2s ease",
+                            }}
+                          >
+                            {player.username}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               <button
                 onClick={handleCreateSession}
                 disabled={loading}
                 className="btn-lime"
-                style={{ flexShrink: 0 }}
+                style={{ width: "100%", marginTop: "0.5rem" }}
               >
-                {loading ? "Creando..." : "Crear"}
+                {loading ? "Creando..." : "Crear Sesión"}
               </button>
             </div>
           </div>
