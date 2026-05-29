@@ -1,20 +1,11 @@
 "use client";
 
-import { Profile } from "@/types";
-import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon, MedalIcon } from "@/components/Icons";
-
-interface PlayerStats {
-  profile: Profile;
-  avgTotal: number;
-  avgTecnica: number;
-  avgFisico: number;
-  avgActitud: number;
-  avgVision: number;
-  mvpCount: number;
-}
+import { PlayerStats } from "@/types";
+import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon, MedalIcon, CalendarIcon } from "@/components/Icons";
 
 interface ComparisonTableProps {
   stats: { [key: string]: PlayerStats };
+  totalSessionsCount: number;
 }
 
 function ratingColor(val: number): string {
@@ -30,10 +21,11 @@ const HEADERS = [
   { label: "Esf. Físico", icon: <DumbbellIcon size={14} style={{ color: "#ff5252" }} />, align: "center" },
   { label: "Actitud", icon: <FlameIcon size={14} style={{ color: "#ffab40" }} />, align: "center" },
   { label: "Toma de Decisiones", icon: <BrainIcon size={14} style={{ color: "#ea80fc" }} />, align: "center" },
+  { label: "Asistencia", icon: <CalendarIcon size={14} style={{ color: "#a0c4ac" }} />, align: "center" },
   { label: "MVPs", icon: <StarIcon size={14} filled style={{ color: "#ffc93c" }} />, align: "center" },
 ];
 
-export default function ComparisonTable({ stats }: ComparisonTableProps) {
+export default function ComparisonTable({ stats, totalSessionsCount }: ComparisonTableProps) {
   const sortedPlayers = Object.values(stats).sort(
     (a, b) => b.avgTotal - a.avgTotal,
   );
@@ -195,6 +187,25 @@ export default function ComparisonTable({ stats }: ComparisonTableProps) {
                   </span>
                 </td>
               ))}
+
+              {/* Asistencia */}
+              <td style={{ padding: "0.85rem 0.75rem", textAlign: "center" }}>
+                <span
+                  style={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "0.92rem",
+                    color: "#a0c4ac",
+                  }}
+                >
+                  {(() => {
+                    const attendancePercentage = totalSessionsCount > 0
+                      ? (player.sessionsCount / totalSessionsCount) * 100
+                      : 0;
+                    return `${attendancePercentage.toFixed(0)}% (${player.sessionsCount}/${totalSessionsCount})`;
+                  })()}
+                </span>
+              </td>
 
               {/* MVP count */}
               <td style={{ padding: "0.85rem 0.75rem", textAlign: "center" }}>

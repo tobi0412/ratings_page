@@ -1,20 +1,10 @@
 "use client";
 
-import { MatchSession, HistoricalRating, Profile } from "@/types";
+import { MatchSession, HistoricalRating, PlayerStats } from "@/types";
 import StatLineChart from "@/components/charts/StatLineChart";
 import MVPRanking from "@/components/charts/MVPRanking";
 import ComparisonTable from "@/components/charts/ComparisonTable";
 import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon } from "@/components/Icons";
-
-interface PlayerStats {
-  profile: Profile;
-  avgTotal: number;
-  avgTecnica: number;
-  avgFisico: number;
-  avgActitud: number;
-  avgVision: number;
-  mvpCount: number;
-}
 
 interface MVPEntry {
   player_id: string;
@@ -175,7 +165,7 @@ export default function TeamTab({
         >
           Comparativa del Equipo
         </h2>
-        <ComparisonTable stats={stats} />
+        <ComparisonTable stats={stats} totalSessionsCount={sessions.length} />
       </section>
     </div>
   );
