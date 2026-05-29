@@ -119,12 +119,12 @@ export default function TeamTab({
           }}
         >
           <StatLineChart
-            label="🎯 Técnica"
+            label="🎯 Habilidad Técnica"
             sessions={sessions}
             data={buildAllPlayersSeries("avg_tecnica")}
           />
           <StatLineChart
-            label="💪 Físico"
+            label="💪 Esfuerzo Físico"
             sessions={sessions}
             data={buildAllPlayersSeries("avg_fisico")}
           />
@@ -134,7 +134,7 @@ export default function TeamTab({
             data={buildAllPlayersSeries("avg_actitud")}
           />
           <StatLineChart
-            label="👁 Visión"
+            label="🧠 Toma de Decisiones"
             sessions={sessions}
             data={buildAllPlayersSeries("avg_vision_juego")}
           />

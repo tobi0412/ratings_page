@@ -25,10 +25,10 @@ function ratingColor(val: number): string {
 const HEADERS = [
   { label: "Jugador", align: "left" },
   { label: "Rating", align: "center" },
-  { label: "🎯 Técnica", align: "center" },
-  { label: "💪 Físico", align: "center" },
+  { label: "🎯 Hab. Técnica", align: "center" },
+  { label: "💪 Esf. Físico", align: "center" },
   { label: "🔥 Actitud", align: "center" },
-  { label: "👁 Visión", align: "center" },
+  { label: "🧠 Toma de Decisiones", align: "center" },
   { label: "⭐ MVPs", align: "center" },
 ];
 

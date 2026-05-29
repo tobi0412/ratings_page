@@ -105,12 +105,12 @@ export default function PersonalTab({
           color: "#00e676",
         },
         {
-          label: "Técnica",
+          label: "Habilidad Técnica",
           value: selectedPlayer.avgTecnica.toFixed(1),
           color: "#40c4ff",
         },
         {
-          label: "Físico",
+          label: "Esfuerzo Físico",
           value: selectedPlayer.avgFisico.toFixed(1),
           color: "#ff5252",
         },
@@ -120,7 +120,7 @@ export default function PersonalTab({
           color: "#ffab40",
         },
         {
-          label: "Visión",
+          label: "Toma de Decisiones",
           value: selectedPlayer.avgVision.toFixed(1),
           color: "#ea80fc",
         },
@@ -201,7 +201,7 @@ export default function PersonalTab({
             }}
           >
             <StatLineChart
-              label="🎯 Técnica"
+              label="🎯 Habilidad Técnica"
               data={buildSeries(
                 selectedPlayerId,
                 "avg_tecnica",
@@ -211,7 +211,7 @@ export default function PersonalTab({
               sessions={sessions}
             />
             <StatLineChart
-              label="💪 Físico"
+              label="💪 Esfuerzo Físico"
               data={buildSeries(
                 selectedPlayerId,
                 "avg_fisico",
@@ -231,7 +231,7 @@ export default function PersonalTab({
               sessions={sessions}
             />
             <StatLineChart
-              label="👁 Visión"
+              label="🧠 Toma de Decisiones"
               data={buildSeries(
                 selectedPlayerId,
                 "avg_vision_juego",
