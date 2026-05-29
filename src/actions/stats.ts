@@ -87,7 +87,9 @@ export async function getAllPlayersStats() {
   return statsMap;
 }
 
-export async function getTopMVPs() {
+export async function getTopMVPs(): Promise<
+  { player_id: string; username: string; total_mvps: number }[]
+> {
   const supabase = createSupabaseServerClient();
 
   const { data } = await supabase
@@ -95,8 +97,32 @@ export async function getTopMVPs() {
     .select(
       "player_id, profiles!historical_ratings_player_id_fkey(username), mvp_count",
     )
-    .order("mvp_count", { ascending: false })
-    .limit(3);
+    .gt("mvp_count", 0);
 
-  return data || [];
+  if (!data) return [];
+
+  const totals = new Map<string, { username: string; total_mvps: number }>();
+
+  for (const row of data) {
+    const username =
+      (row.profiles as unknown as { username: string } | null)?.username ??
+      "Unknown";
+    const existing = totals.get(row.player_id);
+    if (existing) {
+      existing.total_mvps += row.mvp_count ?? 0;
+    } else {
+      totals.set(row.player_id, {
+        username,
+        total_mvps: row.mvp_count ?? 0,
+      });
+    }
+  }
+
+  return Array.from(totals.entries())
+    .map(([player_id, { username, total_mvps }]) => ({
+      player_id,
+      username,
+      total_mvps,
+    }))
+    .sort((a, b) => b.total_mvps - a.total_mvps);
 }

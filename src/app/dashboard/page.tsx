@@ -3,6 +3,7 @@
 import { getActiveSessions } from "@/actions/sessions";
 import { getPlayerVotes } from "@/actions/ratings";
 import { getCurrentProfile } from "@/actions/auth";
+import { getApprovedPlayers } from "@/actions/players";
 import SessionStatus from "@/components/session/SessionStatus";
 import VotingCard from "@/components/session/VotingCard";
 import VotingProgress from "@/components/session/VotingProgress";
@@ -31,7 +32,9 @@ export default function DashboardPage() {
       const votesData = await getPlayerVotes(activeSession.id, profileData.id);
       setMyVotes(votesData);
 
-      setPlayers([]);
+      const allPlayers = await getApprovedPlayers();
+      // Exclude yourself from the voting list
+      setPlayers(allPlayers.filter((p) => p.id !== profileData.id));
       setLoading(false);
     }
 

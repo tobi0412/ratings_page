@@ -4,6 +4,23 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { getCurrentProfile } from "./auth";
 import { Profile } from "@/types";
 
+export async function getApprovedPlayers(): Promise<Profile[]> {
+  const profile = await getCurrentProfile();
+
+  if (!profile) {
+    return [];
+  }
+
+  const { data } = await supabaseAdmin
+    .from("profiles")
+    .select("*")
+    .eq("role", "player")
+    .eq("status", "approved")
+    .order("created_at", { ascending: true });
+
+  return data || [];
+}
+
 export async function getAllPlayers(): Promise<Profile[]> {
   const profile = await getCurrentProfile();
 

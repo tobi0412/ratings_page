@@ -5,38 +5,39 @@ import {
   getAllPlayersStats,
   getTopMVPs,
 } from "@/actions/stats";
-import RatingEvolutionChart from "@/components/charts/RatingEvolutionChart";
-import ComparisonTable from "@/components/charts/ComparisonTable";
-import { MatchSession, Profile } from "@/types";
+import { getCurrentProfile } from "@/actions/auth";
+import PersonalTab from "@/components/history/PersonalTab";
+import TeamTab from "@/components/history/TeamTab";
+import { HistoricalRating, MatchSession } from "@/types";
 import { useEffect, useState } from "react";
 
-interface PlayerStats {
-  profile: Profile;
-  avgTotal: number;
-  avgTecnica: number;
-  avgFisico: number;
-  avgActitud: number;
-  avgVision: number;
-  mvpCount: number;
-}
+type ActiveTab = "personal" | "team";
 
 export default function HistoryPage() {
   const [sessions, setSessions] = useState<MatchSession[]>([]);
-  const [stats, setStats] = useState<{ [key: string]: PlayerStats }>({});
-  const [topMVPs, setTopMVPs] = useState<any[]>([]);
+  const [ratings, setRatings] = useState<HistoricalRating[]>([]);
+  const [stats, setStats] = useState<{ [key: string]: any }>({});
+  const [topMVPs, setTopMVPs] = useState<
+    { player_id: string; username: string; total_mvps: number }[]
+  >([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("personal");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const [histData, playerStats, mvpData] = await Promise.all([
+      const [histData, playerStats, mvpData, profile] = await Promise.all([
         getHistoricalStats(),
         getAllPlayersStats(),
         getTopMVPs(),
+        getCurrentProfile(),
       ]);
 
       setSessions(histData.sessions);
+      setRatings(histData.ratings);
       setStats(playerStats);
       setTopMVPs(mvpData);
+      setCurrentUserId(profile?.id ?? null);
       setLoading(false);
     }
 
@@ -117,10 +118,7 @@ export default function HistoryPage() {
 
         <div
           className="card-sport animate-slide-up stagger-1"
-          style={{
-            padding: "3rem 2rem",
-            textAlign: "center",
-          }}
+          style={{ padding: "3rem 2rem", textAlign: "center" }}
         >
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📊</div>
           <h3
@@ -187,100 +185,66 @@ export default function HistoryPage() {
         </p>
       </div>
 
-      {/* MVP Podium */}
-      {topMVPs.length > 0 && (
-        <div className="animate-slide-up stagger-1">
-          <div className="section-heading">
-            <h2
+      {/* Tab toggle */}
+      <div
+        className="animate-slide-up stagger-1"
+        style={{
+          display: "flex",
+          gap: "0.5rem",
+          borderBottom: "1px solid #1c3828",
+          paddingBottom: "0",
+        }}
+      >
+        {(
+          [
+            { key: "personal", label: "Estadísticas Personales" },
+            { key: "team", label: "Comparativas por Equipo" },
+          ] as { key: ActiveTab; label: string }[]
+        ).map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
               style={{
+                padding: "0.6rem 1.25rem",
+                background: "transparent",
+                border: "none",
+                borderBottom: isActive
+                  ? "2px solid #00e676"
+                  : "2px solid transparent",
+                cursor: "pointer",
                 fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "1.6rem",
-                letterSpacing: "0.05em",
-                color: "#e4f0e8",
-                margin: 0,
+                fontSize: "1.1rem",
+                letterSpacing: "0.07em",
+                color: isActive ? "#00e676" : "#3d6e50",
+                transition: "all 0.15s ease",
+                marginBottom: "-1px",
               }}
             >
-              Top MVPs
-            </h2>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            {topMVPs.map((mvp, index) => {
-              const medals = ["🥇", "🥈", "🥉"];
-              const isTop3 = index < 3;
-              return (
-                <div
-                  key={mvp.player_id}
-                  className={index === 0 ? "card-sport-gold" : "card-sport"}
-                  style={{ padding: "1.25rem", textAlign: "center" }}
-                >
-                  <div style={{ fontSize: "1.8rem", marginBottom: "0.5rem" }}>
-                    {isTop3 ? medals[index] : `#${index + 1}`}
-                  </div>
-                  <p
-                    style={{
-                      fontFamily: "'Bebas Neue', sans-serif",
-                      fontSize: "1.2rem",
-                      letterSpacing: "0.05em",
-                      color: index === 0 ? "#ffc93c" : "#e4f0e8",
-                      margin: "0 0 0.25rem",
-                    }}
-                  >
-                    {mvp.profiles.username}
-                  </p>
-                  <span className={index === 0 ? "badge-gold" : "badge-closed"}>
-                    {mvp.mvp_count} MVPs
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Chart */}
-      <div className="animate-slide-up stagger-2">
-        <div className="section-heading">
-          <h2
-            style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: "1.6rem",
-              letterSpacing: "0.05em",
-              color: "#e4f0e8",
-              margin: 0,
-            }}
-          >
-            Evolución de Ratings
-          </h2>
-        </div>
-        <RatingEvolutionChart
-          sessions={sessions}
-          ratings={[]}
-          players={Object.values(stats).map((s) => s.profile)}
-        />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Table */}
-      <div className="animate-slide-up stagger-3">
-        <div className="section-heading">
-          <h2
-            style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: "1.6rem",
-              letterSpacing: "0.05em",
-              color: "#e4f0e8",
-              margin: 0,
-            }}
-          >
-            Comparativa del Equipo
-          </h2>
-        </div>
-        <ComparisonTable stats={stats} />
+      {/* Tab content */}
+      <div className="animate-slide-up stagger-2">
+        {activeTab === "personal" ? (
+          <PersonalTab
+            sessions={sessions}
+            ratings={ratings}
+            stats={stats}
+            currentUserId={currentUserId}
+          />
+        ) : (
+          <TeamTab
+            sessions={sessions}
+            ratings={ratings}
+            stats={stats}
+            topMVPs={topMVPs}
+          />
+        )}
       </div>
     </div>
   );
