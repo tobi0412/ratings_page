@@ -54,3 +54,15 @@ export interface RatingInput {
   vision_juego: number;
   is_mvp: boolean;
 }
+
+export interface PlayerStats {
+  profile: Profile;
+  avgTotal: number;
+  avgTecnica: number;
+  avgFisico: number;
+  avgActitud: number;
+  avgVision: number;
+  mvpCount: number;
+  sessionsCount: number;
+}
+

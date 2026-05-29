@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseServerClient } from "@/lib/supabase";
+import { PlayerStats } from "@/types";
 
 export async function getHistoricalStats() {
   const supabase = createSupabaseServerClient();
@@ -45,6 +46,7 @@ export async function getAllPlayersStats() {
       avatar_url,
       role,
       auth_id,
+      status,
       created_at,
       updated_at,
       historical_ratings (
@@ -59,7 +61,7 @@ export async function getAllPlayersStats() {
     )
     .eq("status", "approved");
 
-  const statsMap: { [key: string]: any } = {};
+  const statsMap: { [key: string]: PlayerStats } = {};
 
   profiles?.forEach((profile) => {
     const playerRatings = profile.historical_ratings || [];
@@ -81,6 +83,7 @@ export async function getAllPlayersStats() {
       avgActitud: avg("avg_actitud"),
       avgVision: avg("avg_vision_juego"),
       mvpCount: playerRatings.reduce((sum, r) => sum + (r.mvp_count || 0), 0),
+      sessionsCount: playerRatings.length,
     };
   });
 
