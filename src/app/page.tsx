@@ -14,7 +14,7 @@ export default async function HomePage() {
 
   if (
     activeSessions.length > 0 &&
-    profile.role === "player" &&
+    (profile.role === "player" || profile.role === "admin") &&
     profile.status === "approved"
   ) {
     redirect("/dashboard");
