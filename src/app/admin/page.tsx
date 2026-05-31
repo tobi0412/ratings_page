@@ -5,6 +5,7 @@ import {
   closeSession,
   getAllSessions,
   getActiveSessions,
+  getSessionVotingProgress,
 } from "@/actions/sessions";
 import { getAllPlayers, approvePlayer, rejectPlayer, getApprovedPlayers } from "@/actions/players";
 import { MatchSession, Profile } from "@/types";
@@ -21,6 +22,7 @@ export default function AdminPage() {
   const [activeSession, setActiveSession] = useState<MatchSession | null>(null);
   const [newSessionName, setNewSessionName] = useState("");
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
+  const [votingProgress, setVotingProgress] = useState<any[]>([]);
 
   // ── Jugadores state ───────────────────────────────────────────────────────
   const [players, setPlayers] = useState<Profile[]>([]);
@@ -47,7 +49,18 @@ export default function AdminPage() {
       getActiveSessions(),
     ]);
     setSessions(all);
-    setActiveSession(active.length > 0 ? active[0] : null);
+    
+    const activeSess = active.length > 0 ? active[0] : null;
+    setActiveSession(activeSess);
+
+    if (activeSess) {
+      const progressResult = await getSessionVotingProgress(activeSess.id);
+      if (progressResult.success && progressResult.data) {
+        setVotingProgress(progressResult.data);
+      }
+    } else {
+      setVotingProgress([]);
+    }
   }
 
   async function loadPlayers() {
@@ -215,7 +228,7 @@ export default function AdminPage() {
           {activeSession && (
             <div
               className="card-sport-active animate-slide-up animate-glow-pulse stagger-1"
-              style={{ padding: "1.5rem" }}
+              style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}
             >
               <div
                 style={{
@@ -289,6 +302,117 @@ export default function AdminPage() {
                   {loading ? "Cerrando..." : "Cerrar sesión"}
                 </button>
               </div>
+
+              {/* Progress Checklist section */}
+              {votingProgress.length > 0 && (
+                <div style={{ borderTop: "1px solid rgba(0,230,118,0.15)", paddingTop: "1.25rem" }}>
+                  <h3
+                    style={{
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: "1.2rem",
+                      letterSpacing: "0.05em",
+                      color: "#e4f0e8",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    Progreso de Votos ({votingProgress.filter(p => p.isCompleted).length} de {votingProgress.length} completados)
+                  </h3>
+                  
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+                      gap: "0.75rem",
+                    }}
+                  >
+                    {votingProgress.map((item) => {
+                      let badgeColor = "#555";
+                      let badgeBg = "rgba(255,255,255,0.05)";
+                      let statusText = "Pendiente";
+                      
+                      if (item.isCompleted) {
+                        badgeColor = "#00e676";
+                        badgeBg = "rgba(0,230,118,0.12)";
+                        statusText = "Completado";
+                      } else if (item.hasStarted) {
+                        badgeColor = "#ffab40";
+                        badgeBg = "rgba(255,171,64,0.12)";
+                        statusText = "En Progreso";
+                      }
+
+                      return (
+                        <div
+                          key={item.player.id}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            background: "rgba(0,0,0,0.2)",
+                            padding: "0.6rem 0.8rem",
+                            borderRadius: "8px",
+                            border: "1px solid rgba(0,0,0,0.3)",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                            <div
+                              style={{
+                                width: "28px",
+                                height: "28px",
+                                borderRadius: "50%",
+                                background: "rgba(255,255,255,0.05)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontFamily: "'Bebas Neue', sans-serif",
+                                fontSize: "0.85rem",
+                                color: "#e4f0e8",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {item.player.avatar_url ? (
+                                <img
+                                  src={item.player.avatar_url}
+                                  alt={item.player.username}
+                                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                />
+                              ) : (
+                                (item.player.username?.[0]?.toUpperCase() ?? "?")
+                              )}
+                            </div>
+                            <span
+                              style={{
+                                fontFamily: "'Barlow Condensed', sans-serif",
+                                fontWeight: 600,
+                                fontSize: "0.9rem",
+                                color: "#e4f0e8",
+                              }}
+                            >
+                              {item.player.username}
+                            </span>
+                          </div>
+
+                          <span
+                            style={{
+                              fontFamily: "'Barlow Condensed', sans-serif",
+                              fontWeight: 700,
+                              fontSize: "0.7rem",
+                              color: badgeColor,
+                              background: badgeBg,
+                              border: `1px solid ${badgeColor}33`,
+                              padding: "0.15rem 0.4rem",
+                              borderRadius: "4px",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.05em",
+                            }}
+                          >
+                            {statusText} ({item.votesSubmitted}/{item.maxVotes})
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
