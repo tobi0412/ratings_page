@@ -25,6 +25,7 @@
 @layer base {
     html {
         scroll-behavior: smooth;
+        overflow-x: hidden;
     }
 
     body {
@@ -40,6 +41,7 @@
             );
         background-size: 48px 48px;
         min-height: 100vh;
+        overflow-x: hidden;
     }
 
     h1,

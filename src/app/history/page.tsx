@@ -191,6 +191,7 @@ export default function HistoryPage() {
         className="animate-slide-up stagger-1"
         style={{
           display: "flex",
+          flexWrap: "wrap",
           gap: "0.5rem",
           borderBottom: "1px solid #1c3828",
           paddingBottom: "0",

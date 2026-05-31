@@ -40,10 +40,10 @@ export default function Navbar({ profile }: NavbarProps) {
       }}
     >
       <div
+        className="px-3 sm:px-5"
         style={{
           maxWidth: "1280px",
           margin: "0 auto",
-          padding: "0 1.25rem",
           height: "60px",
           display: "flex",
           alignItems: "center",
@@ -67,7 +67,9 @@ export default function Navbar({ profile }: NavbarProps) {
               display: "inline-block",
             }}
           />
+          {/* Desktop & Tablet: COTORRA ANALYTICS. */}
           <span
+            className="hidden md:inline-block"
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: "1.3rem",
@@ -79,13 +81,30 @@ export default function Navbar({ profile }: NavbarProps) {
             COTORRA ANALYTICS
             <span style={{ color: "#00e676" }}>.</span>
           </span>
+          {/* Small tablets: COTORRA. */}
+          <span
+            className="hidden sm:inline-block md:hidden"
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "1.3rem",
+              letterSpacing: "0.08em",
+              color: "#e4f0e8",
+              lineHeight: 1,
+            }}
+          >
+            COTORRA
+            <span style={{ color: "#00e676" }}>.</span>
+          </span>
         </Link>
 
         {/* Nav links */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+        <div
+          className="gap-1 sm:gap-2"
+          style={{ display: "flex", alignItems: "center" }}
+        >
           {profile ? (
             <>
-              <NavLink href="/latest" active={isActive("/latest")}>
+              <NavLink href="/latest" active={isActive("/latest")} mobileText="Última">
                 Última sesión
               </NavLink>
               <NavLink href="/history" active={isActive("/history")}>
@@ -97,6 +116,7 @@ export default function Navbar({ profile }: NavbarProps) {
 
               {/* Divider */}
               <div
+                className="hidden sm:block"
                 style={{
                   width: "1px",
                   height: "24px",
@@ -114,10 +134,10 @@ export default function Navbar({ profile }: NavbarProps) {
                 }}
               >
                 <div
+                  className="gap-1 sm:gap-2.5"
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "0.6rem",
                     cursor: "pointer",
                     padding: "0.25rem 0.5rem",
                     borderRadius: "6px",
@@ -149,6 +169,7 @@ export default function Navbar({ profile }: NavbarProps) {
                     {profile.username?.[0]?.toUpperCase() ?? "?"}
                   </div>
                   <span
+                    className="hidden sm:inline-block"
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
                       fontWeight: 600,
@@ -260,16 +281,15 @@ export default function Navbar({ profile }: NavbarProps) {
               </NavLink>
               <Link
                 href="/auth/register"
+                className="text-[0.72rem] sm:text-[0.82rem] px-2 sm:px-3.5 py-1.5 sm:py-1.5"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 700,
-                  fontSize: "0.82rem",
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
                   textDecoration: "none",
                   background: "#00e676",
                   color: "#040a06",
-                  padding: "0.35rem 0.9rem",
                   borderRadius: "5px",
                   marginLeft: "0.25rem",
                   transition: "all 0.2s ease",
@@ -301,10 +321,12 @@ function NavLink({
   href,
   active,
   children,
+  mobileText,
 }: {
   href: string;
   active: boolean;
   children: React.ReactNode;
+  mobileText?: string;
 }) {
   return (
     <Link
@@ -312,19 +334,24 @@ function NavLink({
       style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         fontWeight: active ? 700 : 500,
-        fontSize: "0.85rem",
         letterSpacing: "0.08em",
         textTransform: "uppercase",
         textDecoration: "none",
         color: active ? "#00e676" : "#7aaa8a",
-        padding: "0.3rem 0.75rem",
-        borderRadius: "5px",
         background: active ? "rgba(0, 230, 118, 0.08)" : "transparent",
         transition: "all 0.18s ease",
         position: "relative",
       }}
+      className="text-[0.75rem] sm:text-[0.85rem] px-2 sm:px-3 py-1.5 sm:py-1 rounded-[5px]"
     >
-      {children}
+      <span className={mobileText ? "hidden sm:inline" : "inline"}>
+        {children}
+      </span>
+      {mobileText && (
+        <span className="inline sm:hidden">
+          {mobileText}
+        </span>
+      )}
       {active && (
         <span
           style={{
