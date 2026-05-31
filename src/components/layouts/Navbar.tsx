@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { signOut } from "@/actions/auth";
 import { Profile } from "@/types";
 import Link from "next/link";
@@ -12,6 +13,14 @@ interface NavbarProps {
 
 export default function Navbar({ profile }: NavbarProps) {
   const pathname = usePathname();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    const handleClose = () => setDropdownOpen(false);
+    document.addEventListener("click", handleClose);
+    return () => document.removeEventListener("click", handleClose);
+  }, [dropdownOpen]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -85,11 +94,6 @@ export default function Navbar({ profile }: NavbarProps) {
               <NavLink href="/dashboard" active={isActive("/dashboard")}>
                 Votación
               </NavLink>
-              {profile.role === "admin" && (
-                <NavLink href="/admin" active={isActive("/admin")}>
-                  Admin
-                </NavLink>
-              )}
 
               {/* Divider */}
               <div
@@ -101,77 +105,153 @@ export default function Navbar({ profile }: NavbarProps) {
                 }}
               />
 
-              {/* User badge */}
+              {/* User badge with Dropdown */}
               <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.6rem",
+                style={{ position: "relative" }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDropdownOpen((prev) => !prev);
                 }}
               >
                 <div
                   style={{
-                    width: "30px",
-                    height: "30px",
-                    borderRadius: "50%",
-                    background: "rgba(0, 230, 118, 0.15)",
-                    border: "1px solid rgba(0, 230, 118, 0.35)",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: "0.9rem",
-                    color: "#00e676",
-                    flexShrink: 0,
+                    gap: "0.6rem",
+                    cursor: "pointer",
+                    padding: "0.25rem 0.5rem",
+                    borderRadius: "6px",
+                    transition: "background 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(28, 56, 40, 0.2)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
                   }}
                 >
-                  {profile.username?.[0]?.toUpperCase() ?? "?"}
+                  <div
+                    style={{
+                      width: "30px",
+                      height: "30px",
+                      borderRadius: "50%",
+                      background: "rgba(0, 230, 118, 0.15)",
+                      border: "1px solid rgba(0, 230, 118, 0.35)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: "0.9rem",
+                      color: "#00e676",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {profile.username?.[0]?.toUpperCase() ?? "?"}
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontWeight: 600,
+                      fontSize: "0.85rem",
+                      letterSpacing: "0.06em",
+                      color: "#a0c4ac",
+                      userSelect: "none",
+                    }}
+                  >
+                    {profile.username}
+                  </span>
+                  <span style={{ color: "#3d6e50", fontSize: "0.75rem", display: "inline-block", transform: dropdownOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s ease" }}>
+                    ▼
+                  </span>
                 </div>
-                <span
-                  style={{
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    fontWeight: 600,
-                    fontSize: "0.85rem",
-                    letterSpacing: "0.06em",
-                    color: "#a0c4ac",
-                  }}
-                >
-                  {profile.username}
-                </span>
-              </div>
 
-              <button
-                onClick={handleSignOut}
-                style={{
-                  marginLeft: "0.25rem",
-                  background: "transparent",
-                  color: "#ff5252",
-                  border: "1px solid rgba(255, 82, 82, 0.4)",
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  fontWeight: 600,
-                  fontSize: "0.78rem",
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  padding: "0.3rem 0.75rem",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background =
-                    "rgba(255, 82, 82, 0.12)";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor =
-                    "#ff5252";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background =
-                    "transparent";
-                  (e.currentTarget as HTMLButtonElement).style.borderColor =
-                    "rgba(255, 82, 82, 0.4)";
-                }}
-              >
-                Salir
-              </button>
+                {/* Dropdown Menu */}
+                {dropdownOpen && (
+                  <div
+                    onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the menu
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 8px)",
+                      right: 0,
+                      background: "rgba(6, 13, 9, 0.96)",
+                      border: "1px solid #1c3828",
+                      borderRadius: "8px",
+                      boxShadow: "0 10px 30px rgba(0, 0, 0, 0.6)",
+                      backdropFilter: "blur(12px)",
+                      padding: "0.5rem 0",
+                      minWidth: "140px",
+                      display: "flex",
+                      flexDirection: "column",
+                      zIndex: 200,
+                      animation: "slideDown 0.15s ease-out forwards",
+                    }}
+                  >
+                    <style>{`
+                      @keyframes slideDown {
+                        from { opacity: 0; transform: translateY(-8px); }
+                        to { opacity: 1; transform: translateY(0); }
+                      }
+                    `}</style>
+                    {profile.role === "admin" && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setDropdownOpen(false)}
+                        style={{
+                          padding: "0.6rem 1rem",
+                          color: isActive("/admin") ? "#00e676" : "#a0c4ac",
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
+                          letterSpacing: "0.05em",
+                          textTransform: "uppercase",
+                          textDecoration: "none",
+                          textAlign: "left",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "rgba(0, 230, 118, 0.08)";
+                          e.currentTarget.style.color = "#00e676";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "transparent";
+                          e.currentTarget.style.color = isActive("/admin") ? "#00e676" : "#a0c4ac";
+                        }}
+                      >
+                        Admin
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        handleSignOut();
+                      }}
+                      style={{
+                        padding: "0.6rem 1rem",
+                        background: "transparent",
+                        border: "none",
+                        color: "#ff5252",
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontWeight: 600,
+                        fontSize: "0.85rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        width: "100%",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "rgba(255, 82, 82, 0.08)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                      }}
+                    >
+                      Salir
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <>
