@@ -229,7 +229,7 @@ export default function PersonalTab({
                 marginTop: "0.1rem",
               }}
             >
-              ¡{selectedPlayer.profile.username} fue el jugador con más votos MVP en este partido!
+              ¡{selectedPlayer.profile.username} fue el jugador con más votos MVP en esta sesión!
             </span>
           </div>
         </div>
