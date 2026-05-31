@@ -120,11 +120,16 @@ export default function PersonalTab({
           value: selectedPlayer.avgVision.toFixed(2),
           color: "#ea80fc",
         },
-        {
-          label: "Asistencia",
-          value: `${Math.floor(attendancePercentage)}% (${selectedPlayer.sessionsCount}/${totalSessions})`,
-          color: "#a0c4ac",
-        },
+        // Only show Attendance if there are multiple sessions
+        ...(totalSessions > 1
+          ? [
+              {
+                label: "Asistencia",
+                value: `${Math.floor(attendancePercentage)}% (${selectedPlayer.sessionsCount}/${totalSessions})`,
+                color: "#a0c4ac",
+              },
+            ]
+          : []),
         {
           label: "MVPs",
           value: String(selectedPlayer.mvpCount),

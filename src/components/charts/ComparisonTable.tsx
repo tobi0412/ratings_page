@@ -26,6 +26,9 @@ const HEADERS = [
 ];
 
 export default function ComparisonTable({ stats, totalSessionsCount }: ComparisonTableProps) {
+  const shouldHideAttendance = totalSessionsCount === 1;
+  const filteredHeaders = HEADERS.filter((h) => !(shouldHideAttendance && h.label === "Asistencia"));
+
   const sortedPlayers = Object.values(stats).sort(
     (a, b) => b.avgTotal - a.avgTotal,
   );
@@ -45,7 +48,7 @@ export default function ComparisonTable({ stats, totalSessionsCount }: Compariso
               borderBottom: "1px solid #1c3828",
             }}
           >
-            {HEADERS.map((h) => (
+            {filteredHeaders.map((h) => (
               <th
                 key={h.label}
                 style={{
@@ -189,23 +192,25 @@ export default function ComparisonTable({ stats, totalSessionsCount }: Compariso
               ))}
 
               {/* Asistencia */}
-              <td style={{ padding: "0.85rem 0.75rem", textAlign: "center" }}>
-                <span
-                  style={{
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    fontWeight: 600,
-                    fontSize: "0.92rem",
-                    color: "#a0c4ac",
-                  }}
-                >
-                  {(() => {
-                    const attendancePercentage = totalSessionsCount > 0
-                      ? (player.sessionsCount / totalSessionsCount) * 100
-                      : 0;
-                    return `${Math.floor(attendancePercentage)}% (${player.sessionsCount}/${totalSessionsCount})`;
-                  })()}
-                </span>
-              </td>
+              {!shouldHideAttendance && (
+                <td style={{ padding: "0.85rem 0.75rem", textAlign: "center" }}>
+                  <span
+                    style={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontWeight: 600,
+                      fontSize: "0.92rem",
+                      color: "#a0c4ac",
+                    }}
+                  >
+                    {(() => {
+                      const attendancePercentage = totalSessionsCount > 0
+                        ? (player.sessionsCount / totalSessionsCount) * 100
+                        : 0;
+                      return `${Math.floor(attendancePercentage)}% (${player.sessionsCount}/${totalSessionsCount})`;
+                    })()}
+                  </span>
+                </td>
+              )}
 
               {/* MVP count */}
               <td style={{ padding: "0.85rem 0.75rem", textAlign: "center" }}>

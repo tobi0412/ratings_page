@@ -37,6 +37,12 @@ export default function TeamTab({
   topMVPs,
 }: TeamTabProps) {
   const players = Object.values(stats);
+  const isSingleSession = sessions.length === 1;
+  const mvpHeading = isSingleSession
+    ? topMVPs.length > 1
+      ? "MVPs"
+      : "MVP"
+    : "Ranking MVPs";
 
   const buildAllPlayersSeries = (statKey: keyof HistoricalRating) =>
     players.map((ps, index) => ({
@@ -64,7 +70,7 @@ export default function TeamTab({
             margin: "0 0 0.75rem",
           }}
         >
-          Ranking MVPs
+          {mvpHeading}
         </h2>
         <MVPRanking topMVPs={topMVPs} />
       </section>
