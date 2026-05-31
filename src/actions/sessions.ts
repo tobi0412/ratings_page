@@ -177,3 +177,56 @@ export async function revealMysteryVote(sessionId: string) {
 
   return { voter: voterProfile, votes: votes || [] };
 }
+
+export async function getSessionVotingProgress(sessionId: string) {
+  const supabase = createSupabaseServerClient();
+  const profile = await getCurrentProfile();
+
+  if (!profile || profile.role !== "admin") {
+    return { error: "Only admins can view voting progress", success: false };
+  }
+
+  // 1. Get all session participants
+  const { data: participantsData, error: partError } = await supabase
+    .from("session_participants")
+    .select("player:profiles(*)")
+    .eq("match_id", sessionId);
+
+  if (partError || !participantsData) {
+    return { error: partError?.message || "Failed to load participants", success: false };
+  }
+
+  const participants = participantsData.map((d: any) => d.player).filter(Boolean) as Profile[];
+  const totalParticipants = participants.length;
+
+  // 2. Get ratings count grouped by voter_id for this match
+  const { data: ratingsData, error: ratingsError } = await supabase
+    .from("ratings")
+    .select("voter_id")
+    .eq("match_id", sessionId);
+
+  if (ratingsError) {
+    return { error: ratingsError.message, success: false };
+  }
+
+  const voteCounts: Record<string, number> = {};
+  for (const rating of ratingsData || []) {
+    voteCounts[rating.voter_id] = (voteCounts[rating.voter_id] || 0) + 1;
+  }
+
+  const progress = participants.map((player) => {
+    const votesSubmitted = voteCounts[player.id] || 0;
+    // A player votes for all other participants (total - 1)
+    const maxVotes = Math.max(0, totalParticipants - 1);
+    
+    return {
+      player,
+      votesSubmitted,
+      maxVotes,
+      isCompleted: votesSubmitted >= maxVotes && maxVotes > 0,
+      hasStarted: votesSubmitted > 0,
+    };
+  });
+
+  return { data: progress, success: true };
+}
