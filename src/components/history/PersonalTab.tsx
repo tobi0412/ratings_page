@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { MatchSession, HistoricalRating, PlayerStats } from "@/types";
 import StatLineChart from "@/components/charts/StatLineChart";
-import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon } from "@/components/Icons";
+import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon, CalendarIcon } from "@/components/Icons";
 
 interface PersonalTabProps {
   sessions: MatchSession[];
@@ -68,6 +68,11 @@ export default function PersonalTab({
 
   const selectedPlayer = selectedPlayerId ? stats[selectedPlayerId] : null;
   const playerName = selectedPlayer?.profile?.username ?? "Jugador";
+
+  // Filter sessions to only those the selected player actually participated in
+  const playerSessions = sessions.filter((s) =>
+    ratings.some((r) => r.player_id === selectedPlayerId && r.match_id === s.id)
+  );
 
   const buildSeries = (
     playerId: string,
@@ -138,45 +143,88 @@ export default function PersonalTab({
       ]
     : [];
 
+  const renderPlayerSelector = () => (
+    <div
+      style={{
+        overflowX: "auto",
+        display: "flex",
+        gap: "0.5rem",
+        paddingBottom: "0.25rem",
+      }}
+    >
+      {sortedPlayerIds.map((id) => {
+        const isActive = id === selectedPlayerId;
+        return (
+          <button
+            key={id}
+            onClick={() => setSelectedPlayerId(id)}
+            style={{
+              whiteSpace: "nowrap",
+              padding: "0.35rem 0.85rem",
+              borderRadius: "999px",
+              cursor: "pointer",
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontWeight: 600,
+              fontSize: "0.85rem",
+              letterSpacing: "0.06em",
+              background: isActive
+                ? "rgba(0,230,118,0.15)"
+                : "rgba(28,56,40,0.3)",
+              border: isActive ? "1px solid #00e676" : "1px solid #1c3828",
+              color: isActive ? "#00e676" : "#a0c4ac",
+              transition: "all 0.15s ease",
+            }}
+          >
+            {stats[id]?.profile?.username ?? id}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  // If the player has played 0 sessions, show an empty state message
+  if (selectedPlayer && selectedPlayer.sessionsCount === 0) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+        {/* 1. Player selector */}
+        {renderPlayerSelector()}
+
+        {/* Empty state card */}
+        <div
+          className="card-sport animate-slide-up"
+          style={{ padding: "3.5rem 2rem", textAlign: "center" }}
+        >
+          <CalendarIcon size="3rem" style={{ color: "#3d6e50", marginBottom: "1rem" }} />
+          <h3
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "1.6rem",
+              color: "#e4f0e8",
+              margin: "0 0 0.5rem",
+              letterSpacing: "0.05em",
+            }}
+          >
+            Sin partidos
+          </h3>
+          <p
+            style={{
+              fontFamily: "'Barlow', sans-serif",
+              fontSize: "0.9rem",
+              color: "#3d6e50",
+              margin: 0,
+            }}
+          >
+            {playerName} no participó de ninguna sesión de votación todavía.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       {/* 1. Player selector */}
-      <div
-        style={{
-          overflowX: "auto",
-          display: "flex",
-          gap: "0.5rem",
-          paddingBottom: "0.25rem",
-        }}
-      >
-        {sortedPlayerIds.map((id) => {
-          const isActive = id === selectedPlayerId;
-          return (
-            <button
-              key={id}
-              onClick={() => setSelectedPlayerId(id)}
-              style={{
-                whiteSpace: "nowrap",
-                padding: "0.35rem 0.85rem",
-                borderRadius: "999px",
-                cursor: "pointer",
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontWeight: 600,
-                fontSize: "0.85rem",
-                letterSpacing: "0.06em",
-                background: isActive
-                  ? "rgba(0,230,118,0.15)"
-                  : "rgba(28,56,40,0.3)",
-                border: isActive ? "1px solid #00e676" : "1px solid #1c3828",
-                color: isActive ? "#00e676" : "#a0c4ac",
-                transition: "all 0.15s ease",
-              }}
-            >
-              {stats[id]?.profile?.username ?? id}
-            </button>
-          );
-        })}
-      </div>
+      {renderPlayerSelector()}
 
       {/* MVP Banner */}
       {sessions.length === 1 && selectedPlayer && selectedPlayer.mvpCount > 0 && (
@@ -258,7 +306,7 @@ export default function PersonalTab({
                   "#00e676",
                   playerName
                 )}
-                sessions={sessions}
+                sessions={playerSessions}
               />
             </div>
           </div>
@@ -465,7 +513,7 @@ export default function PersonalTab({
                 "#40c4ff",
                 playerName,
               )}
-              sessions={sessions}
+              sessions={playerSessions}
             />
             <StatLineChart
               label={
@@ -480,7 +528,7 @@ export default function PersonalTab({
                 "#ff5252",
                 playerName,
               )}
-              sessions={sessions}
+              sessions={playerSessions}
             />
             <StatLineChart
               label={
@@ -495,7 +543,7 @@ export default function PersonalTab({
                 "#ffab40",
                 playerName,
               )}
-              sessions={sessions}
+              sessions={playerSessions}
             />
             <StatLineChart
               label={
@@ -510,7 +558,7 @@ export default function PersonalTab({
                 "#ea80fc",
                 playerName,
               )}
-              sessions={sessions}
+              sessions={playerSessions}
             />
           </div>
         </div>
