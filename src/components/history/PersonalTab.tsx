@@ -343,7 +343,9 @@ export default function PersonalTab({
                       ? "Excelente"
                       : attendancePercentage >= 70
                       ? "Buena"
-                      : "Baja"}
+                      : attendancePercentage >= 50
+                      ? "Baja"
+                      : "Vergüenza"}
                   </span>
                 </div>
 
