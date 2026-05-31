@@ -4,6 +4,7 @@ import { MatchSession, HistoricalRating, PlayerStats } from "@/types";
 import StatLineChart from "@/components/charts/StatLineChart";
 import MVPRanking from "@/components/charts/MVPRanking";
 import ComparisonTable from "@/components/charts/ComparisonTable";
+import AttendanceRanking from "@/components/charts/AttendanceRanking";
 import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon } from "@/components/Icons";
 
 interface MVPEntry {
@@ -59,21 +60,46 @@ export default function TeamTab({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-      {/* 1. Ranking MVPs */}
-      <section>
-        <h2
-          style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "1.4rem",
-            letterSpacing: "0.05em",
-            color: "#e4f0e8",
-            margin: "0 0 0.75rem",
-          }}
-        >
-          {mvpHeading}
-        </h2>
-        <MVPRanking topMVPs={topMVPs} />
-      </section>
+      {/* MVP and Attendance sections in grid */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: "1.5rem",
+        }}
+      >
+        <section>
+          <h2
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "1.4rem",
+              letterSpacing: "0.05em",
+              color: "#e4f0e8",
+              margin: "0 0 0.75rem",
+            }}
+          >
+            {mvpHeading}
+          </h2>
+          <MVPRanking topMVPs={topMVPs} />
+        </section>
+
+        {!isSingleSession && (
+          <section>
+            <h2
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: "1.4rem",
+                letterSpacing: "0.05em",
+                color: "#e4f0e8",
+                margin: "0 0 0.75rem",
+              }}
+            >
+              Asistencia
+            </h2>
+            <AttendanceRanking stats={stats} totalSessionsCount={sessions.length} />
+          </section>
+        )}
+      </div>
 
       {/* 2. Dashboard General */}
       <section>

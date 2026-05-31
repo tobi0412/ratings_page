@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { MatchSession, HistoricalRating, PlayerStats } from "@/types";
 import StatLineChart from "@/components/charts/StatLineChart";
-import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon } from "@/components/Icons";
+import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon } from "@/components/Icons";
 
 interface PersonalTabProps {
   sessions: MatchSession[];
@@ -177,6 +177,63 @@ export default function PersonalTab({
           );
         })}
       </div>
+
+      {/* MVP Banner */}
+      {sessions.length === 1 && selectedPlayer && selectedPlayer.mvpCount > 0 && (
+        <div
+          className="animate-slide-up"
+          style={{
+            background: "linear-gradient(135deg, rgba(255, 201, 60, 0.15) 0%, rgba(255, 110, 64, 0.05) 100%)",
+            border: "1px solid #ffc93c",
+            borderRadius: "8px",
+            padding: "1rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            boxShadow: "0 4px 20px rgba(255, 201, 60, 0.05)",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              background: "rgba(255, 201, 60, 0.2)",
+              border: "1px solid #ffc93c",
+              color: "#ffc93c",
+              flexShrink: 0,
+            }}
+          >
+            <StarIcon size={18} filled />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: "1.2rem",
+                color: "#ffc93c",
+                letterSpacing: "0.05em",
+                lineHeight: 1.1,
+              }}
+            >
+              MVP de la sesión
+            </span>
+            <span
+              style={{
+                fontFamily: "'Barlow', sans-serif",
+                fontSize: "0.82rem",
+                color: "#a0c4ac",
+                marginTop: "0.1rem",
+              }}
+            >
+              ¡{selectedPlayer.profile.username} fue el jugador con más votos MVP en este partido!
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* 2. Rating General */}
       {selectedPlayerId && (
