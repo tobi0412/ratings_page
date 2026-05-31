@@ -191,7 +191,6 @@ export default function HistoryPage() {
         className="animate-slide-up stagger-1"
         style={{
           display: "flex",
-          flexWrap: "wrap",
           gap: "0.5rem",
           borderBottom: "1px solid #1c3828",
           paddingBottom: "0",
@@ -199,17 +198,17 @@ export default function HistoryPage() {
       >
         {(
           [
-            { key: "personal", label: "Estadísticas Personales" },
-            { key: "team", label: "Comparativas por Equipo" },
-          ] as { key: ActiveTab; label: string }[]
+            { key: "personal", label: "Estadísticas Personales", mobileLabel: "Personales" },
+            { key: "team", label: "Comparativas por Equipo", mobileLabel: "Equipos" },
+          ] as { key: ActiveTab; label: string; mobileLabel: string }[]
         ).map((tab) => {
           const isActive = activeTab === tab.key;
           return (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
+              className="text-[0.95rem] sm:text-[1.1rem] px-3 sm:px-5 py-2.5"
               style={{
-                padding: "0.6rem 1.25rem",
                 background: "transparent",
                 border: "none",
                 borderBottom: isActive
@@ -217,14 +216,14 @@ export default function HistoryPage() {
                   : "2px solid transparent",
                 cursor: "pointer",
                 fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "1.1rem",
                 letterSpacing: "0.07em",
                 color: isActive ? "#00e676" : "#3d6e50",
                 transition: "all 0.15s ease",
                 marginBottom: "-1px",
               }}
             >
-              {tab.label}
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="inline sm:hidden">{tab.mobileLabel}</span>
             </button>
           );
         })}
