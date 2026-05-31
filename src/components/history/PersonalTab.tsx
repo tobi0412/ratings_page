@@ -235,20 +235,207 @@ export default function PersonalTab({
         </div>
       )}
 
-      {/* 2. Rating General */}
+      {/* 2. Rating General & Asistencia Grid */}
       {selectedPlayerId && (
-        <div>
-          {sectionHeading("Rating General")}
-          <StatLineChart
-            label="Promedio General"
-            data={buildSeries(
-              selectedPlayerId,
-              "avg_total",
-              "#00e676",
-              playerName,
-            )}
-            sessions={sessions}
-          />
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              sessions.length > 1
+                ? "repeat(auto-fit, minmax(300px, 1fr))"
+                : "1fr",
+            gap: "1.5rem",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {sectionHeading("Rating General")}
+            <div style={{ flex: 1 }}>
+              <StatLineChart
+                label="Promedio General"
+                data={buildSeries(
+                  selectedPlayerId,
+                  "avg_total",
+                  "#00e676",
+                  playerName
+                )}
+                sessions={sessions}
+              />
+            </div>
+          </div>
+
+          {sessions.length > 1 && selectedPlayer && (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {sectionHeading("Asistencia")}
+              <div
+                className="card-sport animate-slide-up"
+                style={{
+                  padding: "1.5rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "1rem",
+                  position: "relative",
+                  overflow: "hidden",
+                  height: "100%",
+                  minHeight: "260px",
+                  justifyContent: "center",
+                }}
+              >
+                {/* Background glow texture */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "-50px",
+                    right: "-50px",
+                    width: "150px",
+                    height: "150px",
+                    background:
+                      "radial-gradient(circle, #a0c4ac1A 0%, transparent 70%)",
+                    borderRadius: "50%",
+                    pointerEvents: "none",
+                  }}
+                />
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "start",
+                    width: "100%",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: "1.1rem",
+                      color: "#3d6e50",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.12em",
+                      margin: 0,
+                    }}
+                  >
+                    Asistencia General
+                  </p>
+                  <span
+                    style={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      color:
+                        attendancePercentage >= 90
+                          ? "#00e676"
+                          : attendancePercentage >= 70
+                          ? "#ffab40"
+                          : "#ff5252",
+                      background: `rgba(${
+                        attendancePercentage >= 90
+                          ? "0,230,118"
+                          : attendancePercentage >= 70
+                          ? "255,171,64"
+                          : "255,82,82"
+                      }, 0.1)`,
+                      padding: "0.15rem 0.5rem",
+                      borderRadius: "4px",
+                      letterSpacing: "0.05em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {attendancePercentage >= 90
+                      ? "Excelente"
+                      : attendancePercentage >= 70
+                      ? "Buena"
+                      : "Baja"}
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1.5rem",
+                    marginTop: "0.5rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "baseline",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "'Bebas Neue', sans-serif",
+                        fontSize: "4.2rem",
+                        color: "#a0c4ac",
+                        lineHeight: 1,
+                        textShadow: "0 0 20px rgba(160, 196, 172, 0.2)",
+                      }}
+                    >
+                      {Math.floor(attendancePercentage)}%
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontSize: "0.8rem",
+                        color: "#3d6e50",
+                        marginLeft: "0.2rem",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      DE SESIONES
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontSize: "0.75rem",
+                        color: "#a0c4ac",
+                      }}
+                    >
+                      <span>Partidos Jugados</span>
+                      <span>
+                        {selectedPlayer.sessionsCount} / {totalSessions}
+                      </span>
+                    </div>
+
+                    {/* Progress track */}
+                    <div
+                      style={{
+                        height: "10px",
+                        background: "#12261b",
+                        borderRadius: "5px",
+                        overflow: "hidden",
+                        border: "1px solid rgba(28,56,40,0.5)",
+                        position: "relative",
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: "100%",
+                          width: `${attendancePercentage}%`,
+                          background:
+                            "linear-gradient(90deg, rgba(160, 196, 172, 0.5), #a0c4ac)",
+                          borderRadius: "5px",
+                          boxShadow: "0 0 10px rgba(160, 196, 172, 0.5)",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
