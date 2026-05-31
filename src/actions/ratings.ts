@@ -12,6 +12,20 @@ export async function submitRating(input: RatingInput) {
     return { error: "Not authenticated" };
   }
 
+  // If this rating is marked as MVP, reset other MVP votes by this user in this match
+  if (input.is_mvp) {
+    const { error: resetError } = await supabase
+      .from("ratings")
+      .update({ is_mvp: false })
+      .eq("match_id", input.match_id)
+      .eq("voter_id", profile.id)
+      .neq("receiver_id", input.receiver_id);
+
+    if (resetError) {
+      return { error: `Failed to reset previous MVP: ${resetError.message}` };
+    }
+  }
+
   // Atomic upsert — avoids the check-then-insert race condition
   // ON CONFLICT targets the unique constraint (match_id, voter_id, receiver_id)
   const { data, error } = await supabase
