@@ -200,7 +200,7 @@ export async function getSessionVotingProgress(sessionId: string) {
   const totalParticipants = participants.length;
 
   // 2. Get ratings count grouped by voter_id for this match
-  const { data: ratingsData, error: ratingsError } = await supabase
+  const { data: ratingsData, error: ratingsError } = await supabaseAdmin
     .from("ratings")
     .select("voter_id")
     .eq("match_id", sessionId);

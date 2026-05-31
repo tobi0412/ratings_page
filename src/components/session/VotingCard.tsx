@@ -47,12 +47,23 @@ export default function VotingCard({
   const [isMvp, setIsMvp] = useState(existingRating?.is_mvp || false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(!!existingRating);
 
-  // Sync checkbox state when the parent rating changes (e.g., cleared by another card's MVP choice)
+  // Sync all states when the parent rating changes (e.g., loaded asynchronously or updated externally)
   useEffect(() => {
-    setIsMvp(existingRating?.is_mvp || false);
-  }, [existingRating?.is_mvp]);
+    if (existingRating) {
+      setMetrics({
+        tecnica: existingRating.tecnica,
+        fisico: existingRating.fisico,
+        actitud: existingRating.actitud,
+        vision_juego: existingRating.vision_juego,
+      });
+      setIsMvp(existingRating.is_mvp);
+      setSaved(true);
+    } else {
+      setSaved(false);
+    }
+  }, [existingRating]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -252,12 +263,13 @@ export default function VotingCard({
                 min="1"
                 max="10"
                 value={metrics[metric]}
-                onChange={(e) =>
+                onChange={(e) => {
                   setMetrics({
                     ...metrics,
                     [metric]: parseInt(e.target.value),
-                  })
-                }
+                  });
+                  setSaved(false);
+                }}
               />
             </div>
           ),
@@ -283,7 +295,10 @@ export default function VotingCard({
           type="checkbox"
           id={`mvp-${receiver.id}`}
           checked={isMvp}
-          onChange={(e) => setIsMvp(e.target.checked)}
+          onChange={(e) => {
+            setIsMvp(e.target.checked);
+            setSaved(false);
+          }}
           style={{ display: "none" }}
         />
         <StarIcon
@@ -344,8 +359,10 @@ export default function VotingCard({
             }}
           >
             <CheckIcon size={14} strokeWidth={3} />
-            Actualizar voto
+            Voto guardado
           </span>
+        ) : existingRating ? (
+          "Actualizar voto"
         ) : (
           "Guardar voto"
         )}
