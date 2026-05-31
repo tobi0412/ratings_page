@@ -76,6 +76,9 @@ export default function Navbar({ profile }: NavbarProps) {
         <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
           {profile ? (
             <>
+              <NavLink href="/latest" active={isActive("/latest")}>
+                Última sesión
+              </NavLink>
               <NavLink href="/history" active={isActive("/history")}>
                 Histórico
               </NavLink>
