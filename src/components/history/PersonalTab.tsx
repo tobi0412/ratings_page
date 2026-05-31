@@ -149,7 +149,12 @@ export default function PersonalTab({
         overflowX: "auto",
         display: "flex",
         gap: "0.5rem",
-        paddingBottom: "0.25rem",
+        marginLeft: "-1.25rem",
+        marginRight: "-1.25rem",
+        paddingLeft: "1.25rem",
+        paddingRight: "1.25rem",
+        paddingBottom: "0.5rem",
+        WebkitOverflowScrolling: "touch",
       }}
     >
       {sortedPlayerIds.map((id) => {
