@@ -31,9 +31,21 @@ export default function MVPRanking({ topMVPs }: MVPRankingProps) {
     );
   }
 
+  // Pre-calculate ranks based on total_mvps, supporting ties
+  let currentRank = 1;
+  const rankedMVPs = topMVPs.map((entry, index) => {
+    if (index > 0 && entry.total_mvps !== topMVPs[index - 1].total_mvps) {
+      currentRank = index + 1;
+    }
+    return {
+      ...entry,
+      rank: currentRank,
+    };
+  });
+
   return (
     <div className="card-sport">
-      {topMVPs.map((entry, index) => (
+      {rankedMVPs.map((entry, index) => (
         <div
           key={entry.player_id}
           style={{
@@ -42,7 +54,7 @@ export default function MVPRanking({ topMVPs }: MVPRankingProps) {
             alignItems: "center",
             padding: "0.6rem 0.75rem",
             borderBottom:
-              index < topMVPs.length - 1
+              index < rankedMVPs.length - 1
                 ? "1px solid rgba(28,56,40,0.5)"
                 : "none",
           }}
@@ -60,14 +72,14 @@ export default function MVPRanking({ topMVPs }: MVPRankingProps) {
                 justifyContent: "center",
               }}
             >
-              {index === 0 ? (
+              {entry.rank === 1 ? (
                 <MedalIcon size={18} style={{ color: "#ffc93c" }} />
-              ) : index === 1 ? (
+              ) : entry.rank === 2 ? (
                 <MedalIcon size={18} style={{ color: "#a0c4ac" }} />
-              ) : index === 2 ? (
+              ) : entry.rank === 3 ? (
                 <MedalIcon size={18} style={{ color: "#ff6e40" }} />
               ) : (
-                `#${index + 1}`
+                `#${entry.rank}`
               )}
             </span>
             <span

@@ -45,9 +45,21 @@ export default function AttendanceRanking({
     );
   }
 
+  // Pre-calculate ranks based on percentage, supporting ties
+  let currentRank = 1;
+  const rankedPlayers = sortedPlayers.map((player, index) => {
+    if (index > 0 && player.percentage !== sortedPlayers[index - 1].percentage) {
+      currentRank = index + 1;
+    }
+    return {
+      ...player,
+      rank: currentRank,
+    };
+  });
+
   return (
     <div className="card-sport">
-      {sortedPlayers.map((player, index) => (
+      {rankedPlayers.map((player, index) => (
         <div
           key={player.profile.id}
           style={{
@@ -56,7 +68,7 @@ export default function AttendanceRanking({
             alignItems: "center",
             padding: "0.6rem 0.75rem",
             borderBottom:
-              index < sortedPlayers.length - 1
+              index < rankedPlayers.length - 1
                 ? "1px solid rgba(28,56,40,0.5)"
                 : "none",
           }}
@@ -67,14 +79,14 @@ export default function AttendanceRanking({
               style={{
                 fontFamily: "'Bebas Neue', sans-serif",
                 fontSize: "1rem",
-                color: index === 0 ? "#00e676" : "#3d6e50",
+                color: player.rank === 1 ? "#00e676" : "#3d6e50",
                 minWidth: "28px",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              #{index + 1}
+              #{player.rank}
             </span>
             <span
               style={{

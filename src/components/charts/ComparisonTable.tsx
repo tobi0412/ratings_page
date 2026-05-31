@@ -33,6 +33,18 @@ export default function ComparisonTable({ stats, totalSessionsCount }: Compariso
     (a, b) => b.avgTotal - a.avgTotal,
   );
 
+  // Pre-calculate ranks based on avgTotal, supporting ties
+  let currentRank = 1;
+  const rankedPlayers = sortedPlayers.map((player, index) => {
+    if (index > 0 && player.avgTotal !== sortedPlayers[index - 1].avgTotal) {
+      currentRank = index + 1;
+    }
+    return {
+      ...player,
+      rank: currentRank,
+    };
+  });
+
   return (
     <div className="card-sport" style={{ overflowX: "auto" }}>
       <table
@@ -72,7 +84,7 @@ export default function ComparisonTable({ stats, totalSessionsCount }: Compariso
           </tr>
         </thead>
         <tbody>
-          {sortedPlayers.map((player, index) => (
+          {rankedPlayers.map((player, index) => (
             <tr
               key={player.profile.id}
               style={{
@@ -100,9 +112,9 @@ export default function ComparisonTable({ stats, totalSessionsCount }: Compariso
                       fontFamily: "'Bebas Neue', sans-serif",
                       fontSize: "1rem",
                       color:
-                        index === 0
+                        player.rank === 1
                           ? "#ffc93c"
-                          : index === 1
+                          : player.rank === 2
                             ? "#a0c4ac"
                             : "#3d6e50",
                       minWidth: "20px",
@@ -111,14 +123,14 @@ export default function ComparisonTable({ stats, totalSessionsCount }: Compariso
                       justifyContent: "center",
                     }}
                   >
-                    {index === 0 ? (
+                    {player.rank === 1 ? (
                       <MedalIcon size={16} style={{ color: "#ffc93c" }} />
-                    ) : index === 1 ? (
+                    ) : player.rank === 2 ? (
                       <MedalIcon size={16} style={{ color: "#a0c4ac" }} />
-                    ) : index === 2 ? (
+                    ) : player.rank === 3 ? (
                       <MedalIcon size={16} style={{ color: "#ff6e40" }} />
                     ) : (
-                      `#${index + 1}`
+                      `#${player.rank}`
                     )}
                   </span>
                   <div
