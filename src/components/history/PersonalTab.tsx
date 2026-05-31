@@ -182,45 +182,6 @@ export default function PersonalTab({
     </div>
   );
 
-  // If the player has played 0 sessions, show an empty state message
-  if (selectedPlayer && selectedPlayer.sessionsCount === 0) {
-    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-        {/* 1. Player selector */}
-        {renderPlayerSelector()}
-
-        {/* Empty state card */}
-        <div
-          className="card-sport animate-slide-up"
-          style={{ padding: "3.5rem 2rem", textAlign: "center" }}
-        >
-          <CalendarIcon size="3rem" style={{ color: "#3d6e50", marginBottom: "1rem" }} />
-          <h3
-            style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: "1.6rem",
-              color: "#e4f0e8",
-              margin: "0 0 0.5rem",
-              letterSpacing: "0.05em",
-            }}
-          >
-            Sin partidos
-          </h3>
-          <p
-            style={{
-              fontFamily: "'Barlow', sans-serif",
-              fontSize: "0.9rem",
-              color: "#3d6e50",
-              margin: 0,
-            }}
-          >
-            {playerName} no participó de ninguna sesión de votación todavía.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       {/* 1. Player selector */}
@@ -298,16 +259,55 @@ export default function PersonalTab({
           <div style={{ display: "flex", flexDirection: "column" }}>
             {sectionHeading("Rating General")}
             <div style={{ flex: 1 }}>
-              <StatLineChart
-                label="Promedio General"
-                data={buildSeries(
-                  selectedPlayerId,
-                  "avg_total",
-                  "#00e676",
-                  playerName
-                )}
-                sessions={playerSessions}
-              />
+              {selectedPlayer && selectedPlayer.sessionsCount === 0 ? (
+                <div
+                  className="card-sport animate-slide-up"
+                  style={{
+                    padding: "1.5rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "100%",
+                    minHeight: "260px",
+                    textAlign: "center",
+                  }}
+                >
+                  <CalendarIcon size="2.5rem" style={{ color: "#3d6e50", marginBottom: "0.75rem" }} />
+                  <h3
+                    style={{
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: "1.4rem",
+                      color: "#e4f0e8",
+                      margin: "0 0 0.5rem",
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    Sin sesiones
+                  </h3>
+                  <p
+                    style={{
+                      fontFamily: "'Barlow', sans-serif",
+                      fontSize: "0.85rem",
+                      color: "#3d6e50",
+                      margin: 0,
+                    }}
+                  >
+                    El jugador no participó de ninguna sesión.
+                  </p>
+                </div>
+              ) : (
+                <StatLineChart
+                  label="Promedio General"
+                  data={buildSeries(
+                    selectedPlayerId,
+                    "avg_total",
+                    "#00e676",
+                    playerName
+                  )}
+                  sessions={playerSessions}
+                />
+              )}
             </div>
           </div>
 
@@ -490,7 +490,7 @@ export default function PersonalTab({
       )}
 
       {/* 3. Stats por Categoría */}
-      {selectedPlayerId && (
+      {selectedPlayerId && selectedPlayer && selectedPlayer.sessionsCount > 0 && (
         <div>
           {sectionHeading("Stats por Categoría")}
           <div
@@ -565,7 +565,7 @@ export default function PersonalTab({
       )}
 
       {/* 4. Resumen */}
-      {selectedPlayer && (
+      {selectedPlayer && selectedPlayer.sessionsCount > 0 && (
         <div>
           {sectionHeading("Resumen")}
           <div className="card-sport">
