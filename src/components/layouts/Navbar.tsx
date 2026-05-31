@@ -5,7 +5,7 @@ import { signOut } from "@/actions/auth";
 import { Profile } from "@/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SoccerBallIcon } from "@/components/Icons";
+import { CotorraLogoIcon } from "@/components/Icons";
 
 interface NavbarProps {
   profile: Profile | null;
@@ -60,10 +60,9 @@ export default function Navbar({ profile }: NavbarProps) {
             textDecoration: "none",
           }}
         >
-          <SoccerBallIcon
-            size="1.6rem"
+          <CotorraLogoIcon
+            size="1.85rem"
             style={{
-              color: "#00e676",
               display: "inline-block",
             }}
           />
