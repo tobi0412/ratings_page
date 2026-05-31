@@ -2,7 +2,7 @@
 
 import { submitRating } from "@/actions/ratings";
 import { Profile, Rating } from "@/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon, CheckIcon } from "@/components/Icons";
 
 interface VotingCardProps {
@@ -48,6 +48,11 @@ export default function VotingCard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+
+  // Sync checkbox state when the parent rating changes (e.g., cleared by another card's MVP choice)
+  useEffect(() => {
+    setIsMvp(existingRating?.is_mvp || false);
+  }, [existingRating?.is_mvp]);
 
   const handleSubmit = async () => {
     setLoading(true);

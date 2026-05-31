@@ -250,13 +250,19 @@ export default function DashboardPage() {
                 )}
                 onSuccess={(newRating) => {
                   setMyVotes((prev) => {
-                    const exists = prev.some((v) => v.receiver_id === newRating.receiver_id);
+                    let updated = prev;
+                    if (newRating.is_mvp) {
+                      updated = prev.map((v) =>
+                        v.receiver_id !== newRating.receiver_id ? { ...v, is_mvp: false } : v
+                      );
+                    }
+                    const exists = updated.some((v) => v.receiver_id === newRating.receiver_id);
                     if (exists) {
-                      return prev.map((v) =>
+                      return updated.map((v) =>
                         v.receiver_id === newRating.receiver_id ? newRating : v
                       );
                     }
-                    return [...prev, newRating];
+                    return [...updated, newRating];
                   });
                 }}
               />
