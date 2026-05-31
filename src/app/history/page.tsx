@@ -199,7 +199,7 @@ export default function HistoryPage() {
         {(
           [
             { key: "personal", label: "Estadísticas Personales", mobileLabel: "Personales" },
-            { key: "team", label: "Comparativas por Equipo", mobileLabel: "Equipos" },
+            { key: "team", label: "Comparativas por Equipo", mobileLabel: "Equipo" },
           ] as { key: ActiveTab; label: string; mobileLabel: string }[]
         ).map((tab) => {
           const isActive = activeTab === tab.key;
