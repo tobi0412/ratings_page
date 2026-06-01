@@ -244,7 +244,7 @@ export default function MysteryVoteWidget() {
                   }}
                   className="whitespace-nowrap"
                 >
-                  Promedio: {averageGiven}
+                  Prom. votos: {averageGiven}
                 </span>
               </div>
             </div>
