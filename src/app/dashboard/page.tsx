@@ -142,7 +142,9 @@ export default function DashboardPage() {
             textAlign: "center",
           }}
         >
-          <BanIcon size="3rem" style={{ color: "#ff5252", marginBottom: "1rem" }} />
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
+            <BanIcon size="3rem" style={{ color: "#ff5252" }} />
+          </div>
           <h3
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
@@ -277,7 +279,9 @@ export default function DashboardPage() {
             textAlign: "center",
           }}
         >
-          <StadiumIcon size="3rem" style={{ color: "#3d6e50", marginBottom: "1rem" }} />
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
+            <StadiumIcon size="3rem" style={{ color: "#3d6e50" }} />
+          </div>
           <h3
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
