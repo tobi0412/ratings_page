@@ -181,37 +181,51 @@ export default function MysteryVoteWidget() {
           `}</style>
           
           <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              borderBottom: "1px solid rgba(0, 230, 118, 0.2)",
-              paddingBottom: "0.75rem",
-            }}
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[rgba(0,230,118,0.2)] pb-3"
           >
-            <div>
-              <p
-                style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  fontSize: "0.75rem",
-                  fontWeight: 700,
-                  color: "var(--accent-lime)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  margin: 0,
-                }}
-              >
-                Voto Revelado de la sesión {session.name}
-              </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between sm:justify-start gap-2">
+                <p
+                  style={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                    color: "var(--accent-lime)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    margin: 0,
+                  }}
+                  className="truncate"
+                >
+                  Voto Revelado: {session.name}
+                </p>
+                <button
+                  onClick={() => setIsRevealed(false)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#3d6e50",
+                    fontSize: "0.75rem",
+                    cursor: "pointer",
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                  }}
+                  className="sm:hidden shrink-0 hover:text-red-400 transition-colors"
+                >
+                  Ocultar
+                </button>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
                 <h3
                   style={{
                     fontFamily: "'Bebas Neue', sans-serif",
                     fontSize: "1.6rem",
                     color: "#e4f0e8",
-                    margin: "0.15rem 0 0",
+                    margin: 0,
                     letterSpacing: "0.03em",
                   }}
+                  className="leading-none"
                 >
                   @{voter?.username}
                 </h3>
@@ -227,10 +241,10 @@ export default function MysteryVoteWidget() {
                     borderRadius: "4px",
                     letterSpacing: "0.05em",
                     textTransform: "uppercase",
-                    marginTop: "0.15rem",
                   }}
+                  className="whitespace-nowrap"
                 >
-                  Promedio de votos totales: {averageGiven}
+                  Promedio: {averageGiven}
                 </span>
               </div>
             </div>
@@ -246,6 +260,7 @@ export default function MysteryVoteWidget() {
                 fontWeight: 700,
                 textTransform: "uppercase",
               }}
+              className="hidden sm:block hover:text-red-400 transition-colors"
             >
               Ocultar
             </button>
@@ -256,16 +271,13 @@ export default function MysteryVoteWidget() {
               <div
                 key={vote.id}
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
                   background: "rgba(0,0,0,0.2)",
-                  padding: "0.75rem 1rem",
                   borderRadius: "8px",
                   border: vote.is_mvp ? "1px solid rgba(255, 171, 64, 0.3)" : "1px solid transparent",
                 }}
+                className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:px-4 sm:py-3 gap-3"
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <div className="flex items-center gap-2">
                   <span
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
@@ -299,19 +311,20 @@ export default function MysteryVoteWidget() {
                   )}
                 </div>
 
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <span style={{ fontSize: "0.58rem", color: "#3d6e50", textTransform: "uppercase", fontWeight: 700, whiteSpace: "nowrap" }}>Hab. Téc.</span>
+                <div className="grid grid-cols-4 sm:flex gap-2 sm:gap-2 justify-between">
+                  <div className="flex flex-col items-center bg-[rgba(28,56,40,0.15)] sm:bg-transparent p-1.5 sm:p-0 rounded border border-[rgba(28,56,40,0.2)] sm:border-0">
+                    <span style={{ fontSize: "0.58rem", color: "#3d6e50", textTransform: "uppercase", fontWeight: 700 }} className="text-center block sm:hidden">TÉC</span>
+                    <span style={{ fontSize: "0.58rem", color: "#3d6e50", textTransform: "uppercase", fontWeight: 700 }} className="text-center hidden sm:block whitespace-nowrap">Hab. Téc.</span>
                     <span
                       style={{
                         background: "#1c3828",
                         borderRadius: "4px",
-                        width: "30px",
-                        height: "22px",
+                        width: "32px",
+                        height: "24px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: "0.75rem",
+                        fontSize: "0.8rem",
                         fontWeight: 700,
                         color: "var(--accent-lime)",
                         marginTop: "0.15rem",
@@ -321,18 +334,19 @@ export default function MysteryVoteWidget() {
                     </span>
                   </div>
                   
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <span style={{ fontSize: "0.58rem", color: "#3d6e50", textTransform: "uppercase", fontWeight: 700, whiteSpace: "nowrap" }}>Esf. Fís.</span>
+                  <div className="flex flex-col items-center bg-[rgba(28,56,40,0.15)] sm:bg-transparent p-1.5 sm:p-0 rounded border border-[rgba(28,56,40,0.2)] sm:border-0">
+                    <span style={{ fontSize: "0.58rem", color: "#3d6e50", textTransform: "uppercase", fontWeight: 700 }} className="text-center block sm:hidden">FÍS</span>
+                    <span style={{ fontSize: "0.58rem", color: "#3d6e50", textTransform: "uppercase", fontWeight: 700 }} className="text-center hidden sm:block whitespace-nowrap">Esf. Fís.</span>
                     <span
                       style={{
                         background: "#1c3828",
                         borderRadius: "4px",
-                        width: "30px",
-                        height: "22px",
+                        width: "32px",
+                        height: "24px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: "0.75rem",
+                        fontSize: "0.8rem",
                         fontWeight: 700,
                         color: "var(--accent-lime)",
                         marginTop: "0.15rem",
@@ -342,18 +356,19 @@ export default function MysteryVoteWidget() {
                     </span>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <span style={{ fontSize: "0.58rem", color: "#3d6e50", textTransform: "uppercase", fontWeight: 700, whiteSpace: "nowrap" }}>Actitud</span>
+                  <div className="flex flex-col items-center bg-[rgba(28,56,40,0.15)] sm:bg-transparent p-1.5 sm:p-0 rounded border border-[rgba(28,56,40,0.2)] sm:border-0">
+                    <span style={{ fontSize: "0.58rem", color: "#3d6e50", textTransform: "uppercase", fontWeight: 700 }} className="text-center block sm:hidden">ACT</span>
+                    <span style={{ fontSize: "0.58rem", color: "#3d6e50", textTransform: "uppercase", fontWeight: 700 }} className="text-center hidden sm:block whitespace-nowrap">Actitud</span>
                     <span
                       style={{
                         background: "#1c3828",
                         borderRadius: "4px",
-                        width: "30px",
-                        height: "22px",
+                        width: "32px",
+                        height: "24px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: "0.75rem",
+                        fontSize: "0.8rem",
                         fontWeight: 700,
                         color: "var(--accent-lime)",
                         marginTop: "0.15rem",
@@ -363,18 +378,19 @@ export default function MysteryVoteWidget() {
                     </span>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <span style={{ fontSize: "0.58rem", color: "#3d6e50", textTransform: "uppercase", fontWeight: 700, whiteSpace: "nowrap" }}>Toma Dec.</span>
+                  <div className="flex flex-col items-center bg-[rgba(28,56,40,0.15)] sm:bg-transparent p-1.5 sm:p-0 rounded border border-[rgba(28,56,40,0.2)] sm:border-0">
+                    <span style={{ fontSize: "0.58rem", color: "#3d6e50", textTransform: "uppercase", fontWeight: 700 }} className="text-center block sm:hidden">DEC</span>
+                    <span style={{ fontSize: "0.58rem", color: "#3d6e50", textTransform: "uppercase", fontWeight: 700 }} className="text-center hidden sm:block whitespace-nowrap">Toma Dec.</span>
                     <span
                       style={{
                         background: "#1c3828",
                         borderRadius: "4px",
-                        width: "30px",
-                        height: "22px",
+                        width: "32px",
+                        height: "24px",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: "0.75rem",
+                        fontSize: "0.8rem",
                         fontWeight: 700,
                         color: "var(--accent-lime)",
                         marginTop: "0.15rem",
