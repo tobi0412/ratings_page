@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MatchSession, HistoricalRating, PlayerStats } from "@/types";
 import StatLineChart from "@/components/charts/StatLineChart";
+import { SessionComparisonsMap } from "@/lib/stats-comparison";
 import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon, CalendarIcon } from "@/components/Icons";
 
 interface PersonalTabProps {
@@ -10,6 +11,7 @@ interface PersonalTabProps {
   ratings: HistoricalRating[];
   stats: { [playerId: string]: PlayerStats };
   currentUserId: string | null;
+  comparisons?: SessionComparisonsMap;
 }
 
 const sectionHeading = (title: string) => (
@@ -31,6 +33,7 @@ export default function PersonalTab({
   ratings,
   stats,
   currentUserId,
+  comparisons,
 }: PersonalTabProps) {
   const playerIds = Object.keys(stats);
 
@@ -98,32 +101,39 @@ export default function PersonalTab({
     ? (selectedPlayer.sessionsCount / totalSessions) * 100
     : 0;
 
+  const playerComparison = comparisons?.[selectedPlayerId ?? ""];
+
   const statCards = selectedPlayer
     ? [
         {
           label: "Rating",
           value: selectedPlayer.avgTotal.toFixed(2),
           color: "#00e676",
+          change: playerComparison?.avgTotalChange ?? null,
         },
         {
           label: "Habilidad Técnica",
           value: selectedPlayer.avgTecnica.toFixed(2),
           color: "#40c4ff",
+          change: playerComparison?.avgTecnicaChange ?? null,
         },
         {
           label: "Esfuerzo Físico",
           value: selectedPlayer.avgFisico.toFixed(2),
           color: "#ff5252",
+          change: playerComparison?.avgFisicoChange ?? null,
         },
         {
           label: "Actitud",
           value: selectedPlayer.avgActitud.toFixed(2),
           color: "#ffab40",
+          change: playerComparison?.avgActitudChange ?? null,
         },
         {
           label: "Toma de Decisiones",
           value: selectedPlayer.avgVision.toFixed(2),
           color: "#ea80fc",
+          change: playerComparison?.avgVisionChange ?? null,
         },
         // Only show Attendance if there are multiple sessions
         ...(totalSessions > 1
@@ -132,6 +142,7 @@ export default function PersonalTab({
                 label: "Asistencia",
                 value: `${Math.floor(attendancePercentage)}% (${selectedPlayer.sessionsCount}/${totalSessions})`,
                 color: "#a0c4ac",
+                change: null,
               },
             ]
           : []),
@@ -139,6 +150,7 @@ export default function PersonalTab({
           label: "MVPs",
           value: String(selectedPlayer.mvpCount),
           color: "#ffc93c",
+          change: null,
         },
       ]
     : [];
@@ -580,12 +592,16 @@ export default function PersonalTab({
                   key={card.label}
                   style={{
                     flex: "1 1 100px",
-                    padding: "1rem",
+                    padding: "1.25rem 1rem",
                     textAlign: "center",
                     borderRight:
                       index < statCards.length - 1
                         ? "1px solid rgba(28,56,40,0.5)"
                         : "none",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   <div
@@ -595,7 +611,7 @@ export default function PersonalTab({
                       color: "#3d6e50",
                       textTransform: "uppercase",
                       letterSpacing: "0.12em",
-                      marginBottom: "0.25rem",
+                      marginBottom: "0.35rem",
                     }}
                   >
                     {card.label}
@@ -610,6 +626,27 @@ export default function PersonalTab({
                   >
                     {card.value}
                   </div>
+                  {card.change !== undefined && card.change !== null && (
+                    <div
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.2rem",
+                        fontSize: "0.72rem",
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontWeight: 700,
+                        color: card.change > 0 ? "#00e676" : card.change < 0 ? "#ff5252" : "#3d6e50",
+                        marginTop: "0.4rem",
+                        background: card.change > 0 ? "rgba(0, 230, 118, 0.08)" : card.change < 0 ? "rgba(255, 82, 82, 0.08)" : "rgba(61, 110, 80, 0.08)",
+                        padding: "0.1rem 0.35rem",
+                        borderRadius: "4px",
+                        lineHeight: 1.1,
+                      }}
+                    >
+                      <span>{card.change > 0 ? "▲" : card.change < 0 ? "▼" : "•"}</span>
+                      <span>{card.change > 0 ? "+" : ""}{card.change.toFixed(1)}%</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
