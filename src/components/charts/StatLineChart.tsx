@@ -27,6 +27,7 @@ interface StatLineChartProps {
   }[];
   label: React.ReactNode;
   yDomain?: [number, number];
+  change?: number | null;
 }
 
 function CustomTooltip({ active, payload, label }: any) {
@@ -162,6 +163,7 @@ export default function StatLineChart({
   data,
   label,
   yDomain,
+  change,
 }: StatLineChartProps) {
   const isSingleSession = sessions.length === 1;
   const animationName = `fillBar_${useId().replace(/:/g, "")}`;
@@ -286,17 +288,40 @@ export default function StatLineChart({
                 alignItems: "baseline",
               }}
             >
-              <span
-                style={{
-                  fontFamily: "'Bebas Neue', sans-serif",
-                  fontSize: "4.5rem",
-                  color: color,
-                  lineHeight: 1,
-                  textShadow: `0 0 20px ${color}33`,
-                }}
-              >
-                {singleValue.toFixed(2)}
-              </span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem" }}>
+                <span
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: "4.5rem",
+                    color: color,
+                    lineHeight: 1,
+                    textShadow: `0 0 20px ${color}33`,
+                  }}
+                >
+                  {singleValue.toFixed(2)}
+                </span>
+                {change !== undefined && change !== null && (
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.2rem",
+                      fontSize: "0.8rem",
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontWeight: 700,
+                      color: change > 0 ? "#00e676" : change < 0 ? "#ff5252" : "#3d6e50",
+                      background: change > 0 ? "rgba(0, 230, 118, 0.08)" : change < 0 ? "rgba(255, 82, 82, 0.08)" : "rgba(61, 110, 80, 0.08)",
+                      padding: "0.15rem 0.4rem",
+                      borderRadius: "4px",
+                      lineHeight: 1.1,
+                      alignSelf: "center",
+                    }}
+                  >
+                    <span>{change > 0 ? "▲" : change < 0 ? "▼" : "•"}</span>
+                    <span>{change > 0 ? "+" : ""}{change.toFixed(1)}%</span>
+                  </div>
+                )}
+              </div>
               <span
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",

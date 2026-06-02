@@ -323,6 +323,7 @@ export default function PersonalTab({
                     playerName
                   )}
                   sessions={playerSessions}
+                  change={playerComparison?.avgTotalChange}
                 />
               )}
             </div>
@@ -531,6 +532,7 @@ export default function PersonalTab({
                 playerName,
               )}
               sessions={playerSessions}
+              change={playerComparison?.avgTecnicaChange}
             />
             <StatLineChart
               label={
@@ -546,6 +548,7 @@ export default function PersonalTab({
                 playerName,
               )}
               sessions={playerSessions}
+              change={playerComparison?.avgFisicoChange}
             />
             <StatLineChart
               label={
@@ -561,6 +564,7 @@ export default function PersonalTab({
                 playerName,
               )}
               sessions={playerSessions}
+              change={playerComparison?.avgActitudChange}
             />
             <StatLineChart
               label={
@@ -576,6 +580,7 @@ export default function PersonalTab({
                 playerName,
               )}
               sessions={playerSessions}
+              change={playerComparison?.avgVisionChange}
             />
           </div>
         </div>
