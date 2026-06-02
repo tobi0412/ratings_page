@@ -10,6 +10,7 @@ import TeamTab from "@/components/history/TeamTab";
 import { HistoricalRating, MatchSession, PlayerStats } from "@/types";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { calculateSessionComparisons } from "@/lib/stats-comparison";
 
 type ActiveTab = "personal" | "team";
 
@@ -18,6 +19,7 @@ export default function LatestSessionPage() {
   const [sessions, setSessions] = useState<MatchSession[]>([]);
   const [ratings, setRatings] = useState<HistoricalRating[]>([]);
   const [stats, setStats] = useState<{ [key: string]: PlayerStats }>({});
+  const [comparisons, setComparisons] = useState<{ [playerId: string]: any }>({});
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>("personal");
   const [loading, setLoading] = useState(true);
@@ -43,6 +45,7 @@ export default function LatestSessionPage() {
       setSessions(histData.sessions);
       setRatings(histData.ratings);
       setStats(allStats);
+      setComparisons(calculateSessionComparisons(histData.ratings));
       setCurrentUserId(profile.id);
       setLoading(false);
     }
@@ -208,6 +211,7 @@ export default function LatestSessionPage() {
             ratings={latestRatings}
             stats={latestStatsMap}
             currentUserId={currentUserId}
+            comparisons={comparisons}
           />
         ) : (
           <TeamTab
