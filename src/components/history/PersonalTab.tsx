@@ -512,9 +512,8 @@ export default function PersonalTab({
         <div>
           {sectionHeading("Stats por Categoría")}
           <div
+            className="grid grid-cols-1 md:grid-cols-2"
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
               gap: "1rem",
             }}
           >
@@ -597,16 +596,12 @@ export default function PersonalTab({
                   key={card.label}
                   style={{
                     flex: "1 1 100px",
-                    padding: "1.25rem 1rem",
+                    padding: "1rem",
                     textAlign: "center",
                     borderRight:
                       index < statCards.length - 1
                         ? "1px solid rgba(28,56,40,0.5)"
                         : "none",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
                   }}
                 >
                   <div
@@ -616,7 +611,7 @@ export default function PersonalTab({
                       color: "#3d6e50",
                       textTransform: "uppercase",
                       letterSpacing: "0.12em",
-                      marginBottom: "0.35rem",
+                      marginBottom: "0.25rem",
                     }}
                   >
                     {card.label}
@@ -631,27 +626,6 @@ export default function PersonalTab({
                   >
                     {card.value}
                   </div>
-                  {card.change !== undefined && card.change !== null && (
-                    <div
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "0.2rem",
-                        fontSize: "0.72rem",
-                        fontFamily: "'Barlow Condensed', sans-serif",
-                        fontWeight: 700,
-                        color: card.change > 0 ? "#00e676" : card.change < 0 ? "#ff5252" : "#3d6e50",
-                        marginTop: "0.4rem",
-                        background: card.change > 0 ? "rgba(0, 230, 118, 0.08)" : card.change < 0 ? "rgba(255, 82, 82, 0.08)" : "rgba(61, 110, 80, 0.08)",
-                        padding: "0.1rem 0.35rem",
-                        borderRadius: "4px",
-                        lineHeight: 1.1,
-                      }}
-                    >
-                      <span>{card.change > 0 ? "▲" : card.change < 0 ? "▼" : "•"}</span>
-                      <span>{card.change > 0 ? "+" : ""}{card.change.toFixed(1)}%</span>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
