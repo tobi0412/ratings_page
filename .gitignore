@@ -39,3 +39,6 @@ yarn-error.log*
 *.sln
 *.sw?
 .vercel
+
+*.txt
+*.jsonl

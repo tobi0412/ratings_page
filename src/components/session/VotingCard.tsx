@@ -256,7 +256,7 @@ export default function VotingCard({
             transition: "color 0.25s ease",
           }}
         >
-          No coincidí en cancha (voto vacío)
+          No coincidí en cancha
         </span>
         <div
           style={{
