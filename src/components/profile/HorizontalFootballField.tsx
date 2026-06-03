@@ -2,7 +2,7 @@ import React from 'react';
 
 export const HORIZONTAL_POSITIONS = [
   { id: 'PO', x: 10, y: 50, label: 'PO' },
-  { id: 'DFC', x: 26, y: 50, label: 'DFC' },
+  { id: 'DFC', x: 18, y: 50, label: 'DFC' },
   { id: 'DFI', x: 26, y: 20, label: 'DFI' },
   { id: 'DFD', x: 26, y: 80, label: 'DFD' },
   { id: 'MCD', x: 42, y: 50, label: 'MCD' },

@@ -10,7 +10,7 @@ export const POSITIONS = [
   { id: 'MD', x: 85, y: 46, label: 'MD' },
   { id: 'MCD', x: 50, y: 60, label: 'MCD' },
   { id: 'DFI', x: 18, y: 76, label: 'DFI' },
-  { id: 'DFC', x: 50, y: 76, label: 'DFC' },
+  { id: 'DFC', x: 50, y: 83, label: 'DFC' },
   { id: 'DFD', x: 82, y: 76, label: 'DFD' },
   { id: 'PO', x: 50, y: 92, label: 'PO' },
 ];
@@ -28,7 +28,7 @@ export default function FootballField({ isEditing, selectedPositions, onChange }
     if (selectedPositions.includes(posId)) {
       onChange(selectedPositions.filter(p => p !== posId));
     } else {
-      if (selectedPositions.length < 3) {
+      if (selectedPositions.length < 4) {
         onChange([...selectedPositions, posId]);
       }
     }

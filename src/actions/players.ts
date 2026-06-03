@@ -102,8 +102,8 @@ export async function updatePlayerProfile(
     if (!Array.isArray(favorite_positions)) {
       return { error: "Formato de posiciones inválido" };
     }
-    if (favorite_positions.length > 3) {
-      return { error: "No puedes seleccionar más de 3 posiciones" };
+    if (favorite_positions.length > 4) {
+      return { error: "No puedes seleccionar más de 4 posiciones" };
     }
     // Validate each position
     for (const pos of favorite_positions) {

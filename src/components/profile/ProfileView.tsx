@@ -153,7 +153,7 @@ export default function ProfileView({
                 Posiciones favoritas
               </h3>
               <div className="font-['Barlow_Condensed'] text-sm font-semibold tracking-wider text-[var(--text-muted)] uppercase">
-                {positions.length} / 3 SELECCIONADAS
+                {positions.length} / 4 SELECCIONADAS
               </div>
             </div>
             
