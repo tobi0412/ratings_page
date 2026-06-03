@@ -20,10 +20,10 @@ interface VoterProfile {
 interface RatingVote {
   id: string;
   receiver_id: string;
-  tecnica: number;
-  fisico: number;
-  actitud: number;
-  vision_juego: number;
+  tecnica: number | null;
+  fisico: number | null;
+  actitud: number | null;
+  vision_juego: number | null;
   is_mvp: boolean;
   receiver: {
     id: string;
@@ -98,12 +98,16 @@ export default function MysteryVoteWidget() {
     return null;
   }
 
-  const totalSum = votes.reduce(
-    (acc, vote) =>
-      acc + vote.tecnica + vote.fisico + vote.actitud + vote.vision_juego,
-    0,
-  );
-  const totalCount = votes.length * 4;
+  let totalSum = 0;
+  let totalCount = 0;
+
+  votes.forEach((vote) => {
+    if (vote.tecnica !== null) { totalSum += vote.tecnica; totalCount++; }
+    if (vote.fisico !== null) { totalSum += vote.fisico; totalCount++; }
+    if (vote.actitud !== null) { totalSum += vote.actitud; totalCount++; }
+    if (vote.vision_juego !== null) { totalSum += vote.vision_juego; totalCount++; }
+  });
+
   const averageGiven = totalCount > 0 ? (totalSum / totalCount).toFixed(2) : "0.00";
 
   return (
@@ -330,7 +334,7 @@ export default function MysteryVoteWidget() {
                         marginTop: "0.15rem",
                       }}
                     >
-                      {vote.tecnica}
+                      {vote.tecnica !== null ? vote.tecnica : "—"}
                     </span>
                   </div>
                   
@@ -352,7 +356,7 @@ export default function MysteryVoteWidget() {
                         marginTop: "0.15rem",
                       }}
                     >
-                      {vote.fisico}
+                      {vote.fisico !== null ? vote.fisico : "—"}
                     </span>
                   </div>
 
@@ -374,7 +378,7 @@ export default function MysteryVoteWidget() {
                         marginTop: "0.15rem",
                       }}
                     >
-                      {vote.actitud}
+                      {vote.actitud !== null ? vote.actitud : "—"}
                     </span>
                   </div>
 
@@ -396,7 +400,7 @@ export default function MysteryVoteWidget() {
                         marginTop: "0.15rem",
                       }}
                     >
-                      {vote.vision_juego}
+                      {vote.vision_juego !== null ? vote.vision_juego : "—"}
                     </span>
                   </div>
                 </div>
