@@ -39,12 +39,13 @@ export default function VotingCard({
   onSuccess,
 }: VotingCardProps) {
   const [metrics, setMetrics] = useState({
-    tecnica: existingRating?.tecnica || 5,
-    fisico: existingRating?.fisico || 5,
-    actitud: existingRating?.actitud || 5,
-    vision_juego: existingRating?.vision_juego || 5,
+    tecnica: existingRating?.tecnica ?? 5,
+    fisico: existingRating?.fisico ?? 5,
+    actitud: existingRating?.actitud ?? 5,
+    vision_juego: existingRating?.vision_juego ?? 5,
   });
   const [isMvp, setIsMvp] = useState(existingRating?.is_mvp || false);
+  const [isBlank, setIsBlank] = useState(existingRating?.tecnica === null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(!!existingRating);
@@ -53,15 +54,17 @@ export default function VotingCard({
   useEffect(() => {
     if (existingRating) {
       setMetrics({
-        tecnica: existingRating.tecnica,
-        fisico: existingRating.fisico,
-        actitud: existingRating.actitud,
-        vision_juego: existingRating.vision_juego,
+        tecnica: existingRating.tecnica ?? 5,
+        fisico: existingRating.fisico ?? 5,
+        actitud: existingRating.actitud ?? 5,
+        vision_juego: existingRating.vision_juego ?? 5,
       });
       setIsMvp(existingRating.is_mvp);
+      setIsBlank(existingRating.tecnica === null);
       setSaved(true);
     } else {
       setSaved(false);
+      setIsBlank(false);
     }
   }, [existingRating]);
 
@@ -72,11 +75,11 @@ export default function VotingCard({
     const result = await submitRating({
       match_id: matchId,
       receiver_id: receiver.id,
-      tecnica: metrics.tecnica,
-      fisico: metrics.fisico,
-      actitud: metrics.actitud,
-      vision_juego: metrics.vision_juego,
-      is_mvp: isMvp,
+      tecnica: isBlank ? null : metrics.tecnica,
+      fisico: isBlank ? null : metrics.fisico,
+      actitud: isBlank ? null : metrics.actitud,
+      vision_juego: isBlank ? null : metrics.vision_juego,
+      is_mvp: isBlank ? false : isMvp,
     });
 
     if (result.error) {
@@ -89,11 +92,17 @@ export default function VotingCard({
   };
 
   const avgRating =
-    (metrics.tecnica +
-      metrics.fisico +
-      metrics.actitud +
-      metrics.vision_juego) /
-    4;
+    !isBlank &&
+    metrics.tecnica !== null &&
+    metrics.fisico !== null &&
+    metrics.actitud !== null &&
+    metrics.vision_juego !== null
+      ? (metrics.tecnica +
+          metrics.fisico +
+          metrics.actitud +
+          metrics.vision_juego) /
+        4
+      : null;
 
   return (
     <div
@@ -179,7 +188,7 @@ export default function VotingCard({
         <div
           style={{
             background: "rgba(0,0,0,0.3)",
-            border: `1px solid ${getRatingColor(avgRating)}40`,
+            border: `1px solid ${avgRating !== null ? getRatingColor(avgRating) : "#3d6e50"}40`,
             borderRadius: "8px",
             padding: "0.3rem 0.6rem",
             textAlign: "center",
@@ -189,11 +198,11 @@ export default function VotingCard({
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: "1.4rem",
-              color: getRatingColor(avgRating),
+              color: avgRating !== null ? getRatingColor(avgRating) : "#3d6e50",
               lineHeight: 1,
             }}
           >
-            {avgRating.toFixed(2)}
+            {avgRating !== null ? avgRating.toFixed(2) : "—"}
           </div>
           <div
             style={{
@@ -209,6 +218,51 @@ export default function VotingCard({
         </div>
       </div>
 
+      {/* Toggle voto en blanco */}
+      <label
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.65rem",
+          cursor: "pointer",
+          marginBottom: "1rem",
+          padding: "0.6rem 0.75rem",
+          borderRadius: "8px",
+          background: isBlank ? "rgba(255,82,82,0.06)" : "rgba(0,0,0,0.15)",
+          border: `1px solid ${isBlank ? "rgba(255,82,82,0.25)" : "#1c3828"}`,
+          transition: "all 0.2s ease",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={isBlank}
+          onChange={(e) => {
+            const checked = e.target.checked;
+            setIsBlank(checked);
+            if (checked) {
+              setIsMvp(false);
+            }
+            setSaved(false);
+          }}
+          style={{
+            accentColor: "#ff5252",
+            cursor: "pointer",
+          }}
+        />
+        <span
+          style={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontWeight: 600,
+            fontSize: "0.85rem",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: isBlank ? "#ff5252" : "#a0c4ac",
+          }}
+        >
+          No jugué con este jugador
+        </span>
+      </label>
+
       {/* Metrics */}
       <div
         style={{
@@ -216,6 +270,9 @@ export default function VotingCard({
           flexDirection: "column",
           gap: "0.85rem",
           marginBottom: "1rem",
+          opacity: isBlank ? 0.35 : 1,
+          pointerEvents: isBlank ? "none" : "auto",
+          transition: "opacity 0.2s ease",
         }}
       >
         {(["tecnica", "fisico", "actitud", "vision_juego"] as const).map(
@@ -249,13 +306,13 @@ export default function VotingCard({
                   style={{
                     fontFamily: "'Bebas Neue', sans-serif",
                     fontSize: "1.1rem",
-                    color: getRatingColor(metrics[metric]),
+                    color: isBlank ? "#3d6e50" : getRatingColor(metrics[metric]),
                     letterSpacing: "0.04em",
                     minWidth: "28px",
                     textAlign: "right",
                   }}
                 >
-                  {metrics[metric]}
+                  {isBlank ? "—" : metrics[metric]}
                 </span>
               </div>
               <input
@@ -263,6 +320,7 @@ export default function VotingCard({
                 min="1"
                 max="10"
                 value={metrics[metric]}
+                disabled={isBlank}
                 onChange={(e) => {
                   setMetrics({
                     ...metrics,
@@ -282,20 +340,23 @@ export default function VotingCard({
           display: "flex",
           alignItems: "center",
           gap: "0.65rem",
-          cursor: "pointer",
+          cursor: isBlank ? "not-allowed" : "pointer",
           marginBottom: "1rem",
           padding: "0.6rem 0.75rem",
           borderRadius: "8px",
           background: isMvp ? "rgba(255,201,60,0.1)" : "rgba(0,0,0,0.2)",
           border: `1px solid ${isMvp ? "rgba(255,201,60,0.35)" : "#1c3828"}`,
           transition: "all 0.2s ease",
+          opacity: isBlank ? 0.35 : 1,
         }}
       >
         <input
           type="checkbox"
           id={`mvp-${receiver.id}`}
           checked={isMvp}
+          disabled={isBlank}
           onChange={(e) => {
+            if (isBlank) return;
             setIsMvp(e.target.checked);
             setSaved(false);
           }}
