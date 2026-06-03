@@ -407,6 +407,27 @@ input[type="range"]::-moz-range-thumb {
     border: none;
 }
 
+/* Range slider disabled state */
+input[type="range"]:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: var(--border-subtle);
+}
+
+input[type="range"]:disabled::-webkit-slider-thumb {
+    background: var(--text-muted);
+    box-shadow: none;
+    transform: none;
+    cursor: not-allowed;
+}
+
+input[type="range"]:disabled::-moz-range-thumb {
+    background: var(--text-muted);
+    box-shadow: none;
+    border: none;
+    cursor: not-allowed;
+}
+
 /* ── Scrollbar ───────────────────────────────────────────── */
 ::-webkit-scrollbar {
     width: 5px;

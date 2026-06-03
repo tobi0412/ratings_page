@@ -109,8 +109,12 @@ export default function VotingCard({
       className="card-sport animate-slide-up"
       style={{
         padding: "1.25rem",
-        borderColor: saved ? "rgba(0,230,118,0.4)" : undefined,
-        transition: "border-color 0.3s ease",
+        borderColor: saved
+          ? isBlank
+            ? "rgba(61, 110, 80, 0.4)" // Muted border for saved blank vote
+            : "rgba(0, 230, 118, 0.4)" // Lime border for normal saved rating
+          : undefined,
+        transition: "border-color 0.3s ease, box-shadow 0.3s ease",
       }}
     >
       {/* Player header */}
@@ -218,50 +222,67 @@ export default function VotingCard({
         </div>
       </div>
 
-      {/* Toggle voto en blanco */}
-      <label
+      {/* Toggle voto en blanco (Custom Switch) */}
+      <div
+        onClick={() => {
+          const nextVal = !isBlank;
+          setIsBlank(nextVal);
+          if (nextVal) {
+            setIsMvp(false);
+          }
+          setSaved(false);
+        }}
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "0.65rem",
+          justifyContent: "space-between",
           cursor: "pointer",
           marginBottom: "1rem",
-          padding: "0.6rem 0.75rem",
+          padding: "0.65rem 0.85rem",
           borderRadius: "8px",
-          background: isBlank ? "rgba(255,82,82,0.06)" : "rgba(0,0,0,0.15)",
-          border: `1px solid ${isBlank ? "rgba(255,82,82,0.25)" : "#1c3828"}`,
-          transition: "all 0.2s ease",
+          background: isBlank ? "var(--accent-red-soft)" : "rgba(0, 0, 0, 0.25)",
+          border: `1px solid ${isBlank ? "rgba(255, 82, 82, 0.35)" : "var(--border-subtle)"}`,
+          transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
-        <input
-          type="checkbox"
-          checked={isBlank}
-          onChange={(e) => {
-            const checked = e.target.checked;
-            setIsBlank(checked);
-            if (checked) {
-              setIsMvp(false);
-            }
-            setSaved(false);
-          }}
-          style={{
-            accentColor: "#ff5252",
-            cursor: "pointer",
-          }}
-        />
         <span
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            fontWeight: 600,
-            fontSize: "0.85rem",
+            fontWeight: 700,
+            fontSize: "0.82rem",
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            color: isBlank ? "#ff5252" : "#a0c4ac",
+            color: isBlank ? "var(--accent-red)" : "var(--text-muted)",
+            transition: "color 0.25s ease",
           }}
         >
-          No jugué con este jugador
+          No coincidí en cancha (voto vacío)
         </span>
-      </label>
+        <div
+          style={{
+            width: "36px",
+            height: "20px",
+            borderRadius: "10px",
+            background: isBlank ? "var(--accent-red)" : "var(--bg-field)",
+            border: `1px solid ${isBlank ? "var(--accent-red)" : "var(--border-subtle)"}`,
+            position: "relative",
+            transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+            padding: "1px",
+          }}
+        >
+          <div
+            style={{
+              width: "16px",
+              height: "16px",
+              borderRadius: "50%",
+              background: isBlank ? "#060d09" : "var(--text-muted)",
+              position: "absolute",
+              left: isBlank ? "17px" : "1px",
+              transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+            }}
+          />
+        </div>
+      </div>
 
       {/* Metrics */}
       <div
@@ -270,9 +291,14 @@ export default function VotingCard({
           flexDirection: "column",
           gap: "0.85rem",
           marginBottom: "1rem",
+          padding: isBlank ? "0.75rem" : "0",
+          borderRadius: "8px",
+          background: isBlank
+            ? "repeating-linear-gradient(-45deg, rgba(255, 82, 82, 0.015), rgba(255, 82, 82, 0.015) 12px, transparent 12px, transparent 24px)"
+            : undefined,
           opacity: isBlank ? 0.35 : 1,
           pointerEvents: isBlank ? "none" : "auto",
-          transition: "opacity 0.2s ease",
+          transition: "all 0.2s ease",
         }}
       >
         {(["tecnica", "fisico", "actitud", "vision_juego"] as const).map(
@@ -293,7 +319,7 @@ export default function VotingCard({
                     fontSize: "0.78rem",
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
-                    color: "#3d6e50",
+                    color: "var(--text-muted)",
                     display: "inline-flex",
                     alignItems: "center",
                     gap: "0.4rem",
@@ -306,7 +332,7 @@ export default function VotingCard({
                   style={{
                     fontFamily: "'Bebas Neue', sans-serif",
                     fontSize: "1.1rem",
-                    color: isBlank ? "#3d6e50" : getRatingColor(metrics[metric]),
+                    color: isBlank ? "var(--text-muted)" : getRatingColor(metrics[metric]),
                     letterSpacing: "0.04em",
                     minWidth: "28px",
                     textAlign: "right",
@@ -345,7 +371,7 @@ export default function VotingCard({
           padding: "0.6rem 0.75rem",
           borderRadius: "8px",
           background: isMvp ? "rgba(255,201,60,0.1)" : "rgba(0,0,0,0.2)",
-          border: `1px solid ${isMvp ? "rgba(255,201,60,0.35)" : "#1c3828"}`,
+          border: `1px solid ${isMvp ? "rgba(255,201,60,0.35)" : "var(--border-subtle)"}`,
           transition: "all 0.2s ease",
           opacity: isBlank ? 0.35 : 1,
         }}
