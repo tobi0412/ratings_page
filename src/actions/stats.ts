@@ -67,11 +67,13 @@ export async function getAllPlayersStats() {
     const playerRatings = profile.historical_ratings || [];
     const count = playerRatings.length;
 
-    const avg = (key: keyof (typeof playerRatings)[0]) =>
-      count > 0
-        ? playerRatings.reduce((sum, r) => sum + (Number(r[key]) || 0), 0) /
-          count
+    const avg = (key: keyof (typeof playerRatings)[0]) => {
+      const validRatings = playerRatings.filter((r) => r[key] !== null);
+      const countValid = validRatings.length;
+      return countValid > 0
+        ? validRatings.reduce((sum, r) => sum + (Number(r[key]) || 0), 0) / countValid
         : 0;
+    };
 
     const { historical_ratings, ...profileData } = profile;
 
