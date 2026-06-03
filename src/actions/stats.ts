@@ -65,7 +65,6 @@ export async function getAllPlayersStats() {
 
   profiles?.forEach((profile) => {
     const playerRatings = profile.historical_ratings || [];
-    const count = playerRatings.length;
 
     const avg = (key: keyof (typeof playerRatings)[0]) => {
       const validRatings = playerRatings.filter((r) => r[key] !== null);
