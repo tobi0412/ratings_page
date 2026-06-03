@@ -23,10 +23,10 @@ export interface Rating {
   match_id: string;
   voter_id: string;
   receiver_id: string;
-  tecnica: number;
-  fisico: number;
-  actitud: number;
-  vision_juego: number;
+  tecnica: number | null;
+  fisico: number | null;
+  actitud: number | null;
+  vision_juego: number | null;
   is_mvp: boolean;
   created_at: string;
   updated_at: string;
@@ -48,10 +48,10 @@ export interface HistoricalRating {
 export interface RatingInput {
   match_id: string;
   receiver_id: string;
-  tecnica: number;
-  fisico: number;
-  actitud: number;
-  vision_juego: number;
+  tecnica: number | null;
+  fisico: number | null;
+  actitud: number | null;
+  vision_juego: number | null;
   is_mvp: boolean;
 }
 
