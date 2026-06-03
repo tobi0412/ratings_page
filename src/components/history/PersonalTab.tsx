@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { MatchSession, HistoricalRating, PlayerStats } from "@/types";
 import StatLineChart from "@/components/charts/StatLineChart";
 import { SessionComparisonsMap } from "@/lib/stats-comparison";
 import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon, CalendarIcon } from "@/components/Icons";
+import HorizontalFootballField from "@/components/profile/HorizontalFootballField";
 
 interface PersonalTabProps {
   sessions: MatchSession[];
@@ -203,6 +205,97 @@ export default function PersonalTab({
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       {/* 1. Player selector */}
       {renderPlayerSelector()}
+
+      {/* Profile Info Card */}
+      {selectedPlayer?.profile && (
+        <div
+          className="card-sport animate-slide-up grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-5 items-center p-5 mt-1"
+        >
+          {/* Left Side: Avatar & Bio */}
+          <div className="flex items-center gap-4 flex-wrap sm:flex-nowrap w-full">
+            {/* Avatar */}
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                borderRadius: "50%",
+                background: "var(--accent-lime-soft)",
+                border: "1.5px solid rgba(0,230,118,0.4)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+                flexShrink: 0,
+              }}
+            >
+              {selectedPlayer.profile.avatar_url ? (
+                <img
+                  src={selectedPlayer.profile.avatar_url}
+                  alt={selectedPlayer.profile.username}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : (
+                <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2rem", color: "var(--accent-lime)" }}>
+                  {selectedPlayer.profile.username?.[0]?.toUpperCase() ?? "?"}
+                </span>
+              )}
+            </div>
+
+            {/* Username & Bio */}
+            <div className="flex flex-col gap-1.5 w-full">
+              <h3
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: "1.8rem",
+                  margin: 0,
+                  color: "#e4f0e8",
+                  letterSpacing: "0.05em",
+                  lineHeight: "1",
+                }}
+              >
+                {selectedPlayer.profile.username}
+              </h3>
+              <p
+                style={{
+                  fontFamily: "'Barlow', sans-serif",
+                  fontSize: "0.85rem",
+                  color: "var(--text-muted)",
+                  margin: 0,
+                  lineHeight: "1.35",
+                }}
+              >
+                {selectedPlayer.profile.bio || <span style={{ fontStyle: "italic", opacity: 0.6 }}>Sin biografía</span>}
+              </p>
+            </div>
+          </div>
+
+          {/* Middle: Horizontal Football Field Preview */}
+          <div className="flex justify-center md:justify-self-center w-full md:w-auto">
+            <HorizontalFootballField selectedPositions={selectedPlayer.profile.favorite_positions || []} />
+          </div>
+
+          {/* Right Side: Link Button */}
+          <div className="flex justify-center md:justify-end w-full md:w-auto">
+            <Link
+              href={`/profile/${selectedPlayer.profile.id}`}
+              className="btn-outline-lime w-full sm:w-auto text-center"
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                padding: "0.4rem 1.25rem",
+                borderRadius: "6px",
+                letterSpacing: "0.05em",
+                textDecoration: "none",
+                display: "inline-block",
+                lineHeight: "normal"
+              }}
+            >
+              Ver Perfil Completo
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* MVP Banner */}
       {sessions.length === 1 && selectedPlayer && selectedPlayer.mvpCount > 0 && (

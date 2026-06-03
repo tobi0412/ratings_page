@@ -5,6 +5,8 @@ export interface Profile {
   role: "admin" | "player";
   status: "pending" | "approved" | "rejected";
   avatar_url: string | null;
+  bio?: string | null;
+  favorite_positions?: string[] | null;
   created_at: string;
   updated_at: string;
 }

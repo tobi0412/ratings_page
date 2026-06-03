@@ -47,6 +47,8 @@ export async function getAllPlayersStats() {
       role,
       auth_id,
       status,
+      bio,
+      favorite_positions,
       created_at,
       updated_at,
       historical_ratings (

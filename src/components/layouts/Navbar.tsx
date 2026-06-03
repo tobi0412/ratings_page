@@ -212,6 +212,32 @@ export default function Navbar({ profile }: NavbarProps) {
                         to { opacity: 1; transform: translateY(0); }
                       }
                     `}</style>
+                    <Link
+                      href="/profile"
+                      onClick={() => setDropdownOpen(false)}
+                      style={{
+                        padding: "0.6rem 1rem",
+                        color: isActive("/profile") ? "#00e676" : "#a0c4ac",
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontWeight: 600,
+                        fontSize: "0.85rem",
+                        letterSpacing: "0.05em",
+                        textTransform: "uppercase",
+                        textDecoration: "none",
+                        textAlign: "left",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "rgba(0, 230, 118, 0.08)";
+                        e.currentTarget.style.color = "#00e676";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                        e.currentTarget.style.color = isActive("/profile") ? "#00e676" : "#a0c4ac";
+                      }}
+                    >
+                      Perfil
+                    </Link>
                     {profile.role === "admin" && (
                       <Link
                         href="/admin"
