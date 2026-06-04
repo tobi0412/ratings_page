@@ -163,9 +163,18 @@ export default function Navbar({ profile }: NavbarProps) {
                       fontSize: "0.9rem",
                       color: "#00e676",
                       flexShrink: 0,
+                      overflow: "hidden",
                     }}
                   >
-                    {profile.username?.[0]?.toUpperCase() ?? "?"}
+                    {profile.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt={profile.username}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      profile.username?.[0]?.toUpperCase() ?? "?"
+                    )}
                   </div>
                   <span
                     className="hidden sm:inline-block"

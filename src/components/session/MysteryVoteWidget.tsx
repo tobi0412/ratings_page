@@ -291,6 +291,33 @@ export default function MysteryVoteWidget() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 mt-1">
+                <div
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "50%",
+                    background: "rgba(0, 230, 118, 0.15)",
+                    border: "1px solid rgba(0, 230, 118, 0.35)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: "0.85rem",
+                    color: "#00e676",
+                    overflow: "hidden",
+                    flexShrink: 0,
+                  }}
+                >
+                  {voter?.avatar_url ? (
+                    <img
+                      src={voter.avatar_url}
+                      alt={voter.username}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    voter?.username?.[0]?.toUpperCase() ?? "?"
+                  )}
+                </div>
                 <h3
                   style={{
                     fontFamily: "'Bebas Neue', sans-serif",
@@ -380,6 +407,33 @@ export default function MysteryVoteWidget() {
                 className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 sm:px-4 sm:py-3 gap-3"
               >
                 <div className="flex items-center gap-2">
+                  <div
+                    style={{
+                      width: "24px",
+                      height: "24px",
+                      borderRadius: "50%",
+                      background: "rgba(255, 255, 255, 0.05)",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: "0.75rem",
+                      color: "var(--text-muted)",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {vote.receiver?.avatar_url ? (
+                      <img
+                        src={vote.receiver.avatar_url}
+                        alt={vote.receiver.username}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      vote.receiver?.username?.[0]?.toUpperCase() ?? "?"
+                    )}
+                  </div>
                   <span
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",

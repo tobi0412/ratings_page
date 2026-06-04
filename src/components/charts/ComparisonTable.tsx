@@ -147,9 +147,18 @@ export default function ComparisonTable({ stats, totalSessionsCount }: Compariso
                       fontSize: "0.85rem",
                       color: "#00e676",
                       flexShrink: 0,
+                      overflow: "hidden",
                     }}
                   >
-                    {player.profile.username?.[0]?.toUpperCase() ?? "?"}
+                    {player.profile.avatar_url ? (
+                      <img
+                        src={player.profile.avatar_url}
+                        alt={player.profile.username}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      player.profile.username?.[0]?.toUpperCase() ?? "?"
+                    )}
                   </div>
                   <span
                     style={{

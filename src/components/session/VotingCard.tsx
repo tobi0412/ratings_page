@@ -2,7 +2,7 @@
 
 import { submitRating } from "@/actions/ratings";
 import { Profile, Rating } from "@/types";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, CheckIcon } from "@/components/Icons";
 
 interface VotingCardProps {
@@ -60,27 +60,57 @@ export default function VotingCard({
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(hasSavedRating);
 
+  // Keep track of the last rating values we synced to avoid overwriting unsaved changes
+  const prevExistingRatingRef = useRef(existingRating);
+
   // Sync all states when the parent rating changes (e.g., loaded asynchronously or updated externally)
   useEffect(() => {
-    if (existingRating) {
-      const hasSaved = existingRating.tecnica !== null || (
-        !existingRating.is_mvp && !existingRating.is_bigpaper && !existingRating.is_poop
-      );
-      const isBlankV = existingRating.tecnica === null && (
-        !existingRating.is_mvp && !existingRating.is_bigpaper && !existingRating.is_poop
-      );
+    // Helper to check if the database rating values actually changed
+    const areRatingsEqual = (r1: Rating | undefined, r2: Rating | undefined) => {
+      const t1 = r1?.tecnica ?? null;
+      const f1 = r1?.fisico ?? null;
+      const a1 = r1?.actitud ?? null;
+      const v1 = r1?.vision_juego ?? null;
 
-      setMetrics({
-        tecnica: existingRating.tecnica ?? 5,
-        fisico: existingRating.fisico ?? 5,
-        actitud: existingRating.actitud ?? 5,
-        vision_juego: existingRating.vision_juego ?? 5,
-      });
-      setIsBlank(isBlankV);
-      setSaved(hasSaved);
-    } else {
-      setSaved(false);
-      setIsBlank(false);
+      const t2 = r2?.tecnica ?? null;
+      const f2 = r2?.fisico ?? null;
+      const a2 = r2?.actitud ?? null;
+      const v2 = r2?.vision_juego ?? null;
+
+      return t1 === t2 && f1 === f2 && a1 === a2 && v1 === v2;
+    };
+
+    const ratingValuesChanged = !areRatingsEqual(prevExistingRatingRef.current, existingRating);
+    prevExistingRatingRef.current = existingRating;
+
+    // Only update metrics and flags if the database rating values themselves actually changed
+    if (ratingValuesChanged) {
+      if (existingRating) {
+        const hasSaved = existingRating.tecnica !== null || (
+          !existingRating.is_mvp && !existingRating.is_bigpaper && !existingRating.is_poop
+        );
+        const isBlankV = existingRating.tecnica === null && (
+          !existingRating.is_mvp && !existingRating.is_bigpaper && !existingRating.is_poop
+        );
+
+        setMetrics({
+          tecnica: existingRating.tecnica ?? 5,
+          fisico: existingRating.fisico ?? 5,
+          actitud: existingRating.actitud ?? 5,
+          vision_juego: existingRating.vision_juego ?? 5,
+        });
+        setIsBlank(isBlankV);
+        setSaved(hasSaved);
+      } else {
+        setMetrics({
+          tecnica: 5,
+          fisico: 5,
+          actitud: 5,
+          vision_juego: 5,
+        });
+        setIsBlank(false);
+        setSaved(false);
+      }
     }
   }, [existingRating]);
 
