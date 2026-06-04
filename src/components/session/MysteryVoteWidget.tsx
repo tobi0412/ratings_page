@@ -302,65 +302,62 @@ export default function MysteryVoteWidget() {
                   </span>
                   {vote.is_mvp && (
                     <span
+                      title="MVP"
                       style={{
                         background: "rgba(255, 171, 64, 0.15)",
                         border: "1px solid rgba(255, 171, 64, 0.4)",
-                        borderRadius: "4px",
-                        padding: "0.1rem 0.4rem",
-                        fontSize: "0.65rem",
-                        fontWeight: 700,
-                        color: "#ffab40",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
+                        borderRadius: "50%",
+                        width: "22px",
+                        height: "22px",
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: "0.25rem",
+                        justifyContent: "center",
+                        boxShadow: "0 0 8px rgba(255, 171, 64, 0.2)",
+                        transition: "all 0.2s ease",
                       }}
+                      className="hover:scale-110"
                     >
                       <StarIcon size="0.75rem" filled style={{ color: "#ffab40" }} />
-                      MVP
                     </span>
                   )}
                   {vote.is_bigpaper && (
                     <span
+                      title="Papelón"
                       style={{
                         background: "rgba(255, 171, 64, 0.12)",
                         border: "1px solid rgba(255, 171, 64, 0.3)",
-                        borderRadius: "4px",
-                        padding: "0.1rem 0.4rem",
-                        fontSize: "0.65rem",
-                        fontWeight: 700,
-                        color: "#ffa726",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
+                        borderRadius: "50%",
+                        width: "22px",
+                        height: "22px",
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: "0.25rem",
+                        justifyContent: "center",
+                        boxShadow: "0 0 8px rgba(255, 171, 64, 0.15)",
+                        transition: "all 0.2s ease",
                       }}
+                      className="hover:scale-110"
                     >
                       <PaperIcon size="0.75rem" style={{ color: "#ffa726" }} />
-                      Papelón
                     </span>
                   )}
                   {vote.is_poop && (
                     <span
+                      title="Jugador Caca"
                       style={{
                         background: "rgba(141, 110, 99, 0.12)",
                         border: "1px solid rgba(141, 110, 99, 0.3)",
-                        borderRadius: "4px",
-                        padding: "0.1rem 0.4rem",
-                        fontSize: "0.65rem",
-                        fontWeight: 700,
-                        color: "#8d6e63",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
+                        borderRadius: "50%",
+                        width: "22px",
+                        height: "22px",
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: "0.25rem",
+                        justifyContent: "center",
+                        boxShadow: "0 0 8px rgba(141, 110, 99, 0.15)",
+                        transition: "all 0.2s ease",
                       }}
+                      className="hover:scale-110"
                     >
                       <PoopIcon size="0.75rem" style={{ color: "#8d6e63" }} />
-                      Jugador Caca
                     </span>
                   )}
                 </div>
