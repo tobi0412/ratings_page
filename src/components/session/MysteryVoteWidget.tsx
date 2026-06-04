@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getLastClosedSessionStatus, revealMysteryVote } from "@/actions/sessions";
+import { getLastClosedSessionStatus, revealMysteryVote, getSessionParticipants } from "@/actions/sessions";
+import { getCurrentProfile } from "@/actions/auth";
 import { StarIcon, SpyIcon, PaperIcon, PoopIcon } from "@/components/Icons";
+import MysteryReveal from "./MysteryReveal";
 
 interface SessionStatusData {
   id: string;
@@ -42,12 +44,30 @@ export default function MysteryVoteWidget() {
   const [voter, setVoter] = useState<VoterProfile | null>(null);
   const [votes, setVotes] = useState<RatingVote[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [participants, setParticipants] = useState<VoterProfile[]>([]);
+  const [isAnimatingReveal, setIsAnimatingReveal] = useState(false);
+  const [currentUser, setCurrentUser] = useState<VoterProfile | null>(null);
+  const [hasSeenAnimation, setHasSeenAnimation] = useState(false);
 
   useEffect(() => {
     async function loadStatus() {
       try {
-        const data = await getLastClosedSessionStatus();
+        const [data, profile] = await Promise.all([
+          getLastClosedSessionStatus(),
+          getCurrentProfile()
+        ]);
         setSession(data);
+        setCurrentUser(profile as any);
+        if (data) {
+          // Fetch participants for the shuffle animation list
+          const parts = await getSessionParticipants(data.id);
+          setParticipants(parts as any[]);
+
+          // Check if already revealed in localStorage for this user to customize button
+          const key = `mystery_reveal_status_${profile?.id || "guest"}_${data.id}`;
+          const isAlreadyRevealed = localStorage.getItem(key) === "revealed";
+          setHasSeenAnimation(isAlreadyRevealed);
+        }
       } catch (err) {
         console.error("Error loading closed session status:", err);
       } finally {
@@ -68,7 +88,15 @@ export default function MysteryVoteWidget() {
       } else if ("voter" in result && result.voter) {
         setVoter(result.voter);
         setVotes(result.votes as any[]);
-        setIsRevealed(true);
+        
+        const key = `mystery_reveal_status_${currentUser?.id || "guest"}_${session.id}`;
+        const isAlreadyRevealed = localStorage.getItem(key) === "revealed";
+
+        if (!isAlreadyRevealed) {
+          setIsAnimatingReveal(true);
+        } else {
+          setIsRevealed(true);
+        }
       }
     } catch (err) {
       setError("No se pudo revelar el voto misterioso. Intenta de nuevo.");
@@ -124,7 +152,19 @@ export default function MysteryVoteWidget() {
         background: "linear-gradient(135deg, rgba(28, 56, 40, 0.4) 0%, rgba(10, 20, 15, 0.4) 100%)",
       }}
     >
-      {!isRevealed ? (
+      {isAnimatingReveal && voter ? (
+        <MysteryReveal
+          winnerName={voter.username}
+          allPlayers={participants.map((p) => p.username)}
+          sessionId={session.id}
+          currentUserId={currentUser?.id}
+          onComplete={() => {
+            setIsRevealed(true);
+            setIsAnimatingReveal(false);
+            setHasSeenAnimation(true);
+          }}
+        />
+      ) : !isRevealed ? (
         <div style={{ textAlign: "center", padding: "1rem 0" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}>
             <SpyIcon size="2.5rem" style={{ color: "var(--accent-lime)" }} />
@@ -167,7 +207,13 @@ export default function MysteryVoteWidget() {
               cursor: "pointer",
             }}
           >
-            {loadingReveal ? "Revelando..." : "Revelar Voto"}
+            {loadingReveal ? (
+              hasSeenAnimation ? "Cargando..." : "Revelando..."
+            ) : hasSeenAnimation ? (
+              "Ver Votos"
+            ) : (
+              "Revelar Voto"
+            )}
           </button>
         </div>
       ) : (
@@ -205,22 +251,44 @@ export default function MysteryVoteWidget() {
                 >
                   Voto Revelado: {session.name}
                 </p>
-                <button
-                  onClick={() => setIsRevealed(false)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#3d6e50",
-                    fontSize: "0.75rem",
-                    cursor: "pointer",
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                  }}
-                  className="sm:hidden shrink-0 hover:text-red-400 transition-colors"
-                >
-                  Ocultar
-                </button>
+                <div className="sm:hidden flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => {
+                      setIsRevealed(false);
+                      setIsAnimatingReveal(true);
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--accent-lime)",
+                      fontSize: "0.75rem",
+                      cursor: "pointer",
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                    }}
+                    className="hover:text-white transition-colors"
+                  >
+                    Animar
+                  </button>
+                  <span style={{ color: "#1c3828" }}>|</span>
+                  <button
+                    onClick={() => setIsRevealed(false)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#3d6e50",
+                      fontSize: "0.75rem",
+                      cursor: "pointer",
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                    }}
+                    className="hover:text-red-400 transition-colors"
+                  >
+                    Ocultar
+                  </button>
+                </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 mt-1">
                 <h3
@@ -254,22 +322,44 @@ export default function MysteryVoteWidget() {
                 </span>
               </div>
             </div>
-            <button
-              onClick={() => setIsRevealed(false)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#3d6e50",
-                fontSize: "0.75rem",
-                cursor: "pointer",
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontWeight: 700,
-                textTransform: "uppercase",
-              }}
-              className="hidden sm:block hover:text-red-400 transition-colors"
-            >
-              Ocultar
-            </button>
+            <div className="hidden sm:flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setIsRevealed(false);
+                  setIsAnimatingReveal(true);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "var(--accent-lime)",
+                  fontSize: "0.75rem",
+                  cursor: "pointer",
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                }}
+                className="hover:text-white transition-colors"
+              >
+                Ver Animación
+              </button>
+              <span style={{ color: "#1c3828" }}>|</span>
+              <button
+                onClick={() => setIsRevealed(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#3d6e50",
+                  fontSize: "0.75rem",
+                  cursor: "pointer",
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                }}
+                className="hover:text-red-400 transition-colors"
+              >
+                Ocultar
+              </button>
+            </div>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "0.50rem" }}>
