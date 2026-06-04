@@ -334,6 +334,10 @@ export default function AdminPage() {
                         badgeColor = "#00e676";
                         badgeBg = "rgba(0,230,118,0.12)";
                         statusText = "Completado";
+                      } else if (item.votesSubmitted >= item.maxVotes && !item.awardsCompleted) {
+                        badgeColor = "#ff9100";
+                        badgeBg = "rgba(255,145,0,0.12)";
+                        statusText = "Faltan Premios";
                       } else if (item.hasStarted) {
                         badgeColor = "#ffab40";
                         badgeBg = "rgba(255,171,64,0.12)";

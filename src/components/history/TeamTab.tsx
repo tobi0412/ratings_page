@@ -3,22 +3,18 @@
 import { useState, useEffect } from "react";
 import { MatchSession, HistoricalRating, PlayerStats } from "@/types";
 import StatLineChart from "@/components/charts/StatLineChart";
-import MVPRanking from "@/components/charts/MVPRanking";
+import AwardRanking from "@/components/charts/MVPRanking";
 import ComparisonTable from "@/components/charts/ComparisonTable";
 import AttendanceRanking from "@/components/charts/AttendanceRanking";
 import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon } from "@/components/Icons";
 
-interface MVPEntry {
-  player_id: string;
-  username: string;
-  total_mvps: number;
-}
+
 
 interface TeamTabProps {
   sessions: MatchSession[];
   ratings: HistoricalRating[];
   stats: { [playerId: string]: PlayerStats };
-  topMVPs: MVPEntry[];
+  topMVPs: any;
 }
 
 const PLAYER_COLORS = [
@@ -46,12 +42,35 @@ export default function TeamTab({
   topMVPs,
 }: TeamTabProps) {
   const players = Object.values(stats);
+  void topMVPs;
   const isSingleSession = sessions.length === 1;
-  const mvpHeading = isSingleSession
-    ? topMVPs.length > 1
-      ? "MVPs"
-      : "MVP"
-    : "Ranking MVPs";
+  // Compute awards rankings directly from stats
+  const computedMVPs = Object.values(stats)
+    .filter((ps) => ps.mvpCount > 0)
+    .map((ps) => ({
+      player_id: ps.profile.id,
+      username: ps.profile.username,
+      count: ps.mvpCount,
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  const computedBigpapers = Object.values(stats)
+    .filter((ps) => ps.bigpaperCount > 0)
+    .map((ps) => ({
+      player_id: ps.profile.id,
+      username: ps.profile.username,
+      count: ps.bigpaperCount,
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  const computedPoops = Object.values(stats)
+    .filter((ps) => ps.poopCount > 0)
+    .map((ps) => ({
+      player_id: ps.profile.id,
+      username: ps.profile.username,
+      count: ps.poopCount,
+    }))
+    .sort((a, b) => b.count - a.count);
 
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>(() =>
     Object.keys(stats)
@@ -257,13 +276,74 @@ export default function TeamTab({
       </div>
 
       {/* MVP and Attendance sections in grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "1.5rem",
-        }}
-      >
+      <div>
+        <h2
+          style={{
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: "1.6rem",
+            letterSpacing: "0.05em",
+            color: "#e4f0e8",
+            margin: "0 0 1rem",
+          }}
+        >
+          {isSingleSession ? "Premios de la Sesión" : "Rankings de Premios"}
+        </h2>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: "1.5rem",
+            marginBottom: "1.5rem",
+          }}
+        >
+          <section>
+            <h3
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: "1.3rem",
+                letterSpacing: "0.05em",
+                color: "#ffc93c",
+                margin: "0 0 0.5rem",
+              }}
+            >
+              {isSingleSession ? "MVP de la sesión" : "Ranking MVPs"}
+            </h3>
+            <AwardRanking entries={computedMVPs} badgeText="MVP" badgeClass="badge-gold" awardType="mvp" />
+          </section>
+
+          <section>
+            <h3
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: "1.3rem",
+                letterSpacing: "0.05em",
+                color: "#ffab40",
+                margin: "0 0 0.5rem",
+              }}
+            >
+              {isSingleSession ? "Papelón de la sesión" : "Ranking Papelón"}
+            </h3>
+            <AwardRanking entries={computedBigpapers} badgeText={isSingleSession ? "Papelón" : "Papelones"} badgeClass="badge-amber" awardType="bigpaper" />
+          </section>
+
+          <section>
+            <h3
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: "1.3rem",
+                letterSpacing: "0.05em",
+                color: "#8d6e63",
+                margin: "0 0 0.5rem",
+              }}
+            >
+              {isSingleSession ? "Jugador caca" : "Ranking Jugador Caca"}
+            </h3>
+            <AwardRanking entries={computedPoops} badgeText={isSingleSession ? "Caca" : "Cacas"} badgeClass="badge-brown" awardType="poop" />
+          </section>
+        </div>
+      </div>
+
+      {!isSingleSession && (
         <section>
           <h2
             style={{
@@ -274,28 +354,11 @@ export default function TeamTab({
               margin: "0 0 0.75rem",
             }}
           >
-            {mvpHeading}
+            Asistencia
           </h2>
-          <MVPRanking topMVPs={topMVPs} />
+          <AttendanceRanking stats={stats} totalSessionsCount={sessions.length} />
         </section>
-
-        {!isSingleSession && (
-          <section>
-            <h2
-              style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "1.4rem",
-                letterSpacing: "0.05em",
-                color: "#e4f0e8",
-                margin: "0 0 0.75rem",
-              }}
-            >
-              Asistencia
-            </h2>
-            <AttendanceRanking stats={stats} totalSessionsCount={sessions.length} />
-          </section>
-        )}
-      </div>
+      )}
 
       {/* 2. Dashboard General */}
       <section>

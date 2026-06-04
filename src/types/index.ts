@@ -30,6 +30,8 @@ export interface Rating {
   actitud: number | null;
   vision_juego: number | null;
   is_mvp: boolean;
+  is_bigpaper: boolean;
+  is_poop: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -44,6 +46,8 @@ export interface HistoricalRating {
   avg_vision_juego: number | null;
   avg_total: number | null;
   mvp_count: number;
+  bigpaper_count: number;
+  poop_count: number;
   computed_at: string;
 }
 
@@ -54,7 +58,9 @@ export interface RatingInput {
   fisico: number | null;
   actitud: number | null;
   vision_juego: number | null;
-  is_mvp: boolean;
+  is_mvp?: boolean;
+  is_bigpaper?: boolean;
+  is_poop?: boolean;
 }
 
 export interface PlayerStats {
@@ -65,6 +71,9 @@ export interface PlayerStats {
   avgActitud: number;
   avgVision: number;
   mvpCount: number;
+  bigpaperCount: number;
+  poopCount: number;
   sessionsCount: number;
 }
+
 

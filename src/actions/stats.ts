@@ -57,7 +57,9 @@ export async function getAllPlayersStats() {
         avg_fisico,
         avg_actitud,
         avg_vision_juego,
-        mvp_count
+        mvp_count,
+        bigpaper_count,
+        poop_count
       )
     `,
     )
@@ -86,6 +88,8 @@ export async function getAllPlayersStats() {
       avgActitud: avg("avg_actitud"),
       avgVision: avg("avg_vision_juego"),
       mvpCount: playerRatings.reduce((sum, r) => sum + (r.mvp_count || 0), 0),
+      bigpaperCount: playerRatings.reduce((sum, r) => sum + (r.bigpaper_count || 0), 0),
+      poopCount: playerRatings.reduce((sum, r) => sum + (r.poop_count || 0), 0),
       sessionsCount: playerRatings.length,
     };
   });

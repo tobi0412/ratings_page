@@ -3,7 +3,7 @@
 import { submitRating } from "@/actions/ratings";
 import { Profile, Rating } from "@/types";
 import { useState, useEffect } from "react";
-import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon, CheckIcon } from "@/components/Icons";
+import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, CheckIcon } from "@/components/Icons";
 
 interface VotingCardProps {
   receiver: Profile;
@@ -44,7 +44,6 @@ export default function VotingCard({
     actitud: existingRating?.actitud ?? 5,
     vision_juego: existingRating?.vision_juego ?? 5,
   });
-  const [isMvp, setIsMvp] = useState(existingRating?.is_mvp || false);
   const [isBlank, setIsBlank] = useState(existingRating?.tecnica === null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -59,7 +58,6 @@ export default function VotingCard({
         actitud: existingRating.actitud ?? 5,
         vision_juego: existingRating.vision_juego ?? 5,
       });
-      setIsMvp(existingRating.is_mvp);
       setIsBlank(existingRating.tecnica === null);
       setSaved(true);
     } else {
@@ -79,7 +77,6 @@ export default function VotingCard({
       fisico: isBlank ? null : metrics.fisico,
       actitud: isBlank ? null : metrics.actitud,
       vision_juego: isBlank ? null : metrics.vision_juego,
-      is_mvp: isBlank ? false : isMvp,
     });
 
     if (result.error) {
@@ -227,9 +224,6 @@ export default function VotingCard({
         onClick={() => {
           const nextVal = !isBlank;
           setIsBlank(nextVal);
-          if (nextVal) {
-            setIsMvp(false);
-          }
           setSaved(false);
         }}
         style={{
@@ -360,56 +354,7 @@ export default function VotingCard({
         )}
       </div>
 
-      {/* MVP toggle */}
-      <label
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.65rem",
-          cursor: isBlank ? "not-allowed" : "pointer",
-          marginBottom: "1rem",
-          padding: "0.6rem 0.75rem",
-          borderRadius: "8px",
-          background: isMvp ? "rgba(255,201,60,0.1)" : "rgba(0,0,0,0.2)",
-          border: `1px solid ${isMvp ? "rgba(255,201,60,0.35)" : "var(--border-subtle)"}`,
-          transition: "all 0.2s ease",
-          opacity: isBlank ? 0.35 : 1,
-        }}
-      >
-        <input
-          type="checkbox"
-          id={`mvp-${receiver.id}`}
-          checked={isMvp}
-          disabled={isBlank}
-          onChange={(e) => {
-            if (isBlank) return;
-            setIsMvp(e.target.checked);
-            setSaved(false);
-          }}
-          style={{ display: "none" }}
-        />
-        <StarIcon
-          size="1.1rem"
-          filled={isMvp}
-          style={{
-            color: isMvp ? "#ffc93c" : "#3d6e50",
-            transition: "all 0.2s ease",
-          }}
-        />
-        <span
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontWeight: 700,
-            fontSize: "0.8rem",
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: isMvp ? "#ffc93c" : "#3d6e50",
-            transition: "color 0.2s ease",
-          }}
-        >
-          MVP de la sesión
-        </span>
-      </label>
+
 
       {error && (
         <div

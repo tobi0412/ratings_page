@@ -1,19 +1,27 @@
 "use client";
 
-import { MedalIcon } from "@/components/Icons";
+import { TrophyIcon, PaperIcon, PoopIcon } from "@/components/Icons";
 
-interface MVPEntry {
+interface AwardEntry {
   player_id: string;
   username: string;
-  total_mvps: number;
+  count: number;
 }
 
-interface MVPRankingProps {
-  topMVPs: MVPEntry[];
+interface AwardRankingProps {
+  entries: AwardEntry[];
+  badgeText: string;
+  badgeClass?: string;
+  awardType?: "mvp" | "bigpaper" | "poop";
 }
 
-export default function MVPRanking({ topMVPs }: MVPRankingProps) {
-  if (topMVPs.length === 0) {
+export default function AwardRanking({
+  entries,
+  badgeText,
+  badgeClass = "badge-gold",
+  awardType = "mvp",
+}: AwardRankingProps) {
+  if (entries.length === 0) {
     return (
       <div className="card-sport" style={{ padding: "1.25rem" }}>
         <p
@@ -25,16 +33,16 @@ export default function MVPRanking({ topMVPs }: MVPRankingProps) {
             margin: 0,
           }}
         >
-          Sin MVPs registrados
+          Sin ganadores registrados
         </p>
       </div>
     );
   }
 
-  // Pre-calculate ranks based on total_mvps, supporting ties
+  // Pre-calculate ranks based on count, supporting ties
   let currentRank = 1;
-  const rankedMVPs = topMVPs.map((entry, index) => {
-    if (index > 0 && entry.total_mvps !== topMVPs[index - 1].total_mvps) {
+  const ranked = entries.map((entry, index) => {
+    if (index > 0 && entry.count !== entries[index - 1].count) {
       currentRank = index + 1;
     }
     return {
@@ -45,7 +53,7 @@ export default function MVPRanking({ topMVPs }: MVPRankingProps) {
 
   return (
     <div className="card-sport">
-      {rankedMVPs.map((entry, index) => (
+      {ranked.map((entry, index) => (
         <div
           key={entry.player_id}
           style={{
@@ -54,7 +62,7 @@ export default function MVPRanking({ topMVPs }: MVPRankingProps) {
             alignItems: "center",
             padding: "0.6rem 0.75rem",
             borderBottom:
-              index < rankedMVPs.length - 1
+              index < ranked.length - 1
                 ? "1px solid rgba(28,56,40,0.5)"
                 : "none",
           }}
@@ -72,12 +80,21 @@ export default function MVPRanking({ topMVPs }: MVPRankingProps) {
                 justifyContent: "center",
               }}
             >
-              {entry.rank === 1 ? (
-                <MedalIcon size={18} style={{ color: "#ffc93c" }} />
-              ) : entry.rank === 2 ? (
-                <MedalIcon size={18} style={{ color: "#a0c4ac" }} />
-              ) : entry.rank === 3 ? (
-                <MedalIcon size={18} style={{ color: "#ff6e40" }} />
+              {entry.rank <= 3 ? (
+                (() => {
+                  let color = "";
+                  if (entry.rank === 1) color = "#ffc93c"; // Gold
+                  else if (entry.rank === 2) color = "#a0c4ac"; // Silver
+                  else color = "#ff6e40"; // Bronze
+
+                  if (awardType === "bigpaper") {
+                    return <PaperIcon size={18} style={{ color }} />;
+                  }
+                  if (awardType === "poop") {
+                    return <PoopIcon size={18} style={{ color }} />;
+                  }
+                  return <TrophyIcon size={18} style={{ color }} />;
+                })()
               ) : (
                 `#${entry.rank}`
               )}
@@ -94,8 +111,10 @@ export default function MVPRanking({ topMVPs }: MVPRankingProps) {
             </span>
           </div>
 
-          {/* Right: MVP count badge */}
-          <span className="badge-gold">{entry.total_mvps} MVP</span>
+          {/* Right: count badge */}
+          <span className={badgeClass}>
+            {entry.count} {badgeText}
+          </span>
         </div>
       ))}
     </div>

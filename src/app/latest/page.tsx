@@ -109,6 +109,8 @@ export default function LatestSessionPage() {
       avgActitud: rating.avg_actitud ?? 0,
       avgVision: rating.avg_vision_juego ?? 0,
       mvpCount: rating.mvp_count ?? 0,
+      bigpaperCount: rating.bigpaper_count ?? 0,
+      poopCount: rating.poop_count ?? 0,
       sessionsCount: 1,
     };
   });
@@ -119,9 +121,11 @@ export default function LatestSessionPage() {
     .map((r) => ({
       player_id: r.player_id,
       username: stats[r.player_id]?.profile?.username || "Unknown",
-      total_mvps: r.mvp_count,
+      count: r.mvp_count,
     }))
-    .sort((a, b) => b.total_mvps - a.total_mvps);
+    .sort((a, b) => b.count - a.count);
+
+
 
   return (
     <div

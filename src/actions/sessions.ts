@@ -199,23 +199,28 @@ export async function getSessionVotingProgress(sessionId: string) {
   const participants = participantsData.map((d: any) => d.player).filter(Boolean) as Profile[];
   const totalParticipants = participants.length;
 
-  // 2. Get ratings count grouped by voter_id for this match
+  // 2. Get ratings data for this match to check both count and awards completeness
   const { data: ratingsData, error: ratingsError } = await supabaseAdmin
     .from("ratings")
-    .select("voter_id")
+    .select("voter_id, is_mvp, is_bigpaper, is_poop, tecnica")
     .eq("match_id", sessionId);
 
   if (ratingsError) {
     return { error: ratingsError.message, success: false };
   }
 
-  const voteCounts: Record<string, number> = {};
-  for (const rating of ratingsData || []) {
-    voteCounts[rating.voter_id] = (voteCounts[rating.voter_id] || 0) + 1;
-  }
-
   const progress = participants.map((player) => {
-    const votesSubmitted = voteCounts[player.id] || 0;
+    const voterRatings = (ratingsData || []).filter((r) => r.voter_id === player.id);
+    
+    // Count rows where the user actually rated the player (tecnica is not null)
+    const votesSubmitted = voterRatings.filter((r) => r.tecnica !== null).length;
+    
+    // Check if the user selected each of the session awards
+    const hasMvp = voterRatings.some((r) => r.is_mvp === true);
+    const hasBigpaper = voterRatings.some((r) => r.is_bigpaper === true);
+    const hasPoop = voterRatings.some((r) => r.is_poop === true);
+    const awardsCompleted = hasMvp && hasBigpaper && hasPoop;
+
     // A player votes for all other participants (total - 1)
     const maxVotes = Math.max(0, totalParticipants - 1);
     
@@ -223,8 +228,12 @@ export async function getSessionVotingProgress(sessionId: string) {
       player,
       votesSubmitted,
       maxVotes,
-      isCompleted: votesSubmitted >= maxVotes && maxVotes > 0,
-      hasStarted: votesSubmitted > 0,
+      isCompleted: votesSubmitted >= maxVotes && maxVotes > 0 && awardsCompleted,
+      hasStarted: votesSubmitted > 0 || hasMvp || hasBigpaper || hasPoop,
+      awardsCompleted,
+      hasMvp,
+      hasBigpaper,
+      hasPoop,
     };
   });
 

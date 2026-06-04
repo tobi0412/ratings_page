@@ -5,7 +5,7 @@ import Link from "next/link";
 import { MatchSession, HistoricalRating, PlayerStats } from "@/types";
 import StatLineChart from "@/components/charts/StatLineChart";
 import { SessionComparisonsMap } from "@/lib/stats-comparison";
-import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon, CalendarIcon } from "@/components/Icons";
+import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, CalendarIcon, TrophyIcon, PaperIcon, PoopIcon } from "@/components/Icons";
 import HorizontalFootballField from "@/components/profile/HorizontalFootballField";
 
 interface PersonalTabProps {
@@ -142,7 +142,7 @@ export default function PersonalTab({
           ? [
               {
                 label: "Asistencia",
-                value: `${Math.floor(attendancePercentage)}% (${selectedPlayer.sessionsCount}/${totalSessions})`,
+                value: `${Math.floor(attendancePercentage)}%`,
                 color: "#a0c4ac",
                 change: null,
               },
@@ -152,6 +152,18 @@ export default function PersonalTab({
           label: "MVPs",
           value: String(selectedPlayer.mvpCount),
           color: "#ffc93c",
+          change: null,
+        },
+        {
+          label: "Papelones",
+          value: String(selectedPlayer.bigpaperCount),
+          color: "#ffab40",
+          change: null,
+        },
+        {
+          label: "Jugador Caca",
+          value: String(selectedPlayer.poopCount),
+          color: "#8d6e63",
           change: null,
         },
       ]
@@ -326,7 +338,7 @@ export default function PersonalTab({
               flexShrink: 0,
             }}
           >
-            <StarIcon size={18} filled />
+            <TrophyIcon size={18} style={{ color: "#ffc93c" }} />
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <span
@@ -348,7 +360,121 @@ export default function PersonalTab({
                 marginTop: "0.1rem",
               }}
             >
-              ¡{selectedPlayer.profile.username} fue el jugador con más votos MVP en esta sesión!
+              ¡{selectedPlayer.profile.username} fue el MVP de esta sesión!
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Papelón Banner */}
+      {sessions.length === 1 && selectedPlayer && selectedPlayer.bigpaperCount > 0 && (
+        <div
+          className="animate-slide-up"
+          style={{
+            background: "linear-gradient(135deg, rgba(255, 171, 64, 0.15) 0%, rgba(255, 110, 64, 0.05) 100%)",
+            border: "1px solid #ffab40",
+            borderRadius: "8px",
+            padding: "1rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            boxShadow: "0 4px 20px rgba(255, 171, 64, 0.05)",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              background: "rgba(255, 171, 64, 0.2)",
+              border: "1px solid #ffab40",
+              color: "#ffab40",
+              flexShrink: 0,
+            }}
+          >
+            <PaperIcon size={18} style={{ color: "#ffab40" }} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: "1.2rem",
+                color: "#ffab40",
+                letterSpacing: "0.05em",
+                lineHeight: 1.1,
+              }}
+            >
+              Papelón de la sesión
+            </span>
+            <span
+              style={{
+                fontFamily: "'Barlow', sans-serif",
+                fontSize: "0.82rem",
+                color: "#a0c4ac",
+                marginTop: "0.1rem",
+              }}
+            >
+              ¡{selectedPlayer.profile.username} fue el Papelón de esta sesión!
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Jugador Caca Banner */}
+      {sessions.length === 1 && selectedPlayer && selectedPlayer.poopCount > 0 && (
+        <div
+          className="animate-slide-up"
+          style={{
+            background: "linear-gradient(135deg, rgba(141, 110, 99, 0.15) 0%, rgba(255, 110, 64, 0.05) 100%)",
+            border: "1px solid #8d6e63",
+            borderRadius: "8px",
+            padding: "1rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            boxShadow: "0 4px 20px rgba(141, 110, 99, 0.05)",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "36px",
+              height: "36px",
+              borderRadius: "50%",
+              background: "rgba(141, 110, 99, 0.2)",
+              border: "1px solid #8d6e63",
+              color: "#8d6e63",
+              flexShrink: 0,
+            }}
+          >
+            <PoopIcon size={18} style={{ color: "#8d6e63" }} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: "1.2rem",
+                color: "#8d6e63",
+                letterSpacing: "0.05em",
+                lineHeight: 1.1,
+              }}
+            >
+              Jugador Caca de la sesión
+            </span>
+            <span
+              style={{
+                fontFamily: "'Barlow', sans-serif",
+                fontSize: "0.82rem",
+                color: "#a0c4ac",
+                marginTop: "0.1rem",
+              }}
+            >
+              ¡{selectedPlayer.profile.username} se llevó el Jugador Caca de esta sesión!
             </span>
           </div>
         </div>
@@ -682,29 +808,32 @@ export default function PersonalTab({
       {selectedPlayer && selectedPlayer.sessionsCount > 0 && (
         <div>
           {sectionHeading("Resumen")}
-          <div className="card-sport">
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 0 }}>
-              {statCards.map((card, index) => (
+          <div className="card-sport" style={{ padding: "0.75rem" }}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-flow-col lg:auto-cols-fr gap-3">
+              {statCards.map((card) => (
                 <div
                   key={card.label}
                   style={{
-                    flex: "1 1 100px",
-                    padding: "1rem",
+                    padding: "1rem 0.5rem",
                     textAlign: "center",
-                    borderRight:
-                      index < statCards.length - 1
-                        ? "1px solid rgba(28,56,40,0.5)"
-                        : "none",
+                    background: "rgba(0, 0, 0, 0.2)",
+                    border: "1px solid rgba(28, 56, 40, 0.4)",
+                    borderRadius: "8px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    minHeight: "75px"
                   }}
                 >
                   <div
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      fontSize: "0.7rem",
+                      fontSize: "0.68rem",
                       color: "#3d6e50",
                       textTransform: "uppercase",
-                      letterSpacing: "0.12em",
-                      marginBottom: "0.25rem",
+                      letterSpacing: "0.1em",
+                      marginBottom: "0.3rem",
+                      lineHeight: 1.1
                     }}
                   >
                     {card.label}
@@ -712,7 +841,7 @@ export default function PersonalTab({
                   <div
                     style={{
                       fontFamily: "'Bebas Neue', sans-serif",
-                      fontSize: "1.8rem",
+                      fontSize: "1.75rem",
                       color: card.color,
                       lineHeight: 1,
                     }}

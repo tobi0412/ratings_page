@@ -3,14 +3,17 @@
 interface VotingProgressProps {
   totalPlayers: number;
   votedCount: number;
+  awardsComplete: boolean;
 }
 
 export default function VotingProgress({
   totalPlayers,
   votedCount,
+  awardsComplete,
 }: VotingProgressProps) {
-  const percentage =
-    totalPlayers > 0 ? Math.floor((votedCount / totalPlayers) * 100) : 0;
+  const totalSteps = totalPlayers + 1; // players + awards
+  const completedSteps = votedCount + (awardsComplete ? 1 : 0);
+  const percentage = totalSteps > 0 ? Math.floor((completedSteps / totalSteps) * 100) : 0;
 
   return (
     <div className="card-sport" style={{ padding: "1.25rem 1.5rem" }}>
@@ -46,7 +49,7 @@ export default function VotingProgress({
               lineHeight: 1,
             }}
           >
-            {votedCount}
+            {completedSteps}
           </span>
           <span
             style={{
@@ -55,7 +58,7 @@ export default function VotingProgress({
               color: "#3d6e50",
             }}
           >
-            / {totalPlayers} votos
+            / {totalSteps} tareas
           </span>
         </div>
       </div>
@@ -82,17 +85,45 @@ export default function VotingProgress({
         />
       </div>
 
-      <p
+      <div
         style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.4rem",
+          marginTop: "0.85rem",
           fontFamily: "'Barlow Condensed', sans-serif",
-          fontSize: "0.75rem",
+          fontSize: "0.82rem",
           color: "#3d6e50",
-          margin: "0.5rem 0 0",
-          letterSpacing: "0.06em",
+          letterSpacing: "0.04em",
         }}
       >
-        {percentage}% completado
-      </p>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <span
+            style={{
+              color: votedCount === totalPlayers ? "#00e676" : "#ff5252",
+              fontWeight: 700,
+            }}
+          >
+            {votedCount === totalPlayers ? "✓" : "○"}
+          </span>
+          <span style={{ color: votedCount === totalPlayers ? "#e4f0e8" : undefined }}>
+            Calificar jugadores ({votedCount} / {totalPlayers})
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <span
+            style={{
+              color: awardsComplete ? "#00e676" : "#ff5252",
+              fontWeight: 700,
+            }}
+          >
+            {awardsComplete ? "✓" : "○"}
+          </span>
+          <span style={{ color: awardsComplete ? "#e4f0e8" : undefined }}>
+            Elegir los Premios de la Sesión
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

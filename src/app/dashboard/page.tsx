@@ -6,6 +6,7 @@ import { getCurrentProfile } from "@/actions/auth";
 import SessionStatus from "@/components/session/SessionStatus";
 import VotingCard from "@/components/session/VotingCard";
 import VotingProgress from "@/components/session/VotingProgress";
+import SessionAwardsCard from "@/components/session/SessionAwardsCard";
 import MysteryVoteWidget from "@/components/session/MysteryVoteWidget";
 import { BanIcon, StadiumIcon } from "@/components/Icons";
 import { MatchSession, Profile, Rating } from "@/types";
@@ -171,8 +172,21 @@ export default function DashboardPage() {
     );
   }
 
-  const votedCount = myVotes.length;
+  // Calculate card completeness
+  const isCardCompleted = (player: Profile) => {
+    const vote = myVotes.find((v) => v.receiver_id === player.id);
+    if (!vote) return false;
+    if (vote.tecnica !== null) return true;
+    if (!vote.is_mvp && !vote.is_bigpaper && !vote.is_poop) return true;
+    return false;
+  };
+
+  const votedCount = players.filter(isCardCompleted).length;
   const totalPlayers = players.length;
+  const awardsComplete =
+    myVotes.some((v) => v.is_mvp) &&
+    myVotes.some((v) => v.is_bigpaper) &&
+    myVotes.some((v) => v.is_poop);
 
   return (
     <div
@@ -207,7 +221,7 @@ export default function DashboardPage() {
             margin: 0,
           }}
         >
-          Evaluá el rendimiento de tus compañeros en esta sesión.
+          Calificá el rendimiento de los jugadores en esta sesión.
         </p>
       </div>
 
@@ -216,7 +230,56 @@ export default function DashboardPage() {
       </div>
 
       <div className="animate-slide-up stagger-2">
-        <VotingProgress totalPlayers={totalPlayers} votedCount={votedCount} />
+        <VotingProgress
+          totalPlayers={totalPlayers}
+          votedCount={votedCount}
+          awardsComplete={awardsComplete}
+        />
+      </div>
+
+      {/* Centralized Awards selector card */}
+      <div className="animate-slide-up stagger-2" style={{ position: "relative", zIndex: 30 }}>
+        <SessionAwardsCard
+          players={players}
+          matchId={session.id}
+          initialVotes={myVotes}
+          onAwardsChanged={(updatedVotes) => {
+            setMyVotes((prev) => {
+              // Remove old awards flags from prev votes
+              const cleaned = prev.map((v) => ({
+                ...v,
+                is_mvp: false,
+                is_bigpaper: false,
+                is_poop: false,
+              }));
+
+              // Merge in the updated votes containing the new awards
+              const result = [...cleaned];
+              updatedVotes.forEach((uv) => {
+                const idx = result.findIndex((v) => v.receiver_id === uv.receiver_id);
+                if (idx > -1) {
+                  result[idx] = {
+                    ...result[idx],
+                    is_mvp: uv.is_mvp,
+                    is_bigpaper: uv.is_bigpaper,
+                    is_poop: uv.is_poop,
+                  };
+                } else {
+                  result.push(uv);
+                }
+              });
+
+              // Filter out any vote rows that have all null ratings AND all false awards
+              return result.filter(
+                (v) =>
+                  v.tecnica !== null ||
+                  v.is_mvp ||
+                  v.is_bigpaper ||
+                  v.is_poop
+              );
+            });
+          }}
+        />
       </div>
 
       {/* Players grid */}
@@ -252,19 +315,20 @@ export default function DashboardPage() {
                 )}
                 onSuccess={(newRating) => {
                   setMyVotes((prev) => {
-                    let updated = prev;
-                    if (newRating.is_mvp) {
-                      updated = prev.map((v) =>
-                        v.receiver_id !== newRating.receiver_id ? { ...v, is_mvp: false } : v
-                      );
-                    }
-                    const exists = updated.some((v) => v.receiver_id === newRating.receiver_id);
+                    const exists = prev.some((v) => v.receiver_id === newRating.receiver_id);
                     if (exists) {
-                      return updated.map((v) =>
-                        v.receiver_id === newRating.receiver_id ? newRating : v
+                      return prev.map((v) =>
+                        v.receiver_id === newRating.receiver_id
+                          ? {
+                              ...newRating,
+                              is_mvp: v.is_mvp,
+                              is_bigpaper: v.is_bigpaper,
+                              is_poop: v.is_poop,
+                            }
+                          : v
                       );
                     }
-                    return [...updated, newRating];
+                    return [...prev, newRating];
                   });
                 }}
               />
