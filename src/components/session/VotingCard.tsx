@@ -38,28 +38,46 @@ export default function VotingCard({
   existingRating,
   onSuccess,
 }: VotingCardProps) {
+  const hasSavedRating = !!existingRating && (
+    existingRating.tecnica !== null ||
+    (!existingRating.is_mvp && !existingRating.is_bigpaper && !existingRating.is_poop)
+  );
+
+  const isBlankVote = !!existingRating &&
+    existingRating.tecnica === null &&
+    !existingRating.is_mvp &&
+    !existingRating.is_bigpaper &&
+    !existingRating.is_poop;
+
   const [metrics, setMetrics] = useState({
     tecnica: existingRating?.tecnica ?? 5,
     fisico: existingRating?.fisico ?? 5,
     actitud: existingRating?.actitud ?? 5,
     vision_juego: existingRating?.vision_juego ?? 5,
   });
-  const [isBlank, setIsBlank] = useState(existingRating?.tecnica === null);
+  const [isBlank, setIsBlank] = useState(isBlankVote);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [saved, setSaved] = useState(!!existingRating);
+  const [saved, setSaved] = useState(hasSavedRating);
 
   // Sync all states when the parent rating changes (e.g., loaded asynchronously or updated externally)
   useEffect(() => {
     if (existingRating) {
+      const hasSaved = existingRating.tecnica !== null || (
+        !existingRating.is_mvp && !existingRating.is_bigpaper && !existingRating.is_poop
+      );
+      const isBlankV = existingRating.tecnica === null && (
+        !existingRating.is_mvp && !existingRating.is_bigpaper && !existingRating.is_poop
+      );
+
       setMetrics({
         tecnica: existingRating.tecnica ?? 5,
         fisico: existingRating.fisico ?? 5,
         actitud: existingRating.actitud ?? 5,
         vision_juego: existingRating.vision_juego ?? 5,
       });
-      setIsBlank(existingRating.tecnica === null);
-      setSaved(true);
+      setIsBlank(isBlankV);
+      setSaved(hasSaved);
     } else {
       setSaved(false);
       setIsBlank(false);
@@ -393,7 +411,7 @@ export default function VotingCard({
             <CheckIcon size={14} strokeWidth={3} />
             Voto guardado
           </span>
-        ) : existingRating ? (
+        ) : hasSavedRating ? (
           "Actualizar voto"
         ) : (
           "Guardar voto"
