@@ -394,9 +394,8 @@ export default function TeamTab({
           Stats por Categoría
         </h2>
         <div
+          className="grid grid-cols-1 md:grid-cols-2"
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
             gap: "1rem",
           }}
         >
