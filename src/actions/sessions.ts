@@ -219,7 +219,7 @@ export async function getSessionVotingProgress(sessionId: string) {
     const hasMvp = voterRatings.some((r) => r.is_mvp === true);
     const hasBigpaper = voterRatings.some((r) => r.is_bigpaper === true);
     const hasPoop = voterRatings.some((r) => r.is_poop === true);
-    const awardsCompleted = hasMvp && hasBigpaper && hasPoop;
+    const awardsCompleted = hasMvp;
 
     // A player votes for all other participants (total - 1)
     const maxVotes = Math.max(0, totalParticipants - 1);
