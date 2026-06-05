@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getLastClosedSessionStatus, revealMysteryVote, getSessionParticipants } from "@/actions/sessions";
 import { getCurrentProfile } from "@/actions/auth";
-import { StarIcon, SpyIcon, PaperIcon, PoopIcon } from "@/components/Icons";
+import { StarIcon, SpyIcon, PaperIcon, PoopIcon, CotorraLogoIcon } from "@/components/Icons";
 import MysteryReveal from "./MysteryReveal";
 
 interface SessionStatusData {
@@ -43,6 +43,7 @@ export default function MysteryVoteWidget() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [voter, setVoter] = useState<VoterProfile | null>(null);
   const [votes, setVotes] = useState<RatingVote[]>([]);
+  const [teamRating, setTeamRating] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [participants, setParticipants] = useState<VoterProfile[]>([]);
   const [isAnimatingReveal, setIsAnimatingReveal] = useState(false);
@@ -88,6 +89,7 @@ export default function MysteryVoteWidget() {
       } else if ("voter" in result && result.voter) {
         setVoter(result.voter);
         setVotes(result.votes as any[]);
+        setTeamRating((result as any).teamRating ?? null);
         
         const key = `mystery_reveal_status_${currentUser?.id || "guest"}_${session.id}`;
         const isAlreadyRevealed = localStorage.getItem(key) === "revealed";
