@@ -19,26 +19,16 @@
   Create the migration file to update the `compute_historical_ratings` function with the 50% threshold check.
   
   ```sql
-  -- Create migration 013 to make awards optional and enforce 50% threshold
+  -- Create migration 013 to make awards optional and enforce 50% threshold on winner
   CREATE OR REPLACE FUNCTION compute_historical_ratings(session_id UUID)
   RETURNS void AS $$
   DECLARE
     chosen_player_id UUID;
     total_participants INT;
-    total_bigpaper_votes INT;
-    total_poop_votes INT;
   BEGIN
     -- Get the total number of participants in this session
     SELECT COUNT(*) INTO total_participants
     FROM session_participants
-    WHERE match_id = session_id;
-
-    -- Calculate totals of cast votes for the optional awards
-    SELECT 
-      COUNT(id) FILTER (WHERE is_bigpaper = true),
-      COUNT(id) FILTER (WHERE is_poop = true)
-    INTO total_bigpaper_votes, total_poop_votes
-    FROM ratings
     WHERE match_id = session_id;
 
     -- First, calculate averages, MVP, Bigpaper, and Poop allocations and insert/upsert to historical_ratings
@@ -85,12 +75,12 @@
         pv.player_id,
         -- MVP is assigned as long as tied top players are 1 or 2
         CASE WHEN (SELECT mvp_cnt FROM counts) IN (1, 2) AND pv.player_id IN (SELECT player_id FROM top_mvps) THEN 1 ELSE 0 END AS assigned_mvp,
-        -- Bigpaper (Papelón) is assigned if votes cast > 50% of total session participants AND top list counts IN (1, 2)
-        CASE WHEN (total_bigpaper_votes * 2 > total_participants)
+        -- Bigpaper (Papelón) is assigned if the top player has >= 50% of the votes (including other people/blank votes) AND top list counts IN (1, 2)
+        CASE WHEN ((SELECT max_bigpaper FROM max_votes_val) * 2 >= total_participants)
                   AND (SELECT bigpaper_cnt FROM counts) IN (1, 2)
                   AND pv.player_id IN (SELECT player_id FROM top_bigpapers) THEN 1 ELSE 0 END AS assigned_bigpaper,
-        -- Poop (Jugador Caca) is assigned if votes cast > 50% of total session participants AND top list counts IN (1, 2)
-        CASE WHEN (total_poop_votes * 2 > total_participants)
+        -- Poop (Jugador Caca) is assigned if the top player has >= 50% of the votes (including other people/blank votes) AND top list counts IN (1, 2)
+        CASE WHEN ((SELECT max_poop FROM max_votes_val) * 2 >= total_participants)
                   AND (SELECT poop_cnt FROM counts) IN (1, 2)
                   AND pv.player_id IN (SELECT player_id FROM top_poops) THEN 1 ELSE 0 END AS assigned_poop
       FROM player_votes pv
