@@ -38,18 +38,33 @@ interface RatingVote {
 
 function getTeamRatingFeedback(value: number) {
   if (value >= 9.0) {
-    return { label: "SESIÓN DE ENSUEÑO", color: "#00e676" };
+    return { label: "IMPECABLE", color: "#00e676" };
   }
   if (value >= 8.0) {
     return { label: "CLASE MUNDIAL", color: "#40c4ff" };
   }
   if (value >= 7.0) {
-    return { label: "MUY BUENA SESIÓN", color: "#ffc93c" };
+    return { label: "VUELAN ALTO", color: "#ffc93c" };
+  }
+  if (value >= 6.0) {
+    return { label: "LINDO JUEGO", color: "#ffab40" };
   }
   if (value >= 5.0) {
-    return { label: "RENDIMIENTO REGULAR", color: "#ffab40" };
+    return { label: "ACEPTABLE", color: "#a0c4ac" };
   }
-  return { label: "SESIÓN PARA EL OLVIDO", color: "#ff5252" };
+  if (value >= 4.0) {
+    return { label: "REGULAR", color: "#ffa726" };
+  }
+  if (value >= 3.0) {
+    return { label: "ZAFANDO", color: "#ff7043" };
+  }
+  if (value >= 2.0) {
+    return { label: "FLOJO", color: "#ff5252" };
+  }
+  if (value > 1.0) {
+    return { label: "AL HORNO", color: "#d32f2f" };
+  }
+  return { label: "PAPELÓN", color: "#b71c1c" };
 }
 
 export default function MysteryVoteWidget() {
