@@ -36,6 +36,22 @@ interface RatingVote {
   };
 }
 
+function getTeamRatingFeedback(value: number) {
+  if (value >= 9.0) {
+    return { label: "SESIÓN DE ENSUEÑO", color: "#00e676" };
+  }
+  if (value >= 8.0) {
+    return { label: "CLASE MUNDIAL", color: "#40c4ff" };
+  }
+  if (value >= 7.0) {
+    return { label: "MUY BUENA SESIÓN", color: "#ffc93c" };
+  }
+  if (value >= 5.0) {
+    return { label: "RENDIMIENTO REGULAR", color: "#ffab40" };
+  }
+  return { label: "SESIÓN PARA EL OLVIDO", color: "#ff5252" };
+}
+
 export default function MysteryVoteWidget() {
   const [session, setSession] = useState<SessionStatusData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -392,6 +408,65 @@ export default function MysteryVoteWidget() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "0.50rem" }}>
+            {teamRating !== null && (
+              <div
+                style={{
+                  background: "linear-gradient(90deg, rgba(0, 230, 118, 0.08) 0%, rgba(0, 0, 0, 0.2) 100%)",
+                  borderRadius: "8px",
+                  border: `1px solid ${getTeamRatingFeedback(teamRating).color}33`,
+                }}
+                className="flex items-center justify-between p-3 sm:px-4 sm:py-3 gap-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    style={{
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "50%",
+                      background: "rgba(0, 230, 118, 0.15)",
+                      border: "1px solid rgba(0, 230, 118, 0.3)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <CotorraLogoIcon size="18px" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.95rem", color: "#e4f0e8", lineHeight: 1.2 }}>
+                      Rendimiento del Equipo
+                    </span>
+                    <span style={{ fontSize: "0.7rem", color: getTeamRatingFeedback(teamRating).color, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                      {getTeamRatingFeedback(teamRating).label}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[#3d6e50] font-semibold hidden sm:inline-block uppercase tracking-wider">Valoración:</span>
+                  <div
+                    style={{
+                      background: "#1c3828",
+                      borderRadius: "6px",
+                      padding: "0.2rem 0.6rem",
+                      minWidth: "40px",
+                      height: "30px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "1rem",
+                      fontWeight: 800,
+                      color: getTeamRatingFeedback(teamRating).color,
+                      border: `1px solid ${getTeamRatingFeedback(teamRating).color}44`,
+                      fontFamily: "'Bebas Neue', sans-serif",
+                    }}
+                  >
+                    {teamRating.toFixed(1)}
+                  </div>
+                </div>
+              </div>
+            )}
             {votes.map((vote) => (
               <div
                 key={vote.id}
