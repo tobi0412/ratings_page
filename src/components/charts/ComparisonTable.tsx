@@ -1,11 +1,11 @@
 "use client";
 
-import { PlayerStats } from "@/types";
+import { PlayerStats, MatchSession } from "@/types";
 import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon, MedalIcon, CalendarIcon } from "@/components/Icons";
 
 interface ComparisonTableProps {
   stats: { [key: string]: PlayerStats };
-  totalSessionsCount: number;
+  sessions: MatchSession[];
 }
 
 function ratingColor(val: number): string {
@@ -25,8 +25,8 @@ const HEADERS = [
   { label: "MVPs", icon: <StarIcon size={14} filled style={{ color: "#ffc93c" }} />, align: "center" },
 ];
 
-export default function ComparisonTable({ stats, totalSessionsCount }: ComparisonTableProps) {
-  const shouldHideAttendance = totalSessionsCount === 1;
+export default function ComparisonTable({ stats, sessions }: ComparisonTableProps) {
+  const shouldHideAttendance = sessions.length <= 1;
   const filteredHeaders = HEADERS.filter((h) => !(shouldHideAttendance && h.label === "Asistencia"));
 
   const sortedPlayers = Object.values(stats).sort(
@@ -224,10 +224,15 @@ export default function ComparisonTable({ stats, totalSessionsCount }: Compariso
                     }}
                   >
                     {(() => {
-                      const attendancePercentage = totalSessionsCount > 0
-                        ? (player.sessionsCount / totalSessionsCount) * 100
+                      const joinedDate = player.profile.created_at ? new Date(player.profile.created_at) : null;
+                      const eligibleSessions = joinedDate
+                        ? sessions.filter(s => new Date(s.created_at) >= joinedDate)
+                        : sessions;
+                      const playerTotalSessions = eligibleSessions.length;
+                      const attendancePercentage = playerTotalSessions > 0
+                        ? (player.sessionsCount / playerTotalSessions) * 100
                         : 0;
-                      return `${Math.floor(attendancePercentage)}% (${player.sessionsCount}/${totalSessionsCount})`;
+                      return `${Math.floor(attendancePercentage)}% (${player.sessionsCount}/${playerTotalSessions})`;
                     })()}
                   </span>
                 </td>
