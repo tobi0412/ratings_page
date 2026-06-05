@@ -183,10 +183,7 @@ export default function DashboardPage() {
 
   const votedCount = players.filter(isCardCompleted).length;
   const totalPlayers = players.length;
-  const awardsComplete =
-    myVotes.some((v) => v.is_mvp) &&
-    myVotes.some((v) => v.is_bigpaper) &&
-    myVotes.some((v) => v.is_poop);
+  const awardsComplete = myVotes.some((v) => v.is_mvp);
 
   return (
     <div
