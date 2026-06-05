@@ -151,6 +151,7 @@ export default function VotingCard({
 
   return (
     <div
+      id={`player-card-${receiver.id}`}
       className="card-sport animate-slide-up"
       style={{
         padding: "1.25rem",

@@ -98,6 +98,47 @@ export default function PersonalTab({
     },
   ];
 
+  const buildRatingGeneralSeries = (
+    playerId: string,
+    playerName: string
+  ) => {
+    const playerRatings = ratings.filter((r) => r.player_id === playerId);
+
+    const playerValues = playerRatings.map((r) => ({
+      sessionId: r.match_id,
+      value: r.avg_total,
+    }));
+
+    const series = [
+      {
+        playerId,
+        playerName: `Promedio de ${playerName}`,
+        color: "#00e676",
+        values: playerValues,
+      },
+    ];
+
+    if (sessions.length > 1) {
+      const teamValues = playerRatings
+        .map((r) => ({
+          sessionId: r.match_id,
+          value: r.team_rating !== null ? Number(r.team_rating) : null,
+        }))
+        .filter((item) => item.value !== null);
+
+      if (teamValues.length > 0) {
+        series.push({
+          playerId: "team-average-with-player",
+          playerName: "Promedio del Equipo",
+          color: "#40c4ff",
+          values: teamValues,
+        });
+      }
+    }
+
+    return series;
+  };
+
   const totalSessions = sessions.length;
   const attendancePercentage = totalSessions > 0 && selectedPlayer
     ? (selectedPlayer.sessionsCount / totalSessions) * 100
@@ -485,12 +526,10 @@ export default function PersonalTab({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns:
-              sessions.length > 1
-                ? "repeat(auto-fit, minmax(300px, 1fr))"
-                : "1fr",
+            gridTemplateColumns: "1fr",
             gap: "1.5rem",
           }}
+          className={sessions.length > 1 ? "lg:grid-cols-[2fr_1fr]" : ""}
         >
           <div style={{ display: "flex", flexDirection: "column" }}>
             {sectionHeading("Rating General")}
@@ -535,10 +574,8 @@ export default function PersonalTab({
               ) : (
                 <StatLineChart
                   label="Promedio General"
-                  data={buildSeries(
-                    selectedPlayerId,
-                    "avg_total",
-                    "#00e676",
+                  data={buildRatingGeneralSeries(
+                    selectedPlayerId!,
                     playerName
                   )}
                   sessions={playerSessions}
@@ -723,6 +760,89 @@ export default function PersonalTab({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Team Performance Widget (Historical View only) */}
+      {selectedPlayerId && sessions.length > 1 && selectedPlayer && (
+        <div className="animate-slide-up">
+          <h2
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "1.6rem",
+              letterSpacing: "0.05em",
+              color: "#e4f0e8",
+              margin: "0 0 0.75rem",
+            }}
+          >
+            Rendimiento del equipo
+          </h2>
+          <div
+            className="card-sport stripe-texture"
+            style={{
+              padding: "1.75rem",
+              background: "linear-gradient(135deg, rgba(0, 230, 118, 0.05) 0%, rgba(28, 56, 40, 0.2) 100%)",
+              border: "1px solid rgba(0, 230, 118, 0.2)",
+              borderRadius: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "2rem",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+              <span
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: "1.4rem",
+                  color: "#00e676",
+                  letterSpacing: "0.08em",
+                  lineHeight: 1.1,
+                }}
+              >
+                RENDIMIENTO DEL EQUIPO
+              </span>
+              <span
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontSize: "0.85rem",
+                  fontWeight: 700,
+                  color: "#a0c4ac",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                Con {playerName} en cancha
+              </span>
+            </div>
+
+            {/* Prominent Score Visual */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "1rem",
+                background: "rgba(0, 0, 0, 0.3)",
+                padding: "0.75rem 1.5rem",
+                borderRadius: "12px",
+                border: "1px solid rgba(28, 56, 40, 0.5)",
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <span
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: "3.5rem",
+                    color: "#00e676",
+                    lineHeight: 1,
+                    textShadow: "0 0 15px rgba(0, 230, 118, 0.3)",
+                  }}
+                >
+                  {selectedPlayer.avgTeamRating > 0 ? selectedPlayer.avgTeamRating.toFixed(1) : "—"}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

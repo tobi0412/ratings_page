@@ -196,7 +196,7 @@ export default function TeamRatingCard({
     }
     if (value >= 6.0) {
       return {
-        label: "LINDO JUEGO",
+        label: "BIEN",
         desc: "Mostraron ráfagas de buen fútbol.",
         color: "#ffab40",
         icon: <SwordsIcon color="#ffab40" />

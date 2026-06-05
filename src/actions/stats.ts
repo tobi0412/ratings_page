@@ -59,7 +59,8 @@ export async function getAllPlayersStats() {
         avg_vision_juego,
         mvp_count,
         bigpaper_count,
-        poop_count
+        poop_count,
+        team_rating
       )
     `,
     )
@@ -91,6 +92,7 @@ export async function getAllPlayersStats() {
       bigpaperCount: playerRatings.reduce((sum, r) => sum + (r.bigpaper_count || 0), 0),
       poopCount: playerRatings.reduce((sum, r) => sum + (r.poop_count || 0), 0),
       sessionsCount: playerRatings.length,
+      avgTeamRating: avg("team_rating"),
     };
   });
 

@@ -18,6 +18,7 @@ export interface MatchSession {
   created_at: string;
   closed_at: string | null;
   is_active: boolean;
+  team_rating: number | null;
 }
 
 export interface Rating {
@@ -48,6 +49,7 @@ export interface HistoricalRating {
   mvp_count: number;
   bigpaper_count: number;
   poop_count: number;
+  team_rating: number | null;
   computed_at: string;
 }
 
@@ -74,6 +76,7 @@ export interface PlayerStats {
   bigpaperCount: number;
   poopCount: number;
   sessionsCount: number;
+  avgTeamRating: number;
 }
 
 

@@ -47,7 +47,7 @@ function getTeamRatingFeedback(value: number) {
     return { label: "VUELAN ALTO", desc: "Cotorra manejó la cancha.", color: "#ffc93c" };
   }
   if (value >= 6.0) {
-    return { label: "LINDO JUEGO", desc: "Mostraron ráfagas de buen fútbol.", color: "#ffab40" };
+    return { label: "BIEN", desc: "Mostraron ráfagas de buen fútbol.", color: "#ffab40" };
   }
   if (value >= 5.0) {
     return { label: "ACEPTABLE", desc: "Apenas lo justo.", color: "#a0c4ac" };

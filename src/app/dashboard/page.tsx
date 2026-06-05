@@ -8,6 +8,7 @@ import VotingCard from "@/components/session/VotingCard";
 import VotingProgress from "@/components/session/VotingProgress";
 import SessionAwardsCard from "@/components/session/SessionAwardsCard";
 import MysteryVoteWidget from "@/components/session/MysteryVoteWidget";
+import TeamRatingCard from "@/components/session/TeamRatingCard";
 import { BanIcon, StadiumIcon } from "@/components/Icons";
 import { MatchSession, Profile, Rating } from "@/types";
 import { useEffect, useState } from "react";
@@ -276,6 +277,15 @@ export default function DashboardPage() {
               );
             });
           }}
+        />
+      </div>
+
+      {/* Team performance rating card */}
+      <div className="animate-slide-up stagger-2" style={{ position: "relative", zIndex: 25 }}>
+        <TeamRatingCard
+          matchId={session.id}
+          players={players}
+          myVotes={myVotes}
         />
       </div>
 

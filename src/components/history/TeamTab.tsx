@@ -44,6 +44,22 @@ export default function TeamTab({
   const players = Object.values(stats);
   void topMVPs;
   const isSingleSession = sessions.length === 1;
+
+  const teamProgressionSeries = [
+    {
+      playerId: "team-progression",
+      playerName: "Rendimiento del Equipo",
+      color: "#00e676",
+      values: sessions
+        .filter((s) => s.team_rating !== null)
+        .map((s) => ({
+          sessionId: s.id,
+          value: Number(s.team_rating),
+        })),
+    },
+  ];
+  const hasTeamRatings = teamProgressionSeries[0].values.length > 0;
+
   // Compute awards rankings directly from stats
   const computedMVPs = Object.values(stats)
     .filter((ps) => ps.mvpCount > 0)
@@ -275,6 +291,79 @@ export default function TeamTab({
         </div>
       </div>
 
+      {/* Team Performance Widget (Single Session View only) */}
+      {isSingleSession && sessions[0] && sessions[0].team_rating !== null && (
+        <div className="animate-slide-up">
+          <h2
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "1.6rem",
+              letterSpacing: "0.05em",
+              color: "#e4f0e8",
+              margin: "0 0 0.75rem",
+            }}
+          >
+            Rendimiento General de la Sesión
+          </h2>
+          <div
+            className="card-sport stripe-texture"
+            style={{
+              padding: "1.75rem",
+              background: "linear-gradient(135deg, rgba(0, 230, 118, 0.05) 0%, rgba(28, 56, 40, 0.2) 100%)",
+              border: "1px solid rgba(0, 230, 118, 0.2)",
+              borderRadius: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "2rem",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <span
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: "1.4rem",
+                  color: "#00e676",
+                  letterSpacing: "0.08em",
+                  lineHeight: 1.1,
+                }}
+              >
+                RENDIMIENTO DEL EQUIPO
+              </span>
+            </div>
+
+            {/* Prominent Score Visual */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "1rem",
+                background: "rgba(0, 0, 0, 0.3)",
+                padding: "0.75rem 1.5rem",
+                borderRadius: "12px",
+                border: "1px solid rgba(28, 56, 40, 0.5)",
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <span
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: "3.5rem",
+                    color: "#00e676",
+                    lineHeight: 1,
+                    textShadow: "0 0 15px rgba(0, 230, 118, 0.3)",
+                  }}
+                >
+                  {Number(sessions[0].team_rating).toFixed(1)}
+                </span>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MVP and Attendance sections in grid */}
       <div>
         <h2
@@ -379,6 +468,28 @@ export default function TeamTab({
           data={buildFilteredPlayersSeries("avg_total")}
         />
       </section>
+
+      {/* 2.5 Progresión del Equipo */}
+      {!isSingleSession && hasTeamRatings && (
+        <section>
+          <h2
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "1.4rem",
+              letterSpacing: "0.05em",
+              color: "#e4f0e8",
+              margin: "0 0 0.75rem",
+            }}
+          >
+            Progresión del Equipo
+          </h2>
+          <StatLineChart
+            label="Calificación Histórica del Equipo"
+            sessions={sessions.filter((s) => s.team_rating !== null)}
+            data={teamProgressionSeries}
+          />
+        </section>
+      )}
 
       {/* 3. Stats por Categoría */}
       <section>

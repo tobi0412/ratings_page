@@ -138,3 +138,113 @@ export async function getMatchRatings(matchId: string) {
   return data || [];
 }
 
+export async function submitTeamRating(input: { match_id: string; rating: number }) {
+  const supabase = createSupabaseServerClient();
+  const profile = await getCurrentProfile();
+
+  if (!profile) {
+    return { error: "Not authenticated" };
+  }
+
+  // 1. Verify session is active
+  const { data: session, error: sError } = await supabase
+    .from("match_sessions")
+    .select("is_active")
+    .eq("id", input.match_id)
+    .single();
+
+  if (sError || !session?.is_active) {
+    return { error: "Voting is closed for this session" };
+  }
+
+  // 2. Option A validation: Verify player rated all other participants
+  // Fetch all session participants excluding current voter
+  const { data: participants } = await supabase
+    .from("session_participants")
+    .select("player_id")
+    .eq("match_id", input.match_id)
+    .neq("player_id", profile.id);
+
+  // Fetch existing votes by this voter
+  const { data: votes } = await supabase
+    .from("ratings")
+    .select("receiver_id, tecnica, fisico, actitud, vision_juego")
+    .eq("match_id", input.match_id)
+    .eq("voter_id", profile.id);
+
+  const otherParticipantsIds = (participants || []).map((p) => p.player_id);
+  const votesCast = votes || [];
+
+  const hasVotedForAll = otherParticipantsIds.every((pid) =>
+    votesCast.some((v) => v.receiver_id === pid)
+  );
+
+  if (!hasVotedForAll) {
+    return { error: "Debe calificar a todos los jugadores antes de calificar al equipo." };
+  }
+
+  // 3. Averaging Limit validation (max = Average + 1.5)
+  const ratedVotes = votesCast.filter(
+    (v) => v.tecnica !== null && v.fisico !== null && v.actitud !== null && v.vision_juego !== null
+  );
+
+  if (ratedVotes.length > 0) {
+    const totalRatingsSum = ratedVotes.reduce(
+      (sum, v) => sum + (v.tecnica! + v.fisico! + v.actitud! + v.vision_juego!),
+      0
+    );
+    const totalRatingsCount = ratedVotes.length * 4;
+    const averageVotesToOthers = totalRatingsSum / totalRatingsCount;
+
+    const maxAllowed = averageVotesToOthers + 1.5;
+    // Round to 1 decimal to avoid floating point precision edge cases when validating
+    const roundedInput = Math.round(input.rating * 10) / 10;
+    const roundedMax = Math.round(maxAllowed * 10) / 10;
+    
+    if (roundedInput > roundedMax + 0.01) { // 0.01 tolerance for float math
+      return {
+        error: `El rating del equipo (${input.rating.toFixed(1)}) supera el límite permitido de (${roundedMax.toFixed(1)}).`,
+      };
+    }
+  }
+
+  // 4. Save team rating
+  const { data, error } = await supabase
+    .from("team_ratings")
+    .upsert(
+      {
+        match_id: input.match_id,
+        voter_id: profile.id,
+        rating: input.rating,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "match_id,voter_id" }
+    )
+    .select()
+    .single();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { data, success: true };
+}
+
+export async function getTeamRating(matchId: string) {
+  const supabase = createSupabaseServerClient();
+  const profile = await getCurrentProfile();
+
+  if (!profile) {
+    return null;
+  }
+
+  const { data } = await supabase
+    .from("team_ratings")
+    .select("rating")
+    .eq("match_id", matchId)
+    .eq("voter_id", profile.id)
+    .maybeSingle();
+
+  return data ? (data.rating as number) : null;
+}
+

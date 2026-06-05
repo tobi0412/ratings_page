@@ -112,6 +112,7 @@ export default function LatestSessionPage() {
       bigpaperCount: rating.bigpaper_count ?? 0,
       poopCount: rating.poop_count ?? 0,
       sessionsCount: 1,
+      avgTeamRating: rating.team_rating ?? 0,
     };
   });
 
