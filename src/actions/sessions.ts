@@ -175,7 +175,19 @@ export async function revealMysteryVote(sessionId: string) {
     return { error: votesError.message };
   }
 
-  return { voter: voterProfile, votes: votes || [] };
+  // 4. Fetch the team rating submitted by the mystery player
+  const { data: teamRatingData } = await supabase
+    .from("team_ratings")
+    .select("rating")
+    .eq("match_id", sessionId)
+    .eq("voter_id", mysteryPlayerId)
+    .maybeSingle();
+
+  return { 
+    voter: voterProfile, 
+    votes: votes || [],
+    teamRating: teamRatingData ? Number(teamRatingData.rating) : null
+  };
 }
 
 export async function getSessionVotingProgress(sessionId: string) {
