@@ -700,6 +700,19 @@ export default function TeamRatingCard({
                 {feedback.label}
               </span>
             </div>
+            {feedback.desc && (
+              <p
+                style={{
+                  fontFamily: "'Barlow', sans-serif",
+                  fontSize: "0.78rem",
+                  color: "var(--text-muted)",
+                  margin: "0.25rem 0 0",
+                  lineHeight: "1.3",
+                }}
+              >
+                {feedback.desc}
+              </p>
+            )}
           </div>
         </div>
       </div>
