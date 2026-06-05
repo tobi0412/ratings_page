@@ -139,7 +139,11 @@ export default function PersonalTab({
     return series;
   };
 
-  const totalSessions = sessions.length;
+  const joinedDate = selectedPlayer?.profile?.created_at ? new Date(selectedPlayer.profile.created_at) : null;
+  const eligibleSessions = joinedDate
+    ? sessions.filter((s) => new Date(s.created_at) >= joinedDate)
+    : sessions;
+  const totalSessions = eligibleSessions.length;
   const attendancePercentage = totalSessions > 0 && selectedPlayer
     ? (selectedPlayer.sessionsCount / totalSessions) * 100
     : 0;
