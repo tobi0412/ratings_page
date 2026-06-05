@@ -221,6 +221,16 @@ export async function getSessionVotingProgress(sessionId: string) {
     return { error: ratingsError.message, success: false };
   }
 
+  // 3. Get team ratings for this match
+  const { data: teamRatingsData, error: teamRatingsError } = await supabaseAdmin
+    .from("team_ratings")
+    .select("voter_id, rating")
+    .eq("match_id", sessionId);
+
+  if (teamRatingsError) {
+    return { error: teamRatingsError.message, success: false };
+  }
+
   const progress = participants.map((player) => {
     const voterRatings = (ratingsData || []).filter((r) => r.voter_id === player.id);
     
@@ -233,6 +243,9 @@ export async function getSessionVotingProgress(sessionId: string) {
     const hasPoop = voterRatings.some((r) => r.is_poop === true);
     const awardsCompleted = hasMvp;
 
+    // Check if team rating was submitted
+    const hasTeamRating = (teamRatingsData || []).some((tr) => tr.voter_id === player.id);
+
     // A player votes for all other participants (total - 1)
     const maxVotes = Math.max(0, totalParticipants - 1);
     
@@ -240,12 +253,13 @@ export async function getSessionVotingProgress(sessionId: string) {
       player,
       votesSubmitted,
       maxVotes,
-      isCompleted: votesSubmitted >= maxVotes && maxVotes > 0 && awardsCompleted,
-      hasStarted: votesSubmitted > 0 || hasMvp || hasBigpaper || hasPoop,
+      isCompleted: votesSubmitted >= maxVotes && maxVotes > 0 && awardsCompleted && hasTeamRating,
+      hasStarted: votesSubmitted > 0 || hasMvp || hasBigpaper || hasPoop || hasTeamRating,
       awardsCompleted,
       hasMvp,
       hasBigpaper,
       hasPoop,
+      hasTeamRating,
     };
   });
 
