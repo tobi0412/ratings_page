@@ -445,7 +445,7 @@ export default function TeamTab({
           >
             Asistencia
           </h2>
-          <AttendanceRanking stats={stats} totalSessionsCount={sessions.length} />
+          <AttendanceRanking stats={stats} sessions={sessions} />
         </section>
       )}
 
@@ -566,7 +566,7 @@ export default function TeamTab({
         >
           Comparativa del Equipo
         </h2>
-        <ComparisonTable stats={stats} totalSessionsCount={sessions.length} />
+        <ComparisonTable stats={stats} sessions={sessions} />
       </section>
     </div>
   );
