@@ -1,26 +1,31 @@
 "use client";
 
 import { CalendarIcon } from "@/components/Icons";
-import { PlayerStats } from "@/types";
+import { PlayerStats, MatchSession } from "@/types";
 
 interface AttendanceRankingProps {
   stats: { [key: string]: PlayerStats };
-  totalSessionsCount: number;
+  sessions: MatchSession[];
 }
 
 export default function AttendanceRanking({
   stats,
-  totalSessionsCount,
+  sessions,
 }: AttendanceRankingProps) {
   const sortedPlayers = Object.values(stats)
     .map((player) => {
-      const percentage =
-        totalSessionsCount > 0
-          ? (player.sessionsCount / totalSessionsCount) * 100
-          : 0;
+      const joinedDate = player.profile.created_at ? new Date(player.profile.created_at) : null;
+      const eligibleSessions = joinedDate
+        ? sessions.filter(s => new Date(s.created_at) >= joinedDate)
+        : sessions;
+      const playerTotalSessions = eligibleSessions.length;
+      const percentage = playerTotalSessions > 0
+        ? (player.sessionsCount / playerTotalSessions) * 100
+        : 0;
       return {
         ...player,
         percentage,
+        totalSessionsCount: playerTotalSessions,
       };
     })
     .sort(
@@ -112,7 +117,7 @@ export default function AttendanceRanking({
               }}
             >
               {Math.floor(player.percentage)}% ({player.sessionsCount}/
-              {totalSessionsCount})
+              {player.totalSessionsCount})
             </span>
           </div>
         </div>
