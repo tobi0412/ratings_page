@@ -203,7 +203,7 @@ export default function SessionAwardsCard({
               </>
             ) : (
               <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: "0.92rem", color: "var(--text-muted)", opacity: 0.8 }}>
-                Seleccionar jugador...
+                {awardType === "mvp" ? "Seleccionar jugador..." : "Ninguno (Opcional)"}
               </span>
             )}
           </div>
@@ -238,6 +238,60 @@ export default function SessionAwardsCard({
               gap: "0.2rem",
             }}
           >
+            {awardType !== "mvp" && (
+              <div
+                key="none"
+                onClick={() => handleSelect("")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.6rem",
+                  padding: "0.5rem 0.65rem",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  background: selectedId === "" ? `${color}15` : "transparent",
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = selectedId === "" ? `${color}25` : "rgba(0, 230, 118, 0.08)";
+                  e.currentTarget.style.transform = "translateX(3px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = selectedId === "" ? `${color}15` : "transparent";
+                  e.currentTarget.style.transform = "none";
+                }}
+              >
+                <div
+                  style={{
+                    width: "24px",
+                    height: "24px",
+                    borderRadius: "50%",
+                    background: selectedId === "" ? `${color}25` : "rgba(255,255,255,0.03)",
+                    border: `1px solid ${selectedId === "" ? color : "rgba(255,255,255,0.1)"}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: "0.75rem",
+                    color: selectedId === "" ? color : "var(--text-muted)",
+                    overflow: "hidden",
+                    flexShrink: 0
+                  }}
+                >
+                  ✖
+                </div>
+                <span
+                  style={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "0.92rem",
+                    color: selectedId === "" ? color : "#e4f0e8"
+                  }}
+                >
+                  Ninguno (Opcional)
+                </span>
+              </div>
+            )}
             {players.map((p) => {
               const isSelected = p.id === selectedId;
               return (
