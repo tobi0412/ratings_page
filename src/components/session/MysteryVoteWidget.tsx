@@ -47,24 +47,24 @@ function getTeamRatingFeedback(value: number) {
     return { label: "VUELAN ALTO", desc: "Cotorra manejó la cancha.", color: "#ffc93c" };
   }
   if (value >= 6.0) {
-    return { label: "LINDO JUEGO", desc: "Hubo buena circulación de pelota.", color: "#ffab40" };
+    return { label: "LINDO JUEGO", desc: "Mostraron ráfagas de buen fútbol.", color: "#ffab40" };
   }
   if (value >= 5.0) {
-    return { label: "ACEPTABLE", desc: "Un rendimiento chato pero prolijo.", color: "#a0c4ac" };
+    return { label: "ACEPTABLE", desc: "Cumplieron con el mínimo exigido.", color: "#a0c4ac" };
   }
   if (value >= 4.0) {
-    return { label: "REGULAR", desc: "Cumplieron con lo justo y nada más.", color: "#ffa726" };
+    return { label: "REGULAR", desc: "Rendimiento mediocre y con muchas dudas.", color: "#ffa726" };
   }
   if (value >= 3.0) {
-    return { label: "ZAFANDO", desc: "Faltó bastante para estar conformes.", color: "#ff7043" };
+    return { label: "ZAFANDO", desc: "Muy lejos del nivel esperado.", color: "#ff7043" };
   }
   if (value >= 2.0) {
-    return { label: "FLOJO", desc: "Se corrió mucho pero se jugó mal.", color: "#ff5252" };
+    return { label: "FLOJO", desc: "Se equivocaron en lo más fácil.", color: "#ff5252" };
   }
   if (value > 1.0) {
-    return { label: "AL HORNO", desc: "El equipo estuvo pesadísimo.", color: "#d32f2f" };
+    return { label: "AL HORNO", desc: "Sin ideas ni actitud.", color: "#d32f2f" };
   }
-  return { label: "PAPELÓN", desc: "No dieron dos pases seguidos.", color: "#b71c1c" };
+  return { label: "PAPELÓN", desc: "Caminaron la cancha.", color: "#b71c1c" };
 }
 
 export default function MysteryVoteWidget() {

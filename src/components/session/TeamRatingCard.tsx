@@ -197,7 +197,7 @@ export default function TeamRatingCard({
     if (value >= 6.0) {
       return {
         label: "LINDO JUEGO",
-        desc: "Hubo buena circulación de pelota.",
+        desc: "Mostraron ráfagas de buen fútbol.",
         color: "#ffab40",
         icon: <SwordsIcon color="#ffab40" />
       };
@@ -205,7 +205,7 @@ export default function TeamRatingCard({
     if (value >= 5.0) {
       return {
         label: "ACEPTABLE",
-        desc: "Un rendimiento chato pero prolijo.",
+        desc: "Cumplieron con el mínimo exigido.",
         color: "#a0c4ac",
         icon: <LocalCheckIcon color="#a0c4ac" />
       };
@@ -213,7 +213,7 @@ export default function TeamRatingCard({
     if (value >= 4.0) {
       return {
         label: "REGULAR",
-        desc: "Cumplieron con lo justo y nada más.",
+        desc: "Rendimiento mediocre y con muchas dudas.",
         color: "#ffa726",
         icon: <AlertTriangleIcon color="#ffa726" />
       };
@@ -221,7 +221,7 @@ export default function TeamRatingCard({
     if (value >= 3.0) {
       return {
         label: "ZAFANDO",
-        desc: "Faltó bastante para estar conformes.",
+        desc: "Muy lejos del nivel esperado.",
         color: "#ff7043",
         icon: <AlertTriangleIcon color="#ff7043" />
       };
@@ -229,7 +229,7 @@ export default function TeamRatingCard({
     if (value >= 2.0) {
       return {
         label: "FLOJO",
-        desc: "Se corrió mucho pero se jugó mal.",
+        desc: "Se equivocaron en lo más fácil.",
         color: "#ff5252",
         icon: <AlertTriangleIcon color="#ff5252" />
       };
@@ -237,14 +237,14 @@ export default function TeamRatingCard({
     if (value > 1.0) {
       return {
         label: "AL HORNO",
-        desc: "El equipo estuvo pesadísimo.",
+        desc: "Sin ideas ni actitud.",
         color: "#d32f2f",
         icon: <AlertTriangleIcon color="#d32f2f" />
       };
     }
     return {
       label: "PAPELÓN",
-      desc: "No dieron dos pases seguidos.",
+      desc: "Caminaron la cancha.",
       color: "#b71c1c",
       icon: <AlertTriangleIcon color="#b71c1c" />
     };
