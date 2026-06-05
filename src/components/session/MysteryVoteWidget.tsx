@@ -38,33 +38,33 @@ interface RatingVote {
 
 function getTeamRatingFeedback(value: number) {
   if (value >= 9.0) {
-    return { label: "IMPECABLE", color: "#00e676" };
+    return { label: "IMPECABLE", desc: "Una fiesta total de Cotorra.", color: "#00e676" };
   }
   if (value >= 8.0) {
-    return { label: "CLASE MUNDIAL", color: "#40c4ff" };
+    return { label: "CLASE MUNDIAL", desc: "Un nivel altísimo de todos.", color: "#40c4ff" };
   }
   if (value >= 7.0) {
-    return { label: "VUELAN ALTO", color: "#ffc93c" };
+    return { label: "VUELAN ALTO", desc: "Cotorra manejó la cancha.", color: "#ffc93c" };
   }
   if (value >= 6.0) {
-    return { label: "LINDO JUEGO", color: "#ffab40" };
+    return { label: "LINDO JUEGO", desc: "Hubo buena circulación de pelota.", color: "#ffab40" };
   }
   if (value >= 5.0) {
-    return { label: "ACEPTABLE", color: "#a0c4ac" };
+    return { label: "ACEPTABLE", desc: "Un rendimiento chato pero prolijo.", color: "#a0c4ac" };
   }
   if (value >= 4.0) {
-    return { label: "REGULAR", color: "#ffa726" };
+    return { label: "REGULAR", desc: "Cumplieron con lo justo y nada más.", color: "#ffa726" };
   }
   if (value >= 3.0) {
-    return { label: "ZAFANDO", color: "#ff7043" };
+    return { label: "ZAFANDO", desc: "Faltó bastante para estar conformes.", color: "#ff7043" };
   }
   if (value >= 2.0) {
-    return { label: "FLOJO", color: "#ff5252" };
+    return { label: "FLOJO", desc: "Se corrió mucho pero se jugó mal.", color: "#ff5252" };
   }
   if (value > 1.0) {
-    return { label: "AL HORNO", color: "#d32f2f" };
+    return { label: "AL HORNO", desc: "El equipo estuvo pesadísimo.", color: "#d32f2f" };
   }
-  return { label: "PAPELÓN", color: "#b71c1c" };
+  return { label: "PAPELÓN", desc: "No dieron dos pases seguidos.", color: "#b71c1c" };
 }
 
 export default function MysteryVoteWidget() {
@@ -452,8 +452,11 @@ export default function MysteryVoteWidget() {
                     <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "0.95rem", color: "#e4f0e8", lineHeight: 1.2 }}>
                       Rendimiento del Equipo
                     </span>
-                    <span style={{ fontSize: "0.7rem", color: getTeamRatingFeedback(teamRating).color, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                    <span style={{ fontSize: "0.7rem", color: getTeamRatingFeedback(teamRating).color, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.05em", textTransform: "uppercase", lineHeight: 1.2 }}>
                       {getTeamRatingFeedback(teamRating).label}
+                    </span>
+                    <span style={{ fontSize: "0.68rem", color: "#a0c4ac", fontFamily: "'Barlow', sans-serif", marginTop: "0.1rem", lineHeight: 1.1 }}>
+                      {getTeamRatingFeedback(teamRating).desc}
                     </span>
                   </div>
                 </div>
