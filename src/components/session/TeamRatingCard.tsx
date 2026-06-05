@@ -205,7 +205,7 @@ export default function TeamRatingCard({
     if (value >= 5.0) {
       return {
         label: "ACEPTABLE",
-        desc: "Cumplieron con el mínimo exigido.",
+        desc: "Apenas lo justo.",
         color: "#a0c4ac",
         icon: <LocalCheckIcon color="#a0c4ac" />
       };

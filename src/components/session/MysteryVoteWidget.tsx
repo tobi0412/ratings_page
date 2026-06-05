@@ -50,7 +50,7 @@ function getTeamRatingFeedback(value: number) {
     return { label: "LINDO JUEGO", desc: "Mostraron ráfagas de buen fútbol.", color: "#ffab40" };
   }
   if (value >= 5.0) {
-    return { label: "ACEPTABLE", desc: "Cumplieron con el mínimo exigido.", color: "#a0c4ac" };
+    return { label: "ACEPTABLE", desc: "Apenas lo justo.", color: "#a0c4ac" };
   }
   if (value >= 4.0) {
     return { label: "REGULAR", desc: "Rendimiento mediocre y con muchas dudas.", color: "#ffa726" };
