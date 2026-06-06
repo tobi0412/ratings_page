@@ -20,6 +20,20 @@ export default function MysteryReveal({ winnerName, allPlayers, sessionId, curre
   const [activeLoser, setActiveLoser] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const highlightedPlayerRef = useRef<string | null>(null);
+  const isSkippedRef = useRef(false);
+
+  const handleSkip = () => {
+    isSkippedRef.current = true;
+    setIsCompleted(true);
+    setEliminated(new Set(allPlayers.filter(p => p !== winnerName)));
+    setHighlightedPlayer(null);
+    setActiveLoser(null);
+
+    const key = `mystery_reveal_status_${currentUserId || "guest"}_${sessionId}`;
+    localStorage.setItem(key, "revealed");
+
+    if (onComplete) onComplete();
+  };
 
   useEffect(() => {
     // Parent handles isAlreadyRevealed check, so on mount we always prepare to play animation
@@ -42,6 +56,7 @@ export default function MysteryReveal({ winnerName, allPlayers, sessionId, curre
 
     const runRouletteLoop = async () => {
       while (active) {
+        if (isSkippedRef.current) return;
         // Get list of currently active survivors
         const survivors = allPlayers.filter(p => !currentEliminated.has(p));
 
@@ -56,6 +71,7 @@ export default function MysteryReveal({ winnerName, allPlayers, sessionId, curre
           // Wait 3.5 seconds to let the centering and growing animation play out
           await new Promise(r => setTimeout(r, 3500));
 
+          if (isSkippedRef.current) return;
           if (onComplete) onComplete();
           break;
         }
@@ -95,7 +111,7 @@ export default function MysteryReveal({ winnerName, allPlayers, sessionId, curre
 
         // Cycle through players (fast ease-out deceleration phase)
         for (let s = 0; s <= stepCount; s++) {
-          if (!active) return;
+          if (!active || isSkippedRef.current) return;
           const currentSurvivor = survivors[(startIdx + s) % survivors.length];
           setHighlightedPlayer(currentSurvivor);
           highlightedPlayerRef.current = currentSurvivor;
@@ -109,7 +125,7 @@ export default function MysteryReveal({ winnerName, allPlayers, sessionId, curre
         // Dramatic extra slow ticks phase: slowly crawl forward step by step to the final victim
         if (extraTicks > 0) {
           for (let t = 1; t <= extraTicks; t++) {
-            if (!active) return;
+            if (!active || isSkippedRef.current) return;
             const currentSurvivor = survivors[(baseTargetIdx + t) % survivors.length];
             setHighlightedPlayer(currentSurvivor);
             highlightedPlayerRef.current = currentSurvivor;
@@ -120,7 +136,7 @@ export default function MysteryReveal({ winnerName, allPlayers, sessionId, curre
           }
         }
 
-        if (!active) return;
+        if (!active || isSkippedRef.current) return;
 
         // Landed on victim: trigger elimination styling
         setHighlightedPlayer(null);
@@ -128,7 +144,7 @@ export default function MysteryReveal({ winnerName, allPlayers, sessionId, curre
         setActiveLoser(victim);
         await new Promise(r => setTimeout(r, 700)); // Show red elimination flash for 700ms
         
-        if (!active) return;
+        if (!active || isSkippedRef.current) return;
 
         // Eliminate victim
         currentEliminated.add(victim);
@@ -218,6 +234,15 @@ export default function MysteryReveal({ winnerName, allPlayers, sessionId, curre
           );
         })}
       </motion.div>
+
+      {!isCompleted && (
+        <button
+          onClick={handleSkip}
+          className="mt-4 px-4 py-1.5 bg-white/5 border border-[#3d6e50]/30 hover:border-[#00e676]/40 hover:bg-[#00e676]/10 text-[#a0c4ac] hover:text-[#00e676] text-xs font-semibold uppercase tracking-wider rounded-lg transition-all duration-200"
+        >
+          Saltar Animación
+        </button>
+      )}
     </div>
   );
 }
