@@ -6,6 +6,8 @@ import { Profile } from "@/types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CotorraLogoIcon } from "@/components/Icons";
+import { FEATURE_FLAGS } from "@/config/features";
+import WalletIndicator from "@/modules/economy/components/WalletIndicator";
 
 interface NavbarProps {
   profile: Profile | null;
@@ -112,6 +114,16 @@ export default function Navbar({ profile }: NavbarProps) {
               <NavLink href="/dashboard" active={isActive("/dashboard")}>
                 Votación
               </NavLink>
+              {FEATURE_FLAGS.IS_CURRENCY_ENABLED && (
+                <>
+                  <NavLink href="/bets" active={isActive("/bets")}>
+                    Apuestas
+                  </NavLink>
+                  <NavLink href="/shop" active={isActive("/shop")}>
+                    Tienda
+                  </NavLink>
+                </>
+              )}
 
               {/* Divider */}
               <div
@@ -123,6 +135,8 @@ export default function Navbar({ profile }: NavbarProps) {
                   margin: "0 0.5rem",
                 }}
               />
+
+              <WalletIndicator playerId={profile.id} />
 
               {/* User badge with Dropdown */}
               <div
