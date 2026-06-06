@@ -3,6 +3,8 @@
 import { createSupabaseServerClient, supabaseAdmin } from "@/lib/supabase";
 import { getCurrentProfile } from "./auth";
 import { Profile } from "@/types";
+import { FEATURE_FLAGS } from "@/config/features";
+import { mintCoinsAndResolveBets } from "@/modules/economy/services/settlement";
 
 export async function getActiveSessions() {
   const supabase = createSupabaseServerClient();
@@ -100,6 +102,14 @@ export async function closeSession(sessionId: string) {
   await supabaseAdmin.rpc("compute_historical_ratings", {
     session_id: sessionId,
   });
+
+  if (FEATURE_FLAGS.IS_CURRENCY_ENABLED) {
+    try {
+      await mintCoinsAndResolveBets(sessionId);
+    } catch (e) {
+      console.error("Error minting coins or resolving bets:", e);
+    }
+  }
 
   return { data, success: true };
 }
