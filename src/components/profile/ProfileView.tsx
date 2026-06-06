@@ -1,8 +1,16 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FootballField from './FootballField';
 import { Profile } from '@/types';
 import { updatePlayerProfile } from '@/actions/players';
+import { FEATURE_FLAGS } from '@/config/features';
+import { getEquippedCosmetics } from '@/modules/economy/services/shop';
+
+const TITLE_LABELS: Record<string, string> = {
+  title_terminator: "Terminator de Tobillos",
+  title_lyricist: "Lírico Incomprendido",
+  title_lung: "Cero Pulmón",
+};
 
 export default function ProfileView({ 
   initialProfile,
@@ -17,6 +25,17 @@ export default function ProfileView({
   const [positions, setPositions] = useState<string[]>(initialProfile.favorite_positions || []);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [equipped, setEquipped] = useState<any>(null);
+
+  useEffect(() => {
+    if (!FEATURE_FLAGS.IS_CURRENCY_ENABLED) return;
+
+    async function loadEquipped() {
+      const res = await getEquippedCosmetics(profile.id);
+      setEquipped(res);
+    }
+    loadEquipped();
+  }, [profile.id]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -94,13 +113,40 @@ export default function ProfileView({
         <div className="lg:col-span-5 space-y-6">
           <div className="card-sport p-6 flex flex-col items-center text-center animate-slide-up stagger-1">
             <div className="relative mb-6">
+              {/* Dynamic border styles for equipped cosmetics */}
+              <style>{`
+                @keyframes neonPulse {
+                  0%, 100% { box-shadow: 0 0 15px #00e676, inset 0 0 10px rgba(0,230,118,0.2); }
+                  50% { box-shadow: 0 0 30px #00e676, inset 0 0 20px rgba(0,230,118,0.4); }
+                }
+                @keyframes shimmerBorder {
+                  0%, 100% { border-color: #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+                  50% { border-color: #fff3a8; box-shadow: 0 0 35px rgba(255, 215, 0, 0.7); }
+                }
+              `}</style>
               <div 
                 className="w-32 h-32 sm:w-40 sm:h-40 rounded-full flex items-center justify-center overflow-hidden z-10 relative"
-                style={{ 
-                  background: 'var(--accent-lime-soft)',
-                  border: '2px solid rgba(0,230,118,0.4)',
-                  boxShadow: '0 0 30px rgba(0, 230, 118, 0.15)'
-                }}
+                style={
+                  equipped?.avatar_border === "border_neon" ? {
+                    background: 'rgba(0, 230, 118, 0.05)',
+                    border: '3px solid #00e676',
+                    boxShadow: '0 0 25px #00e676, inset 0 0 15px rgba(0,230,118,0.3)',
+                    animation: 'neonPulse 2s infinite ease-in-out',
+                  } : equipped?.avatar_border === "border_gold" ? {
+                    background: 'rgba(255, 215, 0, 0.05)',
+                    border: '3px solid #ffd700',
+                    boxShadow: '0 0 30px rgba(255, 215, 0, 0.5), inset 0 0 15px rgba(255,215,0,0.3)',
+                    animation: 'shimmerBorder 3s infinite ease-in-out',
+                  } : equipped?.avatar_border === "border_wood" ? {
+                    background: 'rgba(139, 69, 19, 0.1)',
+                    border: '4px solid #8b5a2b',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.4), inset 0 0 12px rgba(0,0,0,0.6)',
+                  } : { 
+                    background: 'var(--accent-lime-soft)',
+                    border: '2px solid rgba(0,230,118,0.4)',
+                    boxShadow: '0 0 30px rgba(0, 230, 118, 0.15)'
+                  }
+                }
               >
                 {profile.avatar_url ? (
                   <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
@@ -112,9 +158,20 @@ export default function ProfileView({
               </div>
             </div>
 
-            <h2 className="text-3xl sm:text-4xl font-['Bebas_Neue'] tracking-wider mb-6 text-[var(--text-primary)]">
+            <h2 className="text-3xl sm:text-4xl font-['Bebas_Neue'] tracking-wider mb-1 text-[var(--text-primary)]">
               {profile.username}
             </h2>
+            
+            {equipped?.profile_title && TITLE_LABELS[equipped.profile_title] ? (
+              <span 
+                className="font-['Barlow_Condensed'] text-xs font-bold tracking-widest text-[var(--accent-lime)] uppercase mb-6"
+                style={{ textShadow: '0 0 8px rgba(0, 230, 118, 0.2)' }}
+              >
+                {TITLE_LABELS[equipped.profile_title]}
+              </span>
+            ) : (
+              <div className="mb-4" />
+            )}
 
             <hr className="w-full divider-sport mb-5" />
 
@@ -162,6 +219,7 @@ export default function ProfileView({
                 isEditing={isEditing}
                 selectedPositions={isEditing ? positions : (profile.favorite_positions || [])}
                 onChange={setPositions}
+                design={equipped?.field_design}
               />
             </div>
             

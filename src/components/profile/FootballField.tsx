@@ -19,9 +19,10 @@ interface Props {
   isEditing: boolean;
   selectedPositions: string[];
   onChange?: (positions: string[]) => void;
+  design?: string | null;
 }
 
-export default function FootballField({ isEditing, selectedPositions, onChange }: Props) {
+export default function FootballField({ isEditing, selectedPositions, onChange, design }: Props) {
   const togglePosition = (posId: string) => {
     if (!isEditing || !onChange) return;
     
@@ -34,27 +35,46 @@ export default function FootballField({ isEditing, selectedPositions, onChange }
     }
   };
 
+  // Dynamic colors based on design
+  let fieldBg = "var(--bg-card)";
+  let lineColor = "var(--border-subtle)";
+  let fieldBorder = "1px solid var(--border-subtle)";
+
+  if (design === "field_stadium") {
+    fieldBg = "#040906";
+    lineColor = "#00e5ff";
+    fieldBorder = "1px solid #00e5ff";
+  } else if (design === "field_potrero") {
+    fieldBg = "#8c593b";
+    lineColor = "rgba(220, 220, 220, 0.7)";
+    fieldBorder = "1px solid rgba(220, 220, 220, 0.5)";
+  } else if (design === "field_synthetic") {
+    fieldBg = "#175421";
+    lineColor = "#ffb300";
+    fieldBorder = "1px solid #ffb300";
+  }
+
   return (
     <div 
       className="relative w-full max-w-sm mx-auto aspect-[1/1.4] rounded-xl overflow-hidden stripe-texture"
       style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border-subtle)',
+        background: fieldBg,
+        border: fieldBorder,
       }}
     >
       {/* Field Lines (Neon styled) */}
-      <div className="absolute top-1/2 left-0 w-full h-[1px]" style={{ background: 'var(--border-subtle)' }}></div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full border border-solid" style={{ borderColor: 'var(--border-subtle)' }}></div>
+      <div className="absolute top-1/2 left-0 w-full h-[1px]" style={{ background: lineColor }}></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full border border-solid" style={{ borderColor: lineColor }}></div>
       {/* Center dot */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{ background: 'var(--border-subtle)' }}></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{ background: lineColor }}></div>
 
       {/* Penalty Areas */}
-      <div className="absolute top-0 left-1/4 w-1/2 h-1/6 border-b border-l border-r border-solid" style={{ borderColor: 'var(--border-subtle)' }}></div>
-      <div className="absolute bottom-0 left-1/4 w-1/2 h-1/6 border-t border-l border-r border-solid" style={{ borderColor: 'var(--border-subtle)' }}></div>
+      <div className="absolute top-0 left-1/4 w-1/2 h-1/6 border-b border-l border-r border-solid" style={{ borderColor: lineColor }}></div>
+      <div className="absolute bottom-0 left-1/4 w-1/2 h-1/6 border-t border-l border-r border-solid" style={{ borderColor: lineColor }}></div>
 
       {/* Goal Areas */}
-      <div className="absolute top-0 left-[35%] w-[30%] h-[6%] border-b border-l border-r border-solid" style={{ borderColor: 'var(--border-subtle)' }}></div>
-      <div className="absolute bottom-0 left-[35%] w-[30%] h-[6%] border-t border-l border-r border-solid" style={{ borderColor: 'var(--border-subtle)' }}></div>
+      <div className="absolute top-0 left-[35%] w-[30%] h-[6%] border-b border-l border-r border-solid" style={{ borderColor: lineColor }}></div>
+      <div className="absolute bottom-0 left-[35%] w-[30%] h-[6%] border-t border-l border-r border-solid" style={{ borderColor: lineColor }}></div>
 
       {/* Positions */}
       {POSITIONS.map(pos => {
