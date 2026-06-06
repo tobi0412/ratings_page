@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabaseClient } from "@/lib/supabase";
+import { supabaseClient } from "@/lib/supabaseClient";
 import { getWalletBalance } from "../services/wallet";
 import { FEATURE_FLAGS } from "@/config/features";
+import { CotorraCoinIcon } from "@/components/Icons";
 
 interface WalletIndicatorProps {
   playerId: string;
@@ -63,28 +64,28 @@ export default function WalletIndicator({ playerId }: WalletIndicatorProps) {
         display: "flex",
         alignItems: "center",
         gap: "0.35rem",
-        background: "rgba(255, 215, 0, 0.08)",
-        border: "1px solid rgba(255, 215, 0, 0.25)",
+        background: "rgba(0, 230, 118, 0.08)",
+        border: "1px solid rgba(0, 230, 118, 0.25)",
         padding: "0.25rem 0.6rem",
         borderRadius: "6px",
         fontFamily: "'Bebas Neue', sans-serif",
         fontSize: "0.95rem",
-        color: "#ffd700",
+        color: "#00e676",
         letterSpacing: "0.05em",
         userSelect: "none",
         transition: "all 0.2s ease",
       }}
       className="hidden sm:flex"
       onMouseEnter={(e) => {
-        e.currentTarget.style.background = "rgba(255, 215, 0, 0.15)";
-        e.currentTarget.style.boxShadow = "0 0 12px rgba(255, 215, 0, 0.2)";
+        e.currentTarget.style.background = "rgba(0, 230, 118, 0.15)";
+        e.currentTarget.style.boxShadow = "0 0 12px rgba(0, 230, 118, 0.2)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.background = "rgba(255, 215, 0, 0.08)";
+        e.currentTarget.style.background = "rgba(0, 230, 118, 0.08)";
         e.currentTarget.style.boxShadow = "none";
       }}
     >
-      <span style={{ fontSize: "1rem" }}>🪙</span>
+      <CotorraCoinIcon size="1.1rem" style={{ flexShrink: 0 }} />
       <span>{balance} CC</span>
     </div>
   );

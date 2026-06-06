@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import FootballField from './FootballField';
+import PlayerAvatar from './PlayerAvatar';
 import { Profile } from '@/types';
 import { updatePlayerProfile } from '@/actions/players';
 import { FEATURE_FLAGS } from '@/config/features';
@@ -113,49 +114,13 @@ export default function ProfileView({
         <div className="lg:col-span-5 space-y-6">
           <div className="card-sport p-6 flex flex-col items-center text-center animate-slide-up stagger-1">
             <div className="relative mb-6">
-              {/* Dynamic border styles for equipped cosmetics */}
-              <style>{`
-                @keyframes neonPulse {
-                  0%, 100% { box-shadow: 0 0 15px #00e676, inset 0 0 10px rgba(0,230,118,0.2); }
-                  50% { box-shadow: 0 0 30px #00e676, inset 0 0 20px rgba(0,230,118,0.4); }
-                }
-                @keyframes shimmerBorder {
-                  0%, 100% { border-color: #ffd700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
-                  50% { border-color: #fff3a8; box-shadow: 0 0 35px rgba(255, 215, 0, 0.7); }
-                }
-              `}</style>
-              <div 
-                className="w-32 h-32 sm:w-40 sm:h-40 rounded-full flex items-center justify-center overflow-hidden z-10 relative"
-                style={
-                  equipped?.avatar_border === "border_neon" ? {
-                    background: 'rgba(0, 230, 118, 0.05)',
-                    border: '3px solid #00e676',
-                    boxShadow: '0 0 25px #00e676, inset 0 0 15px rgba(0,230,118,0.3)',
-                    animation: 'neonPulse 2s infinite ease-in-out',
-                  } : equipped?.avatar_border === "border_gold" ? {
-                    background: 'rgba(255, 215, 0, 0.05)',
-                    border: '3px solid #ffd700',
-                    boxShadow: '0 0 30px rgba(255, 215, 0, 0.5), inset 0 0 15px rgba(255,215,0,0.3)',
-                    animation: 'shimmerBorder 3s infinite ease-in-out',
-                  } : equipped?.avatar_border === "border_wood" ? {
-                    background: 'rgba(139, 69, 19, 0.1)',
-                    border: '4px solid #8b5a2b',
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.4), inset 0 0 12px rgba(0,0,0,0.6)',
-                  } : { 
-                    background: 'var(--accent-lime-soft)',
-                    border: '2px solid rgba(0,230,118,0.4)',
-                    boxShadow: '0 0 30px rgba(0, 230, 118, 0.15)'
-                  }
-                }
-              >
-                {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="font-['Bebas_Neue'] text-5xl sm:text-6xl text-[var(--accent-lime)]">
-                    {profile.username?.[0]?.toUpperCase() ?? "?"}
-                  </span>
-                )}
-              </div>
+              <PlayerAvatar
+                playerId={profile.id}
+                avatarUrl={profile.avatar_url}
+                username={profile.username}
+                className="w-32 h-32 sm:w-40 sm:h-40"
+                isLarge={true}
+              />
             </div>
 
             <h2 className="text-3xl sm:text-4xl font-['Bebas_Neue'] tracking-wider mb-1 text-[var(--text-primary)]">

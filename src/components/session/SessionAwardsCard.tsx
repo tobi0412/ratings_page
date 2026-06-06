@@ -4,6 +4,7 @@ import { submitSessionAwards } from "@/actions/ratings";
 import { Profile, Rating } from "@/types";
 import { useState, useEffect } from "react";
 import { TrophyIcon, PaperIcon, PoopIcon, CheckIcon } from "@/components/Icons";
+import PlayerAvatar from "@/components/profile/PlayerAvatar";
 
 
 // Chevron indicator icon
@@ -174,29 +175,12 @@ export default function SessionAwardsCard({
             {selectedPlayer ? (
               <>
                 {/* Micro Avatar */}
-                <div
-                  style={{
-                    width: "24px",
-                    height: "24px",
-                    borderRadius: "50%",
-                    background: `${color}15`,
-                    border: `1px solid ${color}30`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: "0.75rem",
-                    color: color,
-                    overflow: "hidden",
-                    flexShrink: 0
-                  }}
-                >
-                  {selectedPlayer.avatar_url ? (
-                    <img src={selectedPlayer.avatar_url} alt={selectedPlayer.username} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
-                    selectedPlayer.username?.[0]?.toUpperCase() ?? "?"
-                  )}
-                </div>
+                <PlayerAvatar
+                  playerId={selectedPlayer.id}
+                  avatarUrl={selectedPlayer.avatar_url}
+                  username={selectedPlayer.username}
+                  size={24}
+                />
                 <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: "0.95rem", color: "#e4f0e8" }}>
                   {selectedPlayer.username}
                 </span>
@@ -317,29 +301,12 @@ export default function SessionAwardsCard({
                     e.currentTarget.style.transform = "none";
                   }}
                 >
-                  <div
-                    style={{
-                      width: "24px",
-                      height: "24px",
-                      borderRadius: "50%",
-                      background: isSelected ? `${color}25` : "rgba(255,255,255,0.03)",
-                      border: `1px solid ${isSelected ? color : "rgba(255,255,255,0.1)"}`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontFamily: "'Bebas Neue', sans-serif",
-                      fontSize: "0.75rem",
-                      color: isSelected ? color : "var(--text-muted)",
-                      overflow: "hidden",
-                      flexShrink: 0
-                    }}
-                  >
-                    {p.avatar_url ? (
-                      <img src={p.avatar_url} alt={p.username} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    ) : (
-                      p.username?.[0]?.toUpperCase() ?? "?"
-                    )}
-                  </div>
+                  <PlayerAvatar
+                    playerId={p.id}
+                    avatarUrl={p.avatar_url}
+                    username={p.username}
+                    size={24}
+                  />
                   <span
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",

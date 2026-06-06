@@ -5,6 +5,7 @@ import { getCurrentProfile } from "./auth";
 import { Profile } from "@/types";
 import { FEATURE_FLAGS } from "@/config/features";
 import { mintCoinsAndResolveBets } from "@/modules/economy/services/settlement";
+import { addCoins } from "@/modules/economy/services/wallet";
 
 export async function getActiveSessions() {
   const supabase = createSupabaseServerClient();
@@ -37,7 +38,7 @@ export async function createSession(name: string, playerIds: string[]) {
     return { error: "Deberías seleccionar al menos un jugador para la sesión." };
   }
 
-  // Close any active session
+  // Close any active session to enforce only one active session at a time
   await supabase
     .from("match_sessions")
     .update({ is_active: false, closed_at: new Date().toISOString() })
@@ -73,8 +74,98 @@ export async function createSession(name: string, playerIds: string[]) {
     return { error: participantsError.message };
   }
 
+  // Process pending pre-session bets (match_id is null)
+  if (FEATURE_FLAGS.IS_CURRENCY_ENABLED) {
+    try {
+      const { data: pendingBets, error: betsErr } = await supabaseAdmin
+        .from("economy_bets")
+        .select("*")
+        .is("match_id", null)
+        .eq("status", "pending");
+
+      if (!betsErr && pendingBets && pendingBets.length > 0) {
+        for (const bet of pendingBets) {
+          if (bet.target_player_id) {
+            // Player-specific prop bet: check if target player participated
+            if (playerIds.includes(bet.target_player_id)) {
+              await supabaseAdmin
+                .from("economy_bets")
+                .update({ match_id: sessionData.id })
+                .eq("id", bet.id);
+            } else {
+              // Refund the user's coins
+              await addCoins(
+                bet.player_id,
+                bet.amount,
+                "bet_refund",
+                sessionData.id,
+                `Reembolso de apuesta: el jugador no participó en este partido`
+              );
+              // Mark bet as refunded and link it to the match
+              await supabaseAdmin
+                .from("economy_bets")
+                .update({ match_id: sessionData.id, status: "refunded" })
+                .eq("id", bet.id);
+            }
+          } else {
+            // Team-wide bet: associate it directly
+            await supabaseAdmin
+              .from("economy_bets")
+              .update({ match_id: sessionData.id })
+              .eq("id", bet.id);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error processing pending bets on session creation:", e);
+    }
+  }
+
   return { data: sessionData, success: true };
 }
+
+export async function activateSession(sessionId: string) {
+  const supabase = createSupabaseServerClient();
+  const profile = await getCurrentProfile();
+
+  if (!profile || profile.role !== "admin") {
+    return { error: "Only admins can activate sessions" };
+  }
+
+  // Close any active sessions to enforce the single active session rule
+  await supabase
+    .from("match_sessions")
+    .update({ is_active: false, closed_at: new Date().toISOString() })
+    .eq("is_active", true);
+
+  const { data, error } = await supabase
+    .from("match_sessions")
+    .update({
+      is_active: true,
+    })
+    .eq("id", sessionId)
+    .select()
+    .single();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { data, success: true };
+}
+
+export async function getUpcomingSession() {
+  const supabase = createSupabaseServerClient();
+  const { data } = await supabase
+    .from("match_sessions")
+    .select("*")
+    .eq("is_active", false)
+    .is("closed_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  return data && data.length > 0 ? data[0] : null;
+}
+
 
 export async function closeSession(sessionId: string) {
   const supabase = createSupabaseServerClient();

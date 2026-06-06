@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { CotorraLogoIcon } from "@/components/Icons";
 import { FEATURE_FLAGS } from "@/config/features";
 import WalletIndicator from "@/modules/economy/components/WalletIndicator";
+import PlayerAvatar from "@/components/profile/PlayerAvatar";
 
 interface NavbarProps {
   profile: Profile | null;
@@ -163,33 +164,12 @@ export default function Navbar({ profile }: NavbarProps) {
                     e.currentTarget.style.background = "transparent";
                   }}
                 >
-                  <div
-                    style={{
-                      width: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                      background: "rgba(0, 230, 118, 0.15)",
-                      border: "1px solid rgba(0, 230, 118, 0.35)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontFamily: "'Bebas Neue', sans-serif",
-                      fontSize: "0.9rem",
-                      color: "#00e676",
-                      flexShrink: 0,
-                      overflow: "hidden",
-                    }}
-                  >
-                    {profile.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt={profile.username}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                    ) : (
-                      profile.username?.[0]?.toUpperCase() ?? "?"
-                    )}
-                  </div>
+                  <PlayerAvatar
+                    playerId={profile.id}
+                    avatarUrl={profile.avatar_url}
+                    username={profile.username}
+                    size={30}
+                  />
                   <span
                     className="hidden sm:inline-block"
                     style={{

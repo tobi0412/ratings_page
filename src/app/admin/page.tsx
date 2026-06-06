@@ -11,6 +11,7 @@ import { getAllPlayers, approvePlayer, rejectPlayer, getApprovedPlayers } from "
 import { MatchSession, Profile } from "@/types";
 import { useEffect, useState } from "react";
 import { SoccerBallIcon, UsersIcon, HourglassIcon, CheckIcon, XIcon } from "@/components/Icons";
+import PlayerAvatar from "@/components/profile/PlayerAvatar";
 
 type Tab = "sesiones" | "jugadores";
 
@@ -362,31 +363,12 @@ export default function AdminPage() {
                           }}
                         >
                           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            <div
-                              style={{
-                                width: "28px",
-                                height: "28px",
-                                borderRadius: "50%",
-                                background: "rgba(255,255,255,0.05)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontFamily: "'Bebas Neue', sans-serif",
-                                fontSize: "0.85rem",
-                                color: "#e4f0e8",
-                                overflow: "hidden",
-                              }}
-                            >
-                              {item.player.avatar_url ? (
-                                <img
-                                  src={item.player.avatar_url}
-                                  alt={item.player.username}
-                                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                                />
-                              ) : (
-                                (item.player.username?.[0]?.toUpperCase() ?? "?")
-                              )}
-                            </div>
+                            <PlayerAvatar
+                              playerId={item.player.id}
+                              avatarUrl={item.player.avatar_url}
+                              username={item.player.username}
+                              size={28}
+                            />
                             <span
                               style={{
                                 fontFamily: "'Barlow Condensed', sans-serif",
@@ -651,12 +633,25 @@ export default function AdminPage() {
                           ` → ${new Date(session.closed_at).toLocaleString("es-AR")}`}
                       </p>
                     </div>
-                    <span
+                     <span
                       className={
-                        session.is_active ? "badge-active" : "badge-closed"
+                        session.is_active 
+                          ? "badge-active" 
+                          : session.closed_at === null 
+                            ? "badge-closed" 
+                            : "badge-closed"
+                      }
+                      style={
+                        !session.is_active && session.closed_at === null
+                          ? { background: "rgba(255, 171, 64, 0.12)", color: "#ffab40", border: "1px solid rgba(255, 171, 64, 0.25)" }
+                          : undefined
                       }
                     >
-                      {session.is_active ? "Activa" : "Cerrada"}
+                      {session.is_active 
+                        ? "Activa" 
+                        : session.closed_at === null 
+                          ? "Próxima" 
+                          : "Cerrada"}
                     </span>
                   </div>
                 ))}

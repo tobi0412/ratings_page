@@ -1,8 +1,7 @@
-import { createSupabaseServerClient } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function getPlayerWallet(playerId: string) {
-  const supabase = createSupabaseServerClient();
-  const { data } = await supabase
+  const { data } = await supabaseAdmin
     .from("economy_wallets")
     .select("*")
     .eq("player_id", playerId)
@@ -10,7 +9,7 @@ export async function getPlayerWallet(playerId: string) {
 
   if (!data) {
     // Create wallet if it doesn't exist (e.g. first-time player)
-    const { data: newWallet } = await supabase
+    const { data: newWallet } = await supabaseAdmin
       .from("economy_wallets")
       .insert({ player_id: playerId, balance: 0 })
       .select()

@@ -1,5 +1,6 @@
-import { createSupabaseServerClient, supabaseAdmin } from "@/lib/supabase";
+import { createSupabaseServerClient } from "@/lib/supabase";
 import { calculateRewards } from "../utils/rewards";
+
 import { addCoins } from "./wallet";
 
 export async function calculateStreakForPlayer(playerId: string, closedSessions: { id: string }[]): Promise<number> {

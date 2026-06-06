@@ -4,6 +4,7 @@ import { submitTeamRating, getTeamRating } from "@/actions/ratings";
 import { Profile, Rating } from "@/types";
 import { useState, useEffect } from "react";
 import { CheckIcon } from "@/components/Icons";
+import PlayerAvatar from "@/components/profile/PlayerAvatar";
 
 interface TeamRatingCardProps {
   matchId: string;
@@ -401,32 +402,12 @@ export default function TeamRatingCard({
                     }}
                   >
                     {/* Tiny Avatar */}
-                    <div
-                      style={{
-                        width: "18px",
-                        height: "18px",
-                        borderRadius: "50%",
-                        background: "rgba(0,230,118,0.1)",
-                        border: "1px solid rgba(0,230,118,0.2)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.6rem",
-                        fontFamily: "'Bebas Neue', sans-serif",
-                        color: "#00e676",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {player.avatar_url ? (
-                        <img
-                          src={player.avatar_url}
-                          alt={player.username}
-                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        />
-                      ) : (
-                        (player.username?.[0]?.toUpperCase() ?? "?")
-                      )}
-                    </div>
+                    <PlayerAvatar
+                      playerId={player.id}
+                      avatarUrl={player.avatar_url}
+                      username={player.username}
+                      size={18}
+                    />
                     <span
                       style={{
                         fontFamily: "'Barlow Condensed', sans-serif",

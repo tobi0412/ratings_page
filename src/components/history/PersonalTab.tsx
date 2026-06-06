@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MatchSession, HistoricalRating, PlayerStats } from "@/types";
 import StatLineChart from "@/components/charts/StatLineChart";
 import { SessionComparisonsMap } from "@/lib/stats-comparison";
 import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, CalendarIcon, TrophyIcon, PaperIcon, PoopIcon } from "@/components/Icons";
 import HorizontalFootballField from "@/components/profile/HorizontalFootballField";
+import PlayerAvatar from "@/components/profile/PlayerAvatar";
+import { FEATURE_FLAGS } from "@/config/features";
+import { getEquippedCosmetics } from "@/modules/economy/services/shop";
 
 interface PersonalTabProps {
   sessions: MatchSession[];
@@ -53,6 +56,23 @@ export default function PersonalTab({
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(
     defaultPlayerId,
   );
+  const [equippedFieldDesign, setEquippedFieldDesign] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!FEATURE_FLAGS.IS_CURRENCY_ENABLED || !selectedPlayerId) {
+      setEquippedFieldDesign(null);
+      return;
+    }
+
+    getEquippedCosmetics(selectedPlayerId)
+      .then((res) => {
+        setEquippedFieldDesign(res?.field_design || null);
+      })
+      .catch((err) => {
+        console.error("Error loading equipped cosmetics for history tab:", err);
+        setEquippedFieldDesign(null);
+      });
+  }, [selectedPlayerId]);
 
   if (sortedPlayerIds.length === 0) {
     return (
@@ -271,32 +291,12 @@ export default function PersonalTab({
           {/* Left Side: Avatar & Bio */}
           <div className="flex items-center gap-4 flex-wrap sm:flex-nowrap w-full">
             {/* Avatar */}
-            <div
-              style={{
-                width: "64px",
-                height: "64px",
-                borderRadius: "50%",
-                background: "var(--accent-lime-soft)",
-                border: "1.5px solid rgba(0,230,118,0.4)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-                flexShrink: 0,
-              }}
-            >
-              {selectedPlayer.profile.avatar_url ? (
-                <img
-                  src={selectedPlayer.profile.avatar_url}
-                  alt={selectedPlayer.profile.username}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              ) : (
-                <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2rem", color: "var(--accent-lime)" }}>
-                  {selectedPlayer.profile.username?.[0]?.toUpperCase() ?? "?"}
-                </span>
-              )}
-            </div>
+            <PlayerAvatar
+              playerId={selectedPlayer.profile.id}
+              avatarUrl={selectedPlayer.profile.avatar_url}
+              username={selectedPlayer.profile.username}
+              size={64}
+            />
 
             {/* Username & Bio */}
             <div className="flex flex-col gap-1.5 w-full">
@@ -328,7 +328,7 @@ export default function PersonalTab({
 
           {/* Middle: Horizontal Football Field Preview */}
           <div className="flex justify-center md:justify-self-center w-full md:w-auto">
-            <HorizontalFootballField selectedPositions={selectedPlayer.profile.favorite_positions || []} />
+            <HorizontalFootballField selectedPositions={selectedPlayer.profile.favorite_positions || []} design={equippedFieldDesign} />
           </div>
 
           {/* Right Side: Link Button */}

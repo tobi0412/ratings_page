@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FEATURE_FLAGS } from "@/config/features";
-import { getActiveSessions, getSessionParticipants } from "@/actions/sessions";
+import { getActiveSessions } from "@/actions/sessions";
+import { getApprovedPlayers } from "@/actions/players";
 import { getCurrentProfile } from "@/actions/auth";
 import { getPlayerBets, placeBet } from "@/modules/economy/services/bets";
 import { getWalletBalance } from "@/modules/economy/services/wallet";
 import { calculateOdds } from "@/modules/economy/utils/odds";
-import { supabaseClient } from "@/lib/supabase";
-import { CoinsIcon, HourglassIcon, CheckIcon, XIcon, ShieldAlertIcon } from "@/components/Icons";
+import { supabaseClient } from "@/lib/supabaseClient";
+import { CheckIcon, ShieldAlertIcon, CotorraCoinIcon, SoccerFieldIcon, UsersIcon, PaperIcon } from "@/components/Icons";
+import PlayerAvatar from "@/components/profile/PlayerAvatar";
 
 export default function BetsPage() {
   const router = useRouter();
@@ -51,49 +53,63 @@ export default function BetsPage() {
       setWalletBalance(walletRes.balance);
 
       // Fetch active session
-      const sessions = await getActiveSessions();
-      const session = sessions.length > 0 ? sessions[0] : null;
-      setActiveSession(session);
+      const activeSessions = await getActiveSessions();
+      const activeSess = activeSessions.length > 0 ? activeSessions[0] : null;
+      setActiveSession(activeSess);
 
-      if (session) {
-        // Fetch participants for this session
-        const participants = await getSessionParticipants(session.id);
-        const otherParticipants = participants.filter((p) => p.id !== currentProfile.id);
+      if (!activeSess) {
+        // --- BETTING IS OPEN ---
+        // Fetch all approved players to display as betting markets
+        const playersData = await getApprovedPlayers();
+        const otherPlayers = playersData.filter((p) => p.id !== currentProfile.id);
 
-        // Fetch betting history for the user
-        const pastBets = await getPlayerBets(session.id);
-        setMyBets(pastBets);
+        // Fetch pending pre-session bets (where match_id is null)
+        const allBets = await getPlayerBets();
+        const pendingBets = allBets.filter((b) => b.match_id === null);
+        setMyBets(pendingBets);
 
-        // Load odds and stats for each participant
+        // Load odds and stats for each approved player (Optimized to avoid N+1 queries)
+        const playerIds = otherPlayers.map((p) => p.id);
+        const { data: allRatingsData, error: ratingsErr } = await supabaseClient
+          .from("historical_ratings")
+          .select("player_id, avg_total")
+          .in("player_id", playerIds)
+          .order("computed_at", { ascending: false });
+
+        const ratingsByPlayer: Record<string, number[]> = {};
+        if (!ratingsErr && allRatingsData) {
+          for (const r of allRatingsData) {
+            if (r.avg_total !== null && r.avg_total !== undefined) {
+              if (!ratingsByPlayer[r.player_id]) {
+                ratingsByPlayer[r.player_id] = [];
+              }
+              ratingsByPlayer[r.player_id].push(Number(r.avg_total));
+            }
+          }
+        }
+
         const markets: any[] = [];
-        for (const p of otherParticipants) {
-          // Get historical ratings
-          const { data: ratingsData } = await supabaseClient
-            .from("historical_ratings")
-            .select("avg_total")
-            .eq("player_id", p.id);
+        for (const p of otherPlayers) {
+          const allRatings = ratingsByPlayer[p.id] || [];
 
-          const allRatings = ratingsData ? ratingsData.map((r: any) => Number(r.avg_total)).filter(Boolean) : [];
-          
+          // Only offer odds for players with at least 5 games
+          if (allRatings.length < 5) {
+            continue;
+          }
+
           // Historical average
-          const avgHistorical = allRatings.length > 0 
-            ? Number((allRatings.reduce((sum, val) => sum + val, 0) / allRatings.length).toFixed(2))
-            : 7.0;
+          const avgHistorical = Number(
+            (allRatings.reduce((sum, val) => sum + val, 0) / allRatings.length).toFixed(2)
+          );
 
           // Recent ratings (last 3)
-          const { data: recentData } = await supabaseClient
-            .from("historical_ratings")
-            .select("avg_total")
-            .eq("player_id", p.id)
-            .order("computed_at", { ascending: false })
-            .limit(3);
-          const recentRatings = recentData ? recentData.map((r: any) => Number(r.avg_total)).filter(Boolean) : [];
+          const recentRatings = allRatings.slice(0, 3);
 
           // Compute odds
           const odds = calculateOdds(allRatings, avgHistorical, recentRatings);
 
           // Check if already bet on this player
-          const hasBetOnPlayer = pastBets.some((b) => b.target_player_id === p.id);
+          const hasBetOnPlayer = pendingBets.some((b) => b.target_player_id === p.id);
 
           markets.push({
             player: p,
@@ -117,13 +133,19 @@ export default function BetsPage() {
           : 6.5;
 
         const teamOdds = calculateOdds(allTeamRatings, avgTeamHist, allTeamRatings.slice(-3));
-        const hasBetOnTeam = pastBets.some((b) => b.bet_type.startsWith("team_"));
+        const hasBetOnTeam = pendingBets.some((b) => b.bet_type.startsWith("team_"));
 
         setTeamMarket({
           lineValue: avgTeamHist,
           odds: teamOdds,
           hasBet: hasBetOnTeam,
         });
+      } else {
+        // --- BETTING IS CLOSED ---
+        // Fetch active/closed bets for this active session
+        const allBets = await getPlayerBets();
+        const activeBets = allBets.filter((b) => b.match_id === activeSess.id);
+        setMyBets(activeBets);
       }
 
       setLoading(false);
@@ -131,9 +153,9 @@ export default function BetsPage() {
 
     loadBetsData();
 
-    // Subscribe to wallet changes to keep balance updated
-    if (profile) {
-      const channel = supabaseClient
+    let channel: any = null;
+    if (profile?.id) {
+      channel = supabaseClient
         .channel(`wallet-bets-page-${profile.id}`)
         .on(
           "postgres_changes",
@@ -150,11 +172,13 @@ export default function BetsPage() {
           }
         )
         .subscribe();
-
-      return () => {
-        supabaseClient.removeChannel(channel);
-      };
     }
+
+    return () => {
+      if (channel) {
+        supabaseClient.removeChannel(channel);
+      }
+    };
   }, [router, profile?.id]);
 
   const handleOpenBetSlip = (market: any, type: "over" | "under", isTeam: boolean = false) => {
@@ -172,7 +196,7 @@ export default function BetsPage() {
   };
 
   const handlePlaceBet = async () => {
-    if (!activeSession || !selectedBet) return;
+    if (activeSession || !selectedBet) return;
     
     const amount = parseInt(betAmount);
     if (isNaN(amount) || amount <= 0) {
@@ -189,7 +213,6 @@ export default function BetsPage() {
     setBetError("");
 
     const res = await placeBet(
-      activeSession.id,
       selectedBet.betType,
       selectedBet.targetPlayerId,
       selectedBet.lineValue,
@@ -317,19 +340,19 @@ export default function BetsPage() {
             display: "flex",
             alignItems: "center",
             gap: "0.75rem",
-            background: "rgba(255, 215, 0, 0.08)",
-            border: "1px solid rgba(255, 215, 0, 0.25)",
+            background: "rgba(0, 230, 118, 0.08)",
+            border: "1px solid rgba(0, 230, 118, 0.25)",
             padding: "0.6rem 1rem",
             borderRadius: "8px",
           }}
         >
-          <span style={{ fontSize: "1.3rem" }}>🪙</span>
+          <CotorraCoinIcon size="1.6rem" />
           <div>
             <div
               style={{
                 fontFamily: "'Bebas Neue', sans-serif",
                 fontSize: "1.3rem",
-                color: "#ffd700",
+                color: "#00e676",
                 lineHeight: 1,
               }}
             >
@@ -339,7 +362,7 @@ export default function BetsPage() {
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontSize: "0.65rem",
-                color: "#ffd700b0",
+                color: "#00e676b0",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
               }}
@@ -350,7 +373,7 @@ export default function BetsPage() {
         </div>
       </div>
 
-      {!activeSession ? (
+      {activeSession ? (
         <div
           className="card-sport animate-slide-up stagger-1"
           style={{
@@ -359,7 +382,7 @@ export default function BetsPage() {
           }}
         >
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
-            <CoinsIcon size="3.5rem" style={{ color: "#3d6e50" }} />
+            <CotorraCoinIcon size="3.5rem" />
           </div>
           <h3
             style={{
@@ -380,11 +403,11 @@ export default function BetsPage() {
               margin: 0,
             }}
           >
-            No hay una sesión activa en este momento. Las apuestas abren automáticamente cuando el administrador inicia una nueva sesión y se cierran al comenzar el partido.
+            Las apuestas están cerradas. Hay una sesión de votación activa en curso. Las apuestas para el próximo partido abrirán cuando el administrador cierre la sesión actual.
           </p>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr", lg: "2fr 1fr", gap: "1.5rem" }} className="grid lg:grid-cols-3">
+        <div className="grid grid-cols-1 lg:grid-cols-3" style={{ gap: "1.5rem" }}>
           {/* Markets List */}
           <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }} className="lg:col-span-2">
             
@@ -418,8 +441,8 @@ export default function BetsPage() {
                 style={{ padding: "1.25rem" }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-                  <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.35rem", letterSpacing: "0.04em", color: "#e4f0e8", margin: 0 }}>
-                    Rendimiento Colectivo (Team Total)
+                  <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.35rem", letterSpacing: "0.04em", color: "#e4f0e8", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <SoccerFieldIcon size="1.2rem" style={{ color: "#00e676" }} /> Rendimiento Colectivo (Team Total)
                   </h3>
                   <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "0.7rem", color: "#00e676", border: "1px solid rgba(0,230,118,0.3)", padding: "0.15rem 0.4rem", borderRadius: "4px", textTransform: "uppercase" }}>
                     Línea base: {teamMarket.lineValue}
@@ -431,27 +454,36 @@ export default function BetsPage() {
                     Ya has realizado una apuesta sobre el rendimiento del equipo en esta sesión.
                   </div>
                 ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-                    <button
-                      onClick={() => handleOpenBetSlip(teamMarket, "over", true)}
-                      className="btn-outline-lime"
-                      style={{ padding: "0.75rem 0.5rem" }}
-                    >
-                      <div style={{ display: "flex", flexDirection: "column", gap: "0.1rem" }}>
-                        <span style={{ fontSize: "0.75rem", opacity: 0.75 }}>MÁS DE {teamMarket.lineValue}</span>
-                        <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.1rem" }}>{teamMarket.odds.over}x</span>
+                  <div style={{ display: "grid", gridTemplateColumns: teamMarket.odds.over <= 1.8 && teamMarket.odds.under <= 1.8 ? "1fr 1fr" : "1fr", gap: "0.75rem" }}>
+                    {teamMarket.odds.over <= 1.8 && (
+                      <button
+                        onClick={() => handleOpenBetSlip(teamMarket, "over", true)}
+                        className="btn-outline-lime"
+                        style={{ padding: "0.75rem 0.5rem" }}
+                      >
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.1rem" }}>
+                          <span style={{ fontSize: "0.75rem", opacity: 0.75 }}>MÁS DE {teamMarket.lineValue}</span>
+                          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.1rem" }}>{teamMarket.odds.over}x</span>
+                        </div>
+                      </button>
+                    )}
+                    {teamMarket.odds.under <= 1.8 && (
+                      <button
+                        onClick={() => handleOpenBetSlip(teamMarket, "under", true)}
+                        className="btn-outline-lime"
+                        style={{ padding: "0.75rem 0.5rem" }}
+                      >
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.1rem" }}>
+                          <span style={{ fontSize: "0.75rem", opacity: 0.75 }}>MENOS DE {teamMarket.lineValue}</span>
+                          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.1rem" }}>{teamMarket.odds.under}x</span>
+                        </div>
+                      </button>
+                    )}
+                    {teamMarket.odds.over > 1.8 && teamMarket.odds.under > 1.8 && (
+                      <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", padding: "0.5rem 0", textAlign: "center" }}>
+                        No hay apuestas disponibles para rendimiento colectivo (cuotas &gt; 1.80).
                       </div>
-                    </button>
-                    <button
-                      onClick={() => handleOpenBetSlip(teamMarket, "under", true)}
-                      className="btn-outline-lime"
-                      style={{ padding: "0.75rem 0.5rem" }}
-                    >
-                      <div style={{ display: "flex", flexDirection: "column", gap: "0.1rem" }}>
-                        <span style={{ fontSize: "0.75rem", opacity: 0.75 }}>MENOS DE {teamMarket.lineValue}</span>
-                        <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.1rem" }}>{teamMarket.odds.under}x</span>
-                      </div>
-                    </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -460,8 +492,8 @@ export default function BetsPage() {
             {/* Players Prop Section */}
             <div className="animate-slide-up stagger-2">
               <div className="section-heading" style={{ marginBottom: "0.75rem" }}>
-                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem", color: "#e4f0e8", margin: 0, letterSpacing: "0.05em" }}>
-                  Rendimiento Individual (Player Props)
+                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem", color: "#e4f0e8", margin: 0, letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <UsersIcon size="1.3rem" style={{ color: "#00e676" }} /> Rendimiento Individual (Player Props)
                 </h2>
               </div>
 
@@ -486,31 +518,12 @@ export default function BetsPage() {
                     >
                       {/* Player Profile info */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                        <div
-                          style={{
-                            width: "36px",
-                            height: "36px",
-                            borderRadius: "50%",
-                            background: "rgba(0, 230, 118, 0.12)",
-                            border: "1px solid rgba(0, 230, 118, 0.25)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontFamily: "'Bebas Neue', sans-serif",
-                            color: "#00e676",
-                            overflow: "hidden",
-                          }}
-                        >
-                          {market.player.avatar_url ? (
-                            <img
-                              src={market.player.avatar_url}
-                              alt={market.player.username}
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                            />
-                          ) : (
-                            market.player.username[0].toUpperCase()
-                          )}
-                        </div>
+                        <PlayerAvatar
+                          playerId={market.player.id}
+                          avatarUrl={market.player.avatar_url}
+                          username={market.player.username}
+                          size={36}
+                        />
                         <div>
                           <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.15rem", color: "#e4f0e8" }}>
                             {market.player.username}
@@ -527,23 +540,32 @@ export default function BetsPage() {
                           🔒 Apostado
                         </div>
                       ) : (
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
-                          <button
-                            onClick={() => handleOpenBetSlip(market, "over")}
-                            className="btn-outline-lime"
-                            style={{ padding: "0.35rem 0.75rem" }}
-                          >
-                            <span style={{ fontSize: "0.7rem", display: "block", opacity: 0.8 }}>MÁS ({market.lineValue})</span>
-                            <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.95rem" }}>{market.odds.over}x</span>
-                          </button>
-                          <button
-                            onClick={() => handleOpenBetSlip(market, "under")}
-                            className="btn-outline-lime"
-                            style={{ padding: "0.35rem 0.75rem" }}
-                          >
-                            <span style={{ fontSize: "0.7rem", display: "block", opacity: 0.8 }}>MENOS ({market.lineValue})</span>
-                            <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.95rem" }}>{market.odds.under}x</span>
-                          </button>
+                        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                          {market.odds.over <= 1.8 && (
+                            <button
+                              onClick={() => handleOpenBetSlip(market, "over")}
+                              className="btn-outline-lime"
+                              style={{ padding: "0.35rem 0.75rem" }}
+                            >
+                              <span style={{ fontSize: "0.7rem", display: "block", opacity: 0.8 }}>MÁS ({market.lineValue})</span>
+                              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.95rem" }}>{market.odds.over}x</span>
+                            </button>
+                          )}
+                          {market.odds.under <= 1.8 && (
+                            <button
+                              onClick={() => handleOpenBetSlip(market, "under")}
+                              className="btn-outline-lime"
+                              style={{ padding: "0.35rem 0.75rem" }}
+                            >
+                              <span style={{ fontSize: "0.7rem", display: "block", opacity: 0.8 }}>MENOS ({market.lineValue})</span>
+                              <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "0.95rem" }}>{market.odds.under}x</span>
+                            </button>
+                          )}
+                          {market.odds.over > 1.8 && market.odds.under > 1.8 && (
+                            <span style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>
+                              No disponible (cuotas &gt; 1.80)
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -582,8 +604,8 @@ export default function BetsPage() {
                 >
                   ✕
                 </button>
-                <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.25rem", color: "#ffd700", margin: "0 0 0.75rem", letterSpacing: "0.04em" }}>
-                  Boleto de Apuesta
+                <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.25rem", color: "#00e676", margin: "0 0 0.75rem", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <PaperIcon size="1.1rem" /> Boleto de Apuesta
                 </h3>
                 
                 {betSuccess ? (
@@ -600,7 +622,7 @@ export default function BetsPage() {
                       <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.3rem", color: "#e4f0e8" }}>
                         {selectedBet.name}
                       </div>
-                      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "0.85rem", color: "var(--accent-lime)", fontWeight: 700, letterSpacing: "0.04em" }}>
+                      <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "0.85rem", color: "#00e676", fontWeight: 700, letterSpacing: "0.04em" }}>
                         {selectedBet.typeLabel} {selectedBet.lineValue} @ {selectedBet.odds}x
                       </div>
                     </div>
@@ -678,8 +700,8 @@ export default function BetsPage() {
               className="card-sport animate-slide-up stagger-3"
               style={{ padding: "1.25rem" }}
             >
-              <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.35rem", letterSpacing: "0.04em", color: "#e4f0e8", margin: "0 0 0.75rem" }}>
-                Tus Apuestas de la Fecha
+              <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.35rem", letterSpacing: "0.04em", color: "#e4f0e8", margin: "0 0 0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <CotorraCoinIcon size="1.2rem" /> Tus Apuestas de la Fecha
               </h3>
               
               {myBets.length === 0 ? (

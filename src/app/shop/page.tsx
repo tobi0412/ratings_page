@@ -6,6 +6,25 @@ import { FEATURE_FLAGS } from "@/config/features";
 import { getActiveSessions, getSessionParticipants } from "@/actions/sessions";
 import { getCurrentProfile } from "@/actions/auth";
 import {
+  CotorraCoinIcon,
+  ShieldAnonIcon,
+  InfiltrationIcon,
+  FlameNeonIcon,
+  StarsShimmerIcon,
+  AxeBrokenIcon,
+  MoonStarsIcon,
+  ShovelFieldIcon,
+  SoccerFieldIcon,
+  BoneInjuryIcon,
+  WizardHatIcon,
+  LungsIcon,
+  MVPCrownIcon,
+  PaperIcon,
+  PoopIcon,
+  ShieldAlertIcon,
+  CheckIcon
+} from "@/components/Icons";
+import {
   purchaseItem,
   equipCosmetic,
   getPlayerInventory,
@@ -13,8 +32,7 @@ import {
   infiltrateData,
 } from "@/modules/economy/services/shop";
 import { getWalletBalance } from "@/modules/economy/services/wallet";
-import { supabaseClient } from "@/lib/supabase";
-import { CoinsIcon, CheckIcon, ShieldIcon, HelpCircleIcon, EyeIcon } from "@/components/Icons";
+import { supabaseClient } from "@/lib/supabaseClient";
 
 const SHOP_ITEMS = {
   tactical: [
@@ -23,30 +41,30 @@ const SHOP_ITEMS = {
       name: "Escudo de Anonimato",
       description: "Inmunidad total en la ruleta del MysteryVoteWidget para la sesión actual. Tu nombre se remueve del bombo.",
       cost: 1500,
-      icon: "🛡️",
+      icon: <ShieldAnonIcon size="1.25rem" style={{ color: "#00e676" }} />,
     },
     {
       id: "infiltracion_datos",
       name: "Infiltración de Datos",
       description: "Revela de forma privada el voto completo y las calificaciones que un compañero te puso en la última sesión.",
       cost: 2500,
-      icon: "👁️",
+      icon: <InfiltrationIcon size="1.25rem" style={{ color: "#00e676" }} />,
     },
   ],
   borders: [
-    { id: "border_neon", name: "Fuego Verde Neón", cost: 1200, styleClass: "border-neon", icon: "🟢" },
-    { id: "border_gold", name: "Oro MVP Shimmer", cost: 1800, styleClass: "border-gold", icon: "🟡" },
-    { id: "border_wood", name: "Madera Rota", cost: 600, styleClass: "border-wood", icon: "🟤" },
+    { id: "border_neon", name: "Fuego Verde Neón", cost: 1200, styleClass: "border-neon", icon: <FlameNeonIcon size="1.25rem" style={{ color: "#00e676" }} /> },
+    { id: "border_gold", name: "Oro MVP Shimmer", cost: 1800, styleClass: "border-gold", icon: <StarsShimmerIcon size="1.25rem" style={{ color: "#ffd700" }} /> },
+    { id: "border_wood", name: "Madera Rota", cost: 600, styleClass: "border-wood", icon: <AxeBrokenIcon size="1.25rem" style={{ color: "#a1887f" }} /> },
   ],
   fields: [
-    { id: "field_stadium", name: "Estadio Nocturno", cost: 1000, icon: "🏟️" },
-    { id: "field_potrero", name: "Potrero de Tierra", cost: 800, icon: "🟫" },
-    { id: "field_synthetic", name: "Fútbol 5 Sintético", cost: 1200, icon: "🟩" },
+    { id: "field_stadium", name: "Estadio Nocturno", cost: 1000, icon: <MoonStarsIcon size="1.25rem" style={{ color: "#81d4fa" }} /> },
+    { id: "field_potrero", name: "Potrero de Tierra", cost: 800, icon: <ShovelFieldIcon size="1.25rem" style={{ color: "#ffb74d" }} /> },
+    { id: "field_synthetic", name: "Fútbol 5 Sintético", cost: 1200, icon: <SoccerFieldIcon size="1.25rem" style={{ color: "#a5d6a7" }} /> },
   ],
   titles: [
-    { id: "title_terminator", name: "Terminator de Tobillos", cost: 500, icon: "🦵" },
-    { id: "title_lyricist", name: "Lírico Incomprendido", cost: 500, icon: "🎩" },
-    { id: "title_lung", name: "Cero Pulmón", cost: 400, icon: "🫁" },
+    { id: "title_terminator", name: "Terminator de Tobillos", cost: 500, icon: <BoneInjuryIcon size="1.25rem" style={{ color: "#e0e0e0" }} /> },
+    { id: "title_lyricist", name: "Lírico Incomprendido", cost: 500, icon: <WizardHatIcon size="1.25rem" style={{ color: "#b39ddb" }} /> },
+    { id: "title_lung", name: "Cero Pulmón", cost: 400, icon: <LungsIcon size="1.25rem" style={{ color: "#80deea" }} /> },
   ],
 };
 
@@ -113,9 +131,9 @@ export default function ShopPage() {
 
     loadShopData();
 
-    // Subscribe to wallet changes to keep balance updated
-    if (profile) {
-      const channel = supabaseClient
+    let channel: any = null;
+    if (profile?.id) {
+      channel = supabaseClient
         .channel(`wallet-shop-page-${profile.id}`)
         .on(
           "postgres_changes",
@@ -132,11 +150,13 @@ export default function ShopPage() {
           }
         )
         .subscribe();
-
-      return () => {
-        supabaseClient.removeChannel(channel);
-      };
     }
+
+    return () => {
+      if (channel) {
+        supabaseClient.removeChannel(channel);
+      }
+    };
   }, [router, profile?.id]);
 
   const handleBuy = async (itemId: string, itemType: any, cost: number) => {
@@ -281,13 +301,13 @@ export default function ShopPage() {
           </p>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: "rgba(255, 215, 0, 0.08)", border: "1px solid rgba(255, 215, 0, 0.25)", padding: "0.6rem 1rem", borderRadius: "8px" }}>
-          <span style={{ fontSize: "1.3rem" }}>🪙</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", background: "rgba(0, 230, 118, 0.08)", border: "1px solid rgba(0, 230, 118, 0.25)", padding: "0.6rem 1rem", borderRadius: "8px" }}>
+          <CotorraCoinIcon size="1.6rem" />
           <div>
-            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.3rem", color: "#ffd700", lineHeight: 1 }}>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.3rem", color: "#00e676", lineHeight: 1 }}>
               {walletBalance} CC
             </div>
-            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "0.65rem", color: "#ffd700b0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "0.65rem", color: "#00e676b0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
               Tu saldo actual
             </div>
           </div>
@@ -295,24 +315,24 @@ export default function ShopPage() {
       </div>
 
       {actionError && (
-        <div style={{ background: "rgba(255,82,82,0.1)", border: "1px solid rgba(255,82,82,0.25)", color: "#ff5252", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontFamily: "'Barlow', sans-serif" }} className="animate-slide-up">
-          ⚠️ {actionError}
+        <div style={{ background: "rgba(255,82,82,0.1)", border: "1px solid rgba(255,82,82,0.25)", color: "#ff5252", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontFamily: "'Barlow', sans-serif", display: "flex", alignItems: "center", gap: "0.5rem" }} className="animate-slide-up">
+          <ShieldAlertIcon size={16} /> {actionError}
         </div>
       )}
 
       {actionSuccess && (
-        <div style={{ background: "rgba(0,230,118,0.08)", border: "1px solid rgba(0,230,118,0.25)", color: "#00e676", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontFamily: "'Barlow', sans-serif" }} className="animate-slide-up">
-          ✅ {actionSuccess}
+        <div style={{ background: "rgba(0,230,118,0.08)", border: "1px solid rgba(0,230,118,0.25)", color: "#00e676", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontFamily: "'Barlow', sans-serif", display: "flex", alignItems: "center", gap: "0.5rem" }} className="animate-slide-up">
+          <CheckIcon size={16} /> {actionSuccess}
         </div>
       )}
 
       {/* Grid of Sections */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", md: "1fr 1fr", gap: "1.5rem" }} className="grid md:grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: "1.5rem" }}>
         
         {/* Tactical Items */}
         <div className="card-sport animate-slide-up stagger-1" style={{ padding: "1.5rem" }}>
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem", color: "#ffd700", borderBottom: "1px solid #1c3828", paddingBottom: "0.5rem", marginBottom: "1rem", letterSpacing: "0.04em" }}>
-            🛡️ Consumibles Tácticos
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem", color: "#00e676", borderBottom: "1px solid #1c3828", paddingBottom: "0.5rem", marginBottom: "1rem", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <ShieldAnonIcon size="1.3rem" /> Consumibles Tácticos
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {SHOP_ITEMS.tactical.map((item) => {
@@ -370,8 +390,8 @@ export default function ShopPage() {
 
         {/* Avatar Borders */}
         <div className="card-sport animate-slide-up stagger-2" style={{ padding: "1.5rem" }}>
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem", color: "#e4f0e8", borderBottom: "1px solid #1c3828", paddingBottom: "0.5rem", marginBottom: "1rem", letterSpacing: "0.04em" }}>
-            🟢 Bordes de Avatar Animados
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem", color: "#e4f0e8", borderBottom: "1px solid #1c3828", paddingBottom: "0.5rem", marginBottom: "1rem", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <FlameNeonIcon size="1.3rem" style={{ color: "#00e676" }} /> Bordes de Avatar Animados
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             {SHOP_ITEMS.borders.map((item) => {
@@ -427,8 +447,8 @@ export default function ShopPage() {
 
         {/* Custom Court Designs */}
         <div className="card-sport animate-slide-up stagger-3" style={{ padding: "1.5rem" }}>
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem", color: "#e4f0e8", borderBottom: "1px solid #1c3828", paddingBottom: "0.5rem", marginBottom: "1rem", letterSpacing: "0.04em" }}>
-            🏟️ Diseños de Cancha Personalizados
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem", color: "#e4f0e8", borderBottom: "1px solid #1c3828", paddingBottom: "0.5rem", marginBottom: "1rem", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <SoccerFieldIcon size="1.3rem" style={{ color: "#00e676" }} /> Diseños de Cancha Personalizados
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             {SHOP_ITEMS.fields.map((item) => {
@@ -484,8 +504,8 @@ export default function ShopPage() {
 
         {/* Profile Titles */}
         <div className="card-sport animate-slide-up stagger-3" style={{ padding: "1.5rem" }}>
-          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem", color: "#e4f0e8", borderBottom: "1px solid #1c3828", paddingBottom: "0.5rem", marginBottom: "1rem", letterSpacing: "0.04em" }}>
-            🦵 Títulos de Perfil
+          <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.5rem", color: "#e4f0e8", borderBottom: "1px solid #1c3828", paddingBottom: "0.5rem", marginBottom: "1rem", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <BoneInjuryIcon size="1.3rem" style={{ color: "#00e676" }} /> Títulos de Perfil
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             {SHOP_ITEMS.titles.map((item) => {
@@ -627,16 +647,16 @@ export default function ShopPage() {
 
                 {/* Awards summary */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.5rem", marginTop: "0.5rem" }}>
-                  <div style={{ background: "rgba(0,0,0,0.25)", border: `1px solid ${infiltratedResult.rating.is_mvp ? '#ffd700' : 'var(--border-subtle)'}`, padding: "0.5rem", borderRadius: "6px", textAlign: "center", opacity: infiltratedResult.rating.is_mvp ? 1 : 0.45 }}>
-                    <div style={{ fontSize: "1.1rem" }}>👑</div>
+                  <div style={{ background: "rgba(0,0,0,0.25)", border: `1px solid ${infiltratedResult.rating.is_mvp ? '#ffd700' : 'var(--border-subtle)'}`, padding: "0.5rem", borderRadius: "6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.25rem", opacity: infiltratedResult.rating.is_mvp ? 1 : 0.45 }}>
+                    <MVPCrownIcon size="1.2rem" style={{ color: "#ffd700" }} />
                     <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", color: infiltratedResult.rating.is_mvp ? '#ffd700' : 'var(--text-muted)' }}>Votó MVP</div>
                   </div>
-                  <div style={{ background: "rgba(0,0,0,0.25)", border: `1px solid ${infiltratedResult.rating.is_bigpaper ? '#ffab40' : 'var(--border-subtle)'}`, padding: "0.5rem", borderRadius: "6px", textAlign: "center", opacity: infiltratedResult.rating.is_bigpaper ? 1 : 0.45 }}>
-                    <div style={{ fontSize: "1.1rem" }}>📄</div>
+                  <div style={{ background: "rgba(0,0,0,0.25)", border: `1px solid ${infiltratedResult.rating.is_bigpaper ? '#ffab40' : 'var(--border-subtle)'}`, padding: "0.5rem", borderRadius: "6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.25rem", opacity: infiltratedResult.rating.is_bigpaper ? 1 : 0.45 }}>
+                    <PaperIcon size="1.2rem" style={{ color: "#ffab40" }} />
                     <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", color: infiltratedResult.rating.is_bigpaper ? '#ffab40' : 'var(--text-muted)' }}>Votó Papelón</div>
                   </div>
-                  <div style={{ background: "rgba(0,0,0,0.25)", border: `1px solid ${infiltratedResult.rating.is_poop ? '#ff5252' : 'var(--border-subtle)'}`, padding: "0.5rem", borderRadius: "6px", textAlign: "center", opacity: infiltratedResult.rating.is_poop ? 1 : 0.45 }}>
-                    <div style={{ fontSize: "1.1rem" }}>💩</div>
+                  <div style={{ background: "rgba(0,0,0,0.25)", border: `1px solid ${infiltratedResult.rating.is_poop ? '#ff5252' : 'var(--border-subtle)'}`, padding: "0.5rem", borderRadius: "6px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.25rem", opacity: infiltratedResult.rating.is_poop ? 1 : 0.45 }}>
+                    <PoopIcon size="1.2rem" style={{ color: "#ff5252" }} />
                     <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "0.65rem", fontWeight: 700, textTransform: "uppercase", color: infiltratedResult.rating.is_poop ? '#ff5252' : 'var(--text-muted)' }}>Votó Caca</div>
                   </div>
                 </div>

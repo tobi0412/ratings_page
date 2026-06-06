@@ -4,12 +4,14 @@ import { submitRating } from "@/actions/ratings";
 import { Profile, Rating } from "@/types";
 import { useState, useEffect, useRef } from "react";
 import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, CheckIcon } from "@/components/Icons";
+import PlayerAvatar from "@/components/profile/PlayerAvatar";
 
 interface VotingCardProps {
   receiver: Profile;
   matchId: string;
   existingRating?: Rating;
   onSuccess?: (rating: Rating) => void;
+  isLockedByBet?: boolean;
 }
 
 const METRIC_LABELS: Record<string, string> = {
@@ -37,6 +39,7 @@ export default function VotingCard({
   matchId,
   existingRating,
   onSuccess,
+  isLockedByBet = false,
 }: VotingCardProps) {
   const hasSavedRating = !!existingRating && (
     existingRating.tecnica !== null ||
@@ -174,33 +177,12 @@ export default function VotingCard({
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           {/* Avatar */}
-          <div
-            style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "50%",
-              background: "rgba(0,230,118,0.12)",
-              border: "1px solid rgba(0,230,118,0.25)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: "1.2rem",
-              color: "#00e676",
-              overflow: "hidden",
-              flexShrink: 0,
-            }}
-          >
-            {receiver.avatar_url ? (
-              <img
-                src={receiver.avatar_url}
-                alt={receiver.username}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            ) : (
-              (receiver.username?.[0]?.toUpperCase() ?? "?")
-            )}
-          </div>
+          <PlayerAvatar
+            playerId={receiver.id}
+            avatarUrl={receiver.avatar_url}
+            username={receiver.username}
+            size={44}
+          />
           <div>
             <h3
               style={{

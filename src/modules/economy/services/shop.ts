@@ -75,6 +75,18 @@ export async function getEquippedCosmetics(playerId: string) {
     .eq("player_id", playerId)
     .maybeSingle();
 
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    fs.appendFileSync(
+      path.join(process.cwd(), "debug_logs.txt"),
+      `[${new Date().toISOString()}] getEquippedCosmetics for playerId: ${playerId} -> result: ${JSON.stringify(data)}\n`
+    );
+  } catch (e) {
+    console.error("Failed to write debug logs:", e);
+  }
+
+  console.log("getEquippedCosmetics server-side playerId:", playerId, "result:", data);
   return data || null;
 }
 

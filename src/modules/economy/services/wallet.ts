@@ -1,5 +1,5 @@
 "use server";
-import { createSupabaseServerClient } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { getPlayerWallet } from "./db";
 
 export async function addCoins(
@@ -9,7 +9,6 @@ export async function addCoins(
   matchId?: string,
   description?: string
 ) {
-  const supabase = createSupabaseServerClient();
   const wallet = await getPlayerWallet(playerId);
 
   const newBalance = wallet.balance + amount;
@@ -17,14 +16,14 @@ export async function addCoins(
     return { error: "Saldo de Cotorra Coins (CC) insuficiente para realizar esta transacción." };
   }
 
-  const { error: walletError } = await supabase
+  const { error: walletError } = await supabaseAdmin
     .from("economy_wallets")
     .update({ balance: newBalance, updated_at: new Date().toISOString() })
     .eq("player_id", playerId);
 
   if (walletError) return { error: walletError.message };
 
-  const { error: transactionError } = await supabase
+  const { error: transactionError } = await supabaseAdmin
     .from("economy_transactions")
     .insert({
       player_id: playerId,
@@ -36,7 +35,7 @@ export async function addCoins(
 
   if (transactionError) {
     // Rollback wallet update if transaction log fails
-    await supabase
+    await supabaseAdmin
       .from("economy_wallets")
       .update({ balance: wallet.balance, updated_at: new Date().toISOString() })
       .eq("player_id", playerId);
@@ -44,4 +43,9 @@ export async function addCoins(
   }
 
   return { success: true, balance: newBalance };
+}
+
+export async function getWalletBalance(playerId: string) {
+  const wallet = await getPlayerWallet(playerId);
+  return { balance: wallet.balance };
 }

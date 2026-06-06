@@ -4,7 +4,6 @@ import { getCurrentProfile } from "@/actions/auth";
 import { addCoins } from "./wallet";
 
 export async function placeBet(
-  matchId: string,
   betType: "player_prop_over" | "player_prop_under" | "team_total_over" | "team_total_under",
   targetPlayerId: string | null,
   lineValue: number,
@@ -16,19 +15,18 @@ export async function placeBet(
 
   const supabase = createSupabaseServerClient();
   
-  // Check if match is already locked (ratings exist)
-  const { count } = await supabase
-    .from("ratings")
-    .select("*", { count: "exact", head: true })
-    .eq("match_id", matchId);
-  
-  const { count: teamCount } = await supabase
-    .from("team_ratings")
-    .select("*", { count: "exact", head: true })
-    .eq("match_id", matchId);
+  // Verify that there is no active voting session
+  const { data: activeSessions, error: activeErr } = await supabase
+    .from("match_sessions")
+    .select("id")
+    .eq("is_active", true);
 
-  if ((count ?? 0) > 0 || (teamCount ?? 0) > 0) {
-    return { error: "Las apuestas ya están cerradas para este partido. Ya se enviaron calificaciones." };
+  if (activeErr) {
+    return { error: "Error al verificar el estado de la sesión." };
+  }
+
+  if (activeSessions && activeSessions.length > 0) {
+    return { error: "No se puede apostar mientras haya una sesión de votación activa." };
   }
 
   // Deduct coins
@@ -36,16 +34,16 @@ export async function placeBet(
     profile.id,
     -amount,
     "bet_place",
-    matchId,
+    undefined,
     `Apuesta de ${amount} CC`
   );
   if (deductRes.error) return { error: deductRes.error };
 
-  // Insert bet
+  // Insert bet with match_id: null (pending pre-session bet)
   const { error: betError } = await supabase
     .from("economy_bets")
     .insert({
-      match_id: matchId,
+      match_id: null,
       player_id: profile.id,
       bet_type: betType,
       target_player_id: targetPlayerId,
@@ -61,7 +59,7 @@ export async function placeBet(
       profile.id,
       amount,
       "bet_refund",
-      matchId,
+      undefined,
       "Reembolso por fallo en inserción de apuesta"
     );
     return { error: betError.message };

@@ -2,6 +2,7 @@
 
 import { PlayerStats, MatchSession } from "@/types";
 import { TargetIcon, DumbbellIcon, FlameIcon, BrainIcon, StarIcon, MedalIcon, CalendarIcon } from "@/components/Icons";
+import PlayerAvatar from "@/components/profile/PlayerAvatar";
 
 interface ComparisonTableProps {
   stats: { [key: string]: PlayerStats };
@@ -133,33 +134,12 @@ export default function ComparisonTable({ stats, sessions }: ComparisonTableProp
                       `#${player.rank}`
                     )}
                   </span>
-                  <div
-                    style={{
-                      width: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                      background: "rgba(0,230,118,0.1)",
-                      border: "1px solid rgba(0,230,118,0.2)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontFamily: "'Bebas Neue', sans-serif",
-                      fontSize: "0.85rem",
-                      color: "#00e676",
-                      flexShrink: 0,
-                      overflow: "hidden",
-                    }}
-                  >
-                    {player.profile.avatar_url ? (
-                      <img
-                        src={player.profile.avatar_url}
-                        alt={player.profile.username}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                    ) : (
-                      player.profile.username?.[0]?.toUpperCase() ?? "?"
-                    )}
-                  </div>
+                  <PlayerAvatar
+                    playerId={player.profile.id}
+                    avatarUrl={player.profile.avatar_url}
+                    username={player.profile.username}
+                    size={30}
+                  />
                   <span
                     style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
