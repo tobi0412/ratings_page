@@ -234,8 +234,10 @@ export async function getSessionVotingProgress(sessionId: string) {
   const progress = participants.map((player) => {
     const voterRatings = (ratingsData || []).filter((r) => r.voter_id === player.id);
     
-    // Count rows where the user actually rated the player (tecnica is not null)
-    const votesSubmitted = voterRatings.filter((r) => r.tecnica !== null).length;
+    // Count rows where the user actually rated the player or explicitly submitted a blank vote
+    const votesSubmitted = voterRatings.filter(
+      (r) => r.tecnica !== null || (!r.is_mvp && !r.is_bigpaper && !r.is_poop)
+    ).length;
     
     // Check if the user selected each of the session awards
     const hasMvp = voterRatings.some((r) => r.is_mvp === true);
