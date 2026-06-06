@@ -12,6 +12,8 @@ import TeamRatingCard from "@/components/session/TeamRatingCard";
 import { BanIcon, StadiumIcon } from "@/components/Icons";
 import { MatchSession, Profile, Rating } from "@/types";
 import { useEffect, useState } from "react";
+import { FEATURE_FLAGS } from "@/config/features";
+import { getVoterLockedTargets } from "@/modules/economy/services/bets";
 
 export default function DashboardPage() {
   const [session, setSession] = useState<MatchSession | null>(null);
@@ -19,6 +21,7 @@ export default function DashboardPage() {
   const [myVotes, setMyVotes] = useState<Rating[]>([]);
   const [isParticipant, setIsParticipant] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [lockedTargets, setLockedTargets] = useState<string[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -40,6 +43,11 @@ export default function DashboardPage() {
       if (participating) {
         const votesData = await getPlayerVotes(activeSession.id, profileData.id);
         setMyVotes(votesData);
+
+        if (FEATURE_FLAGS.IS_CURRENCY_ENABLED) {
+          const locked = await getVoterLockedTargets(activeSession.id, profileData.id);
+          setLockedTargets(locked);
+        }
 
         // Exclude yourself from the voting list
         setPlayers(participants.filter((p) => p.id !== profileData.id));
@@ -320,6 +328,7 @@ export default function DashboardPage() {
                 existingRating={myVotes.find(
                   (v) => v.receiver_id === player.id,
                 )}
+                isLockedByBet={lockedTargets.includes(player.id)}
                 onSuccess={(newRating) => {
                   setMyVotes((prev) => {
                     const exists = prev.some((v) => v.receiver_id === newRating.receiver_id);

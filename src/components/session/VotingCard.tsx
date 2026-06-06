@@ -268,9 +268,31 @@ export default function VotingCard({
         </div>
       </div>
 
+      {isLockedByBet && (
+        <div
+          style={{
+            background: "rgba(255, 215, 0, 0.08)",
+            border: "1px solid rgba(255, 215, 0, 0.25)",
+            color: "#ffd700",
+            fontSize: "0.8rem",
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontWeight: 700,
+            letterSpacing: "0.05em",
+            textTransform: "uppercase",
+            textAlign: "center",
+            padding: "0.5rem 0.75rem",
+            borderRadius: "6px",
+            marginBottom: "1rem",
+          }}
+        >
+          🔒 Apostado (Voto Promedio Automático)
+        </div>
+      )}
+
       {/* Toggle voto en blanco (Custom Switch) */}
       <div
         onClick={() => {
+          if (isLockedByBet) return;
           const nextVal = !isBlank;
           setIsBlank(nextVal);
           setSaved(false);
@@ -279,13 +301,14 @@ export default function VotingCard({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          cursor: "pointer",
+          cursor: isLockedByBet ? "not-allowed" : "pointer",
           marginBottom: "1rem",
           padding: "0.65rem 0.85rem",
           borderRadius: "8px",
           background: isBlank ? "var(--accent-red-soft)" : "rgba(0, 0, 0, 0.25)",
           border: `1px solid ${isBlank ? "rgba(255, 82, 82, 0.35)" : "var(--border-subtle)"}`,
           transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+          opacity: isLockedByBet ? 0.5 : 1,
         }}
       >
         <span
@@ -339,8 +362,8 @@ export default function VotingCard({
           background: isBlank
             ? "repeating-linear-gradient(-45deg, rgba(255, 82, 82, 0.015), rgba(255, 82, 82, 0.015) 12px, transparent 12px, transparent 24px)"
             : undefined,
-          opacity: isBlank ? 0.35 : 1,
-          pointerEvents: isBlank ? "none" : "auto",
+          opacity: (isBlank || isLockedByBet) ? 0.35 : 1,
+          pointerEvents: (isBlank || isLockedByBet) ? "none" : "auto",
           transition: "all 0.2s ease",
         }}
       >
@@ -389,7 +412,7 @@ export default function VotingCard({
                 min="1"
                 max="10"
                 value={metrics[metric]}
-                disabled={isBlank}
+                disabled={isBlank || isLockedByBet}
                 onChange={(e) => {
                   setMetrics({
                     ...metrics,
@@ -402,8 +425,6 @@ export default function VotingCard({
           ),
         )}
       </div>
-
-
 
       {error && (
         <div
@@ -424,11 +445,13 @@ export default function VotingCard({
 
       <button
         onClick={handleSubmit}
-        disabled={loading}
+        disabled={loading || isLockedByBet}
         className="btn-lime"
         style={{ width: "100%" }}
       >
-        {loading ? (
+        {isLockedByBet ? (
+          "Bloqueado por Apuesta"
+        ) : loading ? (
           "Guardando..."
         ) : saved ? (
           <span
