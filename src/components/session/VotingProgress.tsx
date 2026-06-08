@@ -277,7 +277,7 @@ export default function VotingProgress({
             flex-direction: column;
             gap: 0.75rem;
             z-index: 100;
-            background: rgba(6, 13, 9, 0.6);
+            background: rgba(6, 13, 9, 0.7);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(0, 230, 118, 0.15);
             border-radius: 99px;
@@ -292,26 +292,22 @@ export default function VotingProgress({
         }
 
         .sidebar-badge-item {
-          width: 40px;
-          height: 40px;
+          width: 42px;
+          height: 42px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           position: relative;
-          background: rgba(0, 0, 0, 0.4);
-          border: 1.5px solid #1c3828;
+          background: rgba(0, 0, 0, 0.45);
+          border: 1px solid rgba(28, 56, 40, 0.6);
           color: #3d6e50;
-          transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 1.1rem;
+          transition: border-color 0.2s ease, transform 0.2s ease;
         }
         
         .sidebar-badge-item.is-active {
-          transform: scale(1.15);
-          box-shadow: 0 0 14px rgba(0, 230, 118, 0.35);
-          border-color: #00e676;
+          border-color: transparent;
           color: #e4f0e8;
         }
 
@@ -328,9 +324,50 @@ export default function VotingProgress({
         }
 
         .sidebar-badge-blank {
-          border: 1.5px dashed rgba(0, 230, 118, 0.6);
-          background: rgba(0, 230, 118, 0.03);
-          color: rgba(0, 230, 118, 0.65);
+          border: 1.5px dashed rgba(255, 82, 82, 0.7);
+          background: rgba(255, 82, 82, 0.03);
+          color: rgba(255, 82, 82, 0.75);
+        }
+
+        .sidebar-active-bg {
+          position: absolute;
+          inset: -3px;
+          border-radius: 50%;
+          border: 2px solid #00e676;
+          box-shadow: 0 0 12px rgba(0, 230, 118, 0.45);
+          z-index: 0;
+          pointer-events: none;
+        }
+
+        .badge-avatar-container {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(0, 230, 118, 0.05);
+          z-index: 1;
+        }
+
+        .badge-avatar-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .badge-avatar-text {
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: 1.05rem;
+          color: #6ba883;
+          transition: color 0.2s ease;
+        }
+        .sidebar-badge-voted .badge-avatar-text {
+          color: #00e676;
+        }
+        .sidebar-badge-blank .badge-avatar-text {
+          color: #ff5252;
         }
 
         .badge-overlay-icon {
@@ -344,6 +381,7 @@ export default function VotingProgress({
           align-items: center;
           justify-content: center;
           border: 1px solid #060d09;
+          z-index: 5;
         }
 
         .badge-overlay-voted {
@@ -352,8 +390,60 @@ export default function VotingProgress({
         }
 
         .badge-overlay-blank {
-          background: #3d6e50;
+          background: #ff5252;
+          color: #060d09;
+        }
+
+        /* Tooltip */
+        .sidebar-tooltip {
+          position: absolute;
+          right: 3.4rem;
+          top: 50%;
+          transform: translateY(-50%) scale(0.92);
+          background: rgba(6, 13, 9, 0.95);
+          border: 1px solid rgba(0, 230, 118, 0.25);
+          border-radius: 8px;
+          padding: 0.45rem 0.8rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.1rem;
+          pointer-events: none;
+          opacity: 0;
+          transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+          transform-origin: right center;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+          white-space: nowrap;
+          z-index: 200;
+        }
+
+        .sidebar-badge-item:hover .sidebar-tooltip {
+          opacity: 1;
+          transform: translateY(-50%) scale(1);
+        }
+
+        .tooltip-name {
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: 1rem;
           color: #e4f0e8;
+          letter-spacing: 0.03em;
+          line-height: 1.1;
+        }
+
+        .tooltip-status {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-size: 0.65rem;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+        }
+        .tooltip-status.status-voted {
+          color: #00e676;
+        }
+        .tooltip-status.status-blank {
+          color: #ff5252;
+        }
+        .tooltip-status.status-pending {
+          color: #6ba883;
         }
 
         /* --- Mobile Stories Dock --- */
@@ -368,11 +458,11 @@ export default function VotingProgress({
           display: flex;
           align-items: center;
           background: linear-gradient(135deg, rgba(11, 24, 16, 0.92) 0%, rgba(6, 13, 9, 0.96) 100%);
-          backdrop-filter: blur(12px);
+          backdrop-filter: blur(16px);
           border: 1px solid rgba(0, 230, 118, 0.25);
-          border-radius: 20px;
-          padding: 0.6rem 0.85rem;
-          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+          border-radius: 24px;
+          padding: 0.5rem 0.75rem;
+          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 230, 118, 0.05);
         }
 
         @media (min-width: 1200px) {
@@ -396,42 +486,41 @@ export default function VotingProgress({
         }
 
         .mobile-badge-item {
-          width: 38px;
-          height: 38px;
+          width: 44px;
+          height: 44px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           cursor: pointer;
           position: relative;
-          background: rgba(0, 0, 0, 0.4);
-          border: 1px solid #1c3828;
-          color: #3d6e50;
-          transition: all 0.25s ease;
+          background: #060d09;
+          padding: 2px;
+          border: 2px solid #1c3828;
+          transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
           flex-shrink: 0;
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 1rem;
+        }
+
+        .mobile-badge-item.is-voted {
+          border-color: #00e676;
+        }
+
+        .mobile-badge-item.is-blank {
+          border: 2px dashed #ff5252;
         }
 
         .mobile-badge-item.is-active {
+          transform: scale(1.15);
+          box-shadow: 0 0 12px rgba(0, 230, 118, 0.4);
           border-color: #00e676;
-          transform: scale(1.1);
-          box-shadow: 0 0 10px rgba(0, 230, 118, 0.25);
         }
 
-        .mobile-badge-item:hover {
-          border-color: rgba(0, 230, 118, 0.4);
-        }
-
-        .status-dot-above {
-          position: absolute;
-          top: -6px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 6px;
-          height: 6px;
+        .mobile-badge-item .badge-avatar-container {
+          width: 100%;
+          height: 100%;
           border-radius: 50%;
-          transition: background-color 0.2s ease;
+          overflow: hidden;
+          background: rgba(28, 56, 40, 0.3);
         }
       `}</style>
       
@@ -612,20 +701,36 @@ export default function VotingProgress({
         </motion.button>
       </div>
 
-      {/* Render floating components in Portal to document.body to prevent parent transforms from breaking position: fixed */}
+      {/* --- WEB SIDEBAR CAPSULE --- */}
       {mounted && typeof document !== "undefined" && createPortal(
         <>
-          {/* --- WEB SIDEBAR CAPSULE --- */}
           <div className="voting-sidebar">
             {/* Awards Badge */}
             <div
               onClick={() => handleScrollTo("awards-section")}
-              title="Premios de la Sesión"
               className={`sidebar-badge-item ${
                 activeSectionId === "awards-section" ? "is-active" : ""
               } ${awardsComplete ? "sidebar-badge-voted" : ""}`}
             >
-              <StarIcon size={16} filled={awardsComplete} style={{ color: awardsComplete ? "#ffc93c" : undefined }} />
+              {activeSectionId === "awards-section" && (
+                <motion.div
+                  layoutId="sidebarActiveBg"
+                  className="sidebar-active-bg"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              <div className="badge-avatar-container">
+                <StarIcon size={16} filled={awardsComplete} style={{ color: awardsComplete ? "#ffc93c" : undefined }} />
+              </div>
+              
+              {/* Custom Tooltip */}
+              <div className="sidebar-tooltip">
+                <span className="tooltip-name">Premios de la Sesión</span>
+                <span className={`tooltip-status ${awardsComplete ? "status-voted" : "status-pending"}`}>
+                  {awardsComplete ? "Completado" : "Pendiente"}
+                </span>
+              </div>
+
               {awardsComplete && (
                 <div className="badge-overlay-icon badge-overlay-voted">
                   <CheckIcon size={8} strokeWidth={4} />
@@ -644,15 +749,36 @@ export default function VotingProgress({
                 <div
                   key={player.id}
                   onClick={() => handleScrollTo(`player-card-${player.id}`)}
-                  title={player.username}
                   className={`sidebar-badge-item ${isActive ? "is-active" : ""} ${
                     completed ? (isBlank ? "sidebar-badge-blank" : "sidebar-badge-voted") : ""
                   }`}
                 >
-                  {initials}
+                  {isActive && (
+                    <motion.div
+                      layoutId="sidebarActiveBg"
+                      className="sidebar-active-bg"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                  <div className="badge-avatar-container">
+                    {player.avatar_url ? (
+                      <img src={player.avatar_url} alt={player.username} className="badge-avatar-img" />
+                    ) : (
+                      <span className="badge-avatar-text">{initials}</span>
+                    )}
+                  </div>
+                  
+                  {/* Custom Tooltip */}
+                  <div className="sidebar-tooltip">
+                    <span className="tooltip-name">{player.username}</span>
+                    <span className={`tooltip-status ${completed ? (isBlank ? "status-blank" : "status-voted") : "status-pending"}`}>
+                      {completed ? (isBlank ? "No coincidí" : "Votado") : "Pendiente"}
+                    </span>
+                  </div>
+
                   {completed && (
                     isBlank ? (
-                      <div className="badge-overlay-icon badge-overlay-blank" title="No coincidí en cancha">
+                      <div className="badge-overlay-icon badge-overlay-blank">
                         <SpyIcon size={8} />
                       </div>
                     ) : (
@@ -668,12 +794,29 @@ export default function VotingProgress({
             {/* Team Rating Badge */}
             <div
               onClick={() => handleScrollTo("team-rating-section")}
-              title="Rendimiento del Equipo"
               className={`sidebar-badge-item ${
                 activeSectionId === "team-rating-section" ? "is-active" : ""
               } ${teamRatingSaved ? "sidebar-badge-voted" : ""}`}
             >
-              <StadiumIcon size={16} style={{ color: teamRatingSaved ? "#00e676" : undefined }} />
+              {activeSectionId === "team-rating-section" && (
+                <motion.div
+                  layoutId="sidebarActiveBg"
+                  className="sidebar-active-bg"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              <div className="badge-avatar-container">
+                <StadiumIcon size={16} style={{ color: teamRatingSaved ? "#00e676" : undefined }} />
+              </div>
+
+              {/* Custom Tooltip */}
+              <div className="sidebar-tooltip">
+                <span className="tooltip-name">Rendimiento Equipo</span>
+                <span className={`tooltip-status ${teamRatingSaved ? "status-voted" : "status-pending"}`}>
+                  {teamRatingSaved ? "Completado" : "Pendiente"}
+                </span>
+              </div>
+
               {teamRatingSaved && (
                 <div className="badge-overlay-icon badge-overlay-voted">
                   <CheckIcon size={8} strokeWidth={4} />
@@ -702,15 +845,11 @@ export default function VotingProgress({
                     onClick={() => handleScrollTo("awards-section")}
                     className={`mobile-badge-item ${
                       activeSectionId === "awards-section" ? "is-active" : ""
-                    }`}
+                    } ${awardsComplete ? "is-voted" : "is-pending"}`}
                   >
-                    <div
-                      className="status-dot-above"
-                      style={{
-                        background: awardsComplete ? "#ffc93c" : "#1c3828"
-                      }}
-                    />
-                    <StarIcon size={14} filled={awardsComplete} style={{ color: awardsComplete ? "#ffc93c" : undefined }} />
+                    <div className="badge-avatar-container">
+                      <StarIcon size={14} filled={awardsComplete} style={{ color: awardsComplete ? "#ffc93c" : undefined }} />
+                    </div>
                   </div>
 
                   {/* Players */}
@@ -720,22 +859,24 @@ export default function VotingProgress({
                     const initials = player.username ? player.username.substring(0, 2).toUpperCase() : "?";
                     const isActive = activeSectionId === `player-card-${player.id}`;
 
-                    let dotColor = "#1c3828"; // Pending
+                    let statusClass = "is-pending";
                     if (completed) {
-                      dotColor = isBlank ? "#ff5252" : "#00e676"; // Red/Orange-ish for blank, lime green for voted
+                      statusClass = isBlank ? "is-blank" : "is-voted";
                     }
 
                     return (
                       <div
                         key={player.id}
                         onClick={() => handleScrollTo(`player-card-${player.id}`)}
-                        className={`mobile-badge-item ${isActive ? "is-active" : ""}`}
+                        className={`mobile-badge-item ${isActive ? "is-active" : ""} ${statusClass}`}
                       >
-                        <div
-                          className="status-dot-above"
-                          style={{ background: dotColor }}
-                        />
-                        {initials}
+                        <div className="badge-avatar-container">
+                          {player.avatar_url ? (
+                            <img src={player.avatar_url} alt={player.username} className="badge-avatar-img" />
+                          ) : (
+                            <span className="badge-avatar-text">{initials}</span>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -745,15 +886,11 @@ export default function VotingProgress({
                     onClick={() => handleScrollTo("team-rating-section")}
                     className={`mobile-badge-item ${
                       activeSectionId === "team-rating-section" ? "is-active" : ""
-                    }`}
+                    } ${teamRatingSaved ? "is-voted" : "is-pending"}`}
                   >
-                    <div
-                      className="status-dot-above"
-                      style={{
-                        background: teamRatingSaved ? "#00e676" : "#1c3828"
-                      }}
-                    />
-                    <StadiumIcon size={14} style={{ color: teamRatingSaved ? "#00e676" : undefined }} />
+                    <div className="badge-avatar-container">
+                      <StadiumIcon size={14} style={{ color: teamRatingSaved ? "#00e676" : undefined }} />
+                    </div>
                   </div>
                 </div>
               </motion.div>
