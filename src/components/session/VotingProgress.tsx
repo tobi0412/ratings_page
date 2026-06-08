@@ -552,19 +552,16 @@ export default function VotingProgress({
           justify-content: center;
           cursor: pointer;
           position: relative;
-          background: transparent;
-          border: 2.5px solid transparent;
           transition: all 250ms cubic-bezier(0.23, 1, 0.32, 1);
           flex-shrink: 0;
         }
 
-        .mobile-badge-item.is-active {
-          transform: scale(1.22);
-          border-color: #e4f0e8;
-          box-shadow: 
-            0 0 16px rgba(228, 240, 232, 0.45),
-            0 8px 24px rgba(0, 0, 0, 0.5);
-          z-index: 10;
+        .mobile-badge-item.is-active .mobile-badge-inner {
+          border-color: #ffffff;
+          box-shadow:
+            0 0 0 2px rgba(255, 255, 255, 0.25),
+            0 0 14px rgba(255, 255, 255, 0.3),
+            0 4px 16px rgba(0, 0, 0, 0.5);
         }
 
         .mobile-badge-inner {
@@ -602,14 +599,14 @@ export default function VotingProgress({
         
         .mobile-active-dot {
           position: absolute;
-          bottom: -5px;
+          bottom: 2px;
           left: 50%;
           transform: translateX(-50%);
-          width: 5px;
-          height: 5px;
+          width: 4px;
+          height: 4px;
           border-radius: 50%;
           background: #e4f0e8;
-          box-shadow: 0 0 6px #e4f0e8;
+          box-shadow: 0 0 5px #e4f0e8;
           pointer-events: none;
         }
       `}</style>
@@ -791,157 +788,9 @@ export default function VotingProgress({
         </motion.button>
       </div>
 
-      {/* --- WEB SIDEBAR CAPSULE --- */}
+      {/* --- MOBILE STORIES DOCK (portal) --- */}
       {mounted && typeof document !== "undefined" && createPortal(
         <>
-          <div className="voting-sidebar">
-            {/* Awards Badge */}
-            <div
-              onClick={() => handleScrollTo("awards-section")}
-              className={`sidebar-badge-item ${
-                activeSectionId === "awards-section" ? "is-active" : ""
-              } ${awardsComplete ? "sidebar-badge-voted" : ""}`}
-            >
-              {activeSectionId === "awards-section" && (
-                <motion.div
-                  layoutId="sidebarActiveBg"
-                  className="sidebar-active-bg"
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-              )}
-              <div className="badge-avatar-container">
-                <StarIcon size={16} filled={awardsComplete} style={{ color: awardsComplete ? "#ffc93c" : undefined }} />
-              </div>
-              
-              {/* Custom Tooltip */}
-              <div className="sidebar-tooltip">
-                <span className="tooltip-name">Premios de la Sesión</span>
-                <span className={`tooltip-status ${awardsComplete ? "status-voted" : "status-pending"}`}>
-                  <span style={{ 
-                    display: "inline-block", 
-                    width: "5px", 
-                    height: "5px", 
-                    borderRadius: "50%", 
-                    background: awardsComplete ? "#00e676" : "#3d6e50",
-                    marginRight: "5px",
-                    verticalAlign: "middle"
-                  }} />
-                  {awardsComplete ? "Completado" : "Pendiente"}
-                </span>
-              </div>
-
-              {awardsComplete && (
-                <div className="badge-overlay-icon badge-overlay-voted">
-                  <CheckIcon size={8} strokeWidth={4} />
-                </div>
-              )}
-            </div>
-
-            {/* Player Avatars */}
-            {players.map((player) => {
-              const completed = isCardCompleted(player);
-              const isBlank = isPlayerBlankVote(player);
-              const initials = player.username ? player.username.substring(0, 2).toUpperCase() : "?";
-              const isActive = activeSectionId === `player-card-${player.id}`;
-              const avatarBg = getAvatarGradient(player.username || "");
-
-              return (
-                <div
-                  key={player.id}
-                  onClick={() => handleScrollTo(`player-card-${player.id}`)}
-                  className={`sidebar-badge-item ${isActive ? "is-active" : ""} ${
-                    completed ? (isBlank ? "sidebar-badge-blank" : "sidebar-badge-voted") : ""
-                  }`}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="sidebarActiveBg"
-                      className="sidebar-active-bg"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                    />
-                  )}
-                  <div className="badge-avatar-container" style={{ background: player.avatar_url ? undefined : avatarBg }}>
-                    {player.avatar_url ? (
-                      <img src={player.avatar_url} alt={player.username} className="badge-avatar-img" />
-                    ) : (
-                      <span className="badge-avatar-text">{initials}</span>
-                    )}
-                  </div>
-                  
-                  {/* Custom Tooltip */}
-                  <div className="sidebar-tooltip">
-                    <span className="tooltip-name">{player.username}</span>
-                    <span className={`tooltip-status ${completed ? (isBlank ? "status-blank" : "status-voted") : "status-pending"}`}>
-                      <span style={{ 
-                        display: "inline-block", 
-                        width: "5px", 
-                        height: "5px", 
-                        borderRadius: "50%", 
-                        background: completed ? (isBlank ? "#ff5252" : "#00e676") : "#3d6e50",
-                        marginRight: "5px",
-                        verticalAlign: "middle"
-                      }} />
-                      {completed ? (isBlank ? "No coincidí" : "Votado") : "Pendiente"}
-                    </span>
-                  </div>
-
-                  {completed && (
-                    isBlank ? (
-                      <div className="badge-overlay-icon badge-overlay-blank">
-                        <SpyIcon size={8} />
-                      </div>
-                    ) : (
-                      <div className="badge-overlay-icon badge-overlay-voted">
-                        <CheckIcon size={8} strokeWidth={4} />
-                      </div>
-                    )
-                  )}
-                </div>
-              );
-            })}
-
-            {/* Team Rating Badge */}
-            <div
-              onClick={() => handleScrollTo("team-rating-section")}
-              className={`sidebar-badge-item ${
-                activeSectionId === "team-rating-section" ? "is-active" : ""
-              } ${teamRatingSaved ? "sidebar-badge-voted" : ""}`}
-            >
-              {activeSectionId === "team-rating-section" && (
-                <motion.div
-                  layoutId="sidebarActiveBg"
-                  className="sidebar-active-bg"
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-              )}
-              <div className="badge-avatar-container">
-                <StadiumIcon size={16} style={{ color: teamRatingSaved ? "#00e676" : undefined }} />
-              </div>
-
-              {/* Custom Tooltip */}
-              <div className="sidebar-tooltip">
-                <span className="tooltip-name">Rendimiento Equipo</span>
-                <span className={`tooltip-status ${teamRatingSaved ? "status-voted" : "status-pending"}`}>
-                  <span style={{ 
-                    display: "inline-block", 
-                    width: "5px", 
-                    height: "5px", 
-                    borderRadius: "50%", 
-                    background: teamRatingSaved ? "#00e676" : "#3d6e50",
-                    marginRight: "5px",
-                    verticalAlign: "middle"
-                  }} />
-                  {teamRatingSaved ? "Completado" : "Pendiente"}
-                </span>
-              </div>
-
-              {teamRatingSaved && (
-                <div className="badge-overlay-icon badge-overlay-voted">
-                  <CheckIcon size={8} strokeWidth={4} />
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* --- MOBILE STORIES DOCK --- */}
           <AnimatePresence>

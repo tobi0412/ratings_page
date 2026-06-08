@@ -182,176 +182,58 @@ export default function DashboardPage() {
   return (
     <div
       style={{
-        maxWidth: "1024px",
+        maxWidth: "1280px",
         margin: "0 auto",
         padding: "2rem 1.25rem",
-        display: "flex",
-        flexDirection: "column",
-        gap: "1.5rem",
       }}
     >
-      {/* Page header */}
-      <div className="animate-slide-up">
-        <h1
-          style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "2.6rem",
-            letterSpacing: "0.06em",
-            color: "#e4f0e8",
-            margin: "0 0 0.25rem",
-            lineHeight: 1,
-          }}
-        >
-          Votación
-        </h1>
-        <p
-          style={{
-            fontFamily: "'Barlow', sans-serif",
-            fontSize: "0.9rem",
-            color: "#3d6e50",
-            margin: 0,
-          }}
-        >
-          Calificá el rendimiento de los jugadores en esta sesión.
-        </p>
-      </div>
+      <style>{`
+        @media (min-width: 1200px) {
+          .dashboard-layout {
+            grid-template-columns: 1fr 260px !important;
+            align-items: start;
+            gap: 2rem !important;
+          }
+          .dashboard-sidebar-col {
+            position: sticky;
+            top: 76px;
+          }
+          .dashboard-progress-inline {
+            display: none !important;
+          }
+        }
+        @media (max-width: 1199px) {
+          .dashboard-sidebar-col {
+            display: none !important;
+          }
+        }
+      `}</style>
 
-      <div className="animate-slide-up stagger-1">
-        <SessionStatus session={session} />
-      </div>
-
-      <div className="sticky-progress-wrapper">
-        <div className="animate-slide-up stagger-2">
-          <VotingProgress
-            players={players}
-            myVotes={myVotes}
-            awardsComplete={awardsComplete}
-            teamRatingSaved={teamRatingSaved}
-          />
-        </div>
-      </div>
-
-      {/* Centralized Awards selector card */}
-      <div className="animate-slide-up stagger-2" style={{ position: "relative", zIndex: 30 }} id="awards-section">
-        <SessionAwardsCard
-          players={players}
-          matchId={session.id}
-          initialVotes={myVotes}
-          onAwardsChanged={(updatedVotes) => {
-            setMyVotes((prev) => {
-              // Remove old awards flags from prev votes
-              const cleaned = prev.map((v) => ({
-                ...v,
-                is_mvp: false,
-                is_bigpaper: false,
-                is_poop: false,
-              }));
-
-              // Merge in the updated votes containing the new awards
-              const result = [...cleaned];
-              updatedVotes.forEach((uv) => {
-                const idx = result.findIndex((v) => v.receiver_id === uv.receiver_id);
-                if (idx > -1) {
-                  result[idx] = {
-                    ...result[idx],
-                    is_mvp: uv.is_mvp,
-                    is_bigpaper: uv.is_bigpaper,
-                    is_poop: uv.is_poop,
-                  };
-                } else {
-                  result.push(uv);
-                }
-              });
-
-              // Filter out any vote rows that have all null ratings AND all false awards
-              return result.filter(
-                (v) =>
-                  v.tecnica !== null ||
-                  v.is_mvp ||
-                  v.is_bigpaper ||
-                  v.is_poop
-              );
-            });
-          }}
-        />
-      </div>
-
-      {/* Players grid */}
-      <div id="players-section">
-        {players.length > 0 ? (
-          <div className="animate-slide-up stagger-3">
-            <div className="section-heading">
-              <h2
-                style={{
-                  fontFamily: "'Bebas Neue', sans-serif",
-                  fontSize: "1.5rem",
-                  letterSpacing: "0.06em",
-                  color: "#e4f0e8",
-                  margin: 0,
-                }}
-              >
-                Jugadores
-              </h2>
-            </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: "1rem",
-              }}
-            >
-              {players.map((player) => (
-                <VotingCard
-                  key={player.id}
-                  receiver={player}
-                  matchId={session.id}
-                  existingRating={myVotes.find(
-                    (v) => v.receiver_id === player.id,
-                  )}
-                  onSuccess={(newRating) => {
-                    setMyVotes((prev) => {
-                      const exists = prev.some((v) => v.receiver_id === newRating.receiver_id);
-                      if (exists) {
-                        return prev.map((v) =>
-                          v.receiver_id === newRating.receiver_id
-                            ? {
-                                ...newRating,
-                                is_mvp: v.is_mvp,
-                                is_bigpaper: v.is_bigpaper,
-                                is_poop: v.is_poop,
-                              }
-                            : v
-                        );
-                      }
-                      return [...prev, newRating];
-                    });
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div
-            className="card-sport animate-slide-up stagger-3"
-            style={{
-              padding: "3rem 2rem",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
-              <StadiumIcon size="3rem" style={{ color: "#3d6e50" }} />
-            </div>
-            <h3
+      {/* Two-column layout: main content + sticky sidebar on desktop */}
+      <div
+        className="dashboard-layout"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gap: "1.5rem",
+        }}
+      >
+        {/* ── LEFT / MAIN COLUMN ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          {/* Page header */}
+          <div className="animate-slide-up">
+            <h1
               style={{
                 fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "1.6rem",
+                fontSize: "2.6rem",
+                letterSpacing: "0.06em",
                 color: "#e4f0e8",
-                margin: "0 0 0.5rem",
-                letterSpacing: "0.05em",
+                margin: "0 0 0.25rem",
+                lineHeight: 1,
               }}
             >
-              Sin jugadores aún
-            </h3>
+              Votación
+            </h1>
             <p
               style={{
                 fontFamily: "'Barlow', sans-serif",
@@ -360,20 +242,179 @@ export default function DashboardPage() {
                 margin: 0,
               }}
             >
-              Los jugadores aparecerán aquí cuando estén disponibles en la sesión.
+              Calificá el rendimiento de los jugadores en esta sesión.
             </p>
           </div>
-        )}
-      </div>
 
-      {/* Team performance rating card */}
-      <div className="animate-slide-up stagger-4" style={{ position: "relative", zIndex: 25 }} id="team-rating-section">
-        <TeamRatingCard
-          matchId={session.id}
-          players={players}
-          myVotes={myVotes}
-          onTeamRatingSaved={setTeamRatingSaved}
-        />
+          <div className="animate-slide-up stagger-1">
+            <SessionStatus session={session} />
+          </div>
+
+          {/* Progress card – visible only on mobile/tablet; hidden on desktop */}
+          <div className="animate-slide-up stagger-2 dashboard-progress-inline">
+            <VotingProgress
+              players={players}
+              myVotes={myVotes}
+              awardsComplete={awardsComplete}
+              teamRatingSaved={teamRatingSaved}
+            />
+          </div>
+
+          {/* Awards card */}
+          <div
+            className="animate-slide-up stagger-2"
+            style={{ position: "relative", zIndex: 30 }}
+            id="awards-section"
+          >
+            <SessionAwardsCard
+              players={players}
+              matchId={session.id}
+              initialVotes={myVotes}
+              onAwardsChanged={(updatedVotes) => {
+                setMyVotes((prev) => {
+                  const cleaned = prev.map((v) => ({
+                    ...v,
+                    is_mvp: false,
+                    is_bigpaper: false,
+                    is_poop: false,
+                  }));
+
+                  const result = [...cleaned];
+                  updatedVotes.forEach((uv) => {
+                    const idx = result.findIndex((v) => v.receiver_id === uv.receiver_id);
+                    if (idx > -1) {
+                      result[idx] = {
+                        ...result[idx],
+                        is_mvp: uv.is_mvp,
+                        is_bigpaper: uv.is_bigpaper,
+                        is_poop: uv.is_poop,
+                      };
+                    } else {
+                      result.push(uv);
+                    }
+                  });
+
+                  return result.filter(
+                    (v) =>
+                      v.tecnica !== null ||
+                      v.is_mvp ||
+                      v.is_bigpaper ||
+                      v.is_poop
+                  );
+                });
+              }}
+            />
+          </div>
+
+          {/* Players grid */}
+          <div id="players-section">
+            {players.length > 0 ? (
+              <div className="animate-slide-up stagger-3">
+                <div className="section-heading">
+                  <h2
+                    style={{
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: "1.5rem",
+                      letterSpacing: "0.06em",
+                      color: "#e4f0e8",
+                      margin: 0,
+                    }}
+                  >
+                    Jugadores
+                  </h2>
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                    gap: "1rem",
+                  }}
+                >
+                  {players.map((player) => (
+                    <VotingCard
+                      key={player.id}
+                      receiver={player}
+                      matchId={session.id}
+                      existingRating={myVotes.find((v) => v.receiver_id === player.id)}
+                      onSuccess={(newRating) => {
+                        setMyVotes((prev) => {
+                          const exists = prev.some((v) => v.receiver_id === newRating.receiver_id);
+                          if (exists) {
+                            return prev.map((v) =>
+                              v.receiver_id === newRating.receiver_id
+                                ? {
+                                    ...newRating,
+                                    is_mvp: v.is_mvp,
+                                    is_bigpaper: v.is_bigpaper,
+                                    is_poop: v.is_poop,
+                                  }
+                                : v
+                            );
+                          }
+                          return [...prev, newRating];
+                        });
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div
+                className="card-sport animate-slide-up stagger-3"
+                style={{ padding: "3rem 2rem", textAlign: "center" }}
+              >
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
+                  <StadiumIcon size="3rem" style={{ color: "#3d6e50" }} />
+                </div>
+                <h3
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: "1.6rem",
+                    color: "#e4f0e8",
+                    margin: "0 0 0.5rem",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  Sin jugadores aún
+                </h3>
+                <p
+                  style={{
+                    fontFamily: "'Barlow', sans-serif",
+                    fontSize: "0.9rem",
+                    color: "#3d6e50",
+                    margin: 0,
+                  }}
+                >
+                  Los jugadores aparecerán aquí cuando estén disponibles en la sesión.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Team rating card */}
+          <div
+            className="animate-slide-up stagger-4"
+            style={{ position: "relative", zIndex: 25 }}
+            id="team-rating-section"
+          >
+            <TeamRatingCard
+              matchId={session.id}
+              players={players}
+              myVotes={myVotes}
+              onTeamRatingSaved={setTeamRatingSaved}
+            />
+          </div>
+        </div>
+
+        {/* ── RIGHT COLUMN: sticky progress sidebar (desktop only) ── */}
+        <div className="dashboard-sidebar-col">
+          <VotingProgress
+            players={players}
+            myVotes={myVotes}
+            awardsComplete={awardsComplete}
+            teamRatingSaved={teamRatingSaved}
+          />
+        </div>
       </div>
     </div>
   );
