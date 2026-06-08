@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Profile, Rating } from "@/types";
@@ -13,110 +13,6 @@ interface VotingProgressProps {
   teamRatingSaved: boolean;
 }
 
-const TaskIndicator = ({ completed, size = 18 }: { completed: boolean; size?: number }) => (
-  <div
-    style={{
-      width: `${size}px`,
-      height: `${size}px`,
-      borderRadius: "50%",
-      border: `1.5px solid ${completed ? "#00e676" : "rgba(255,82,82,0.5)"}`,
-      background: completed
-        ? "rgba(0, 230, 118, 0.15)"
-        : "rgba(255, 82, 82, 0.05)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0,
-      transition: "all 300ms cubic-bezier(0.23, 1, 0.32, 1)",
-      boxShadow: completed ? "0 0 8px rgba(0, 230, 118, 0.25)" : "none",
-    }}
-  >
-    {completed ? (
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00e676" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 6L9 17l-5-5" />
-      </svg>
-    ) : (
-      <div
-        style={{
-          width: "5px",
-          height: "5px",
-          borderRadius: "50%",
-          background: "rgba(255, 82, 82, 0.6)",
-        }}
-      />
-    )}
-  </div>
-);
-
-const ArcProgress = ({ percentage }: { percentage: number }) => {
-  const r = 28;
-  const cx = 36;
-  const cy = 36;
-  const circ = 2 * Math.PI * r;
-  const dashoffset = circ - (percentage / 100) * circ;
-  const isComplete = percentage === 100;
-  return (
-    <svg width="72" height="72" viewBox="0 0 72 72" style={{ display: "block", flexShrink: 0 }}>
-      {/* Track */}
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(28,56,40,0.6)" strokeWidth="5" />
-      {/* Fill */}
-      <circle
-        cx={cx} cy={cy} r={r}
-        fill="none"
-        stroke={isComplete ? "#00e676" : "#00e676"}
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeDasharray={circ}
-        strokeDashoffset={dashoffset}
-        transform={`rotate(-90 ${cx} ${cy})`}
-        style={{
-          transition: "stroke-dashoffset 0.7s cubic-bezier(0.23,1,0.32,1)",
-          filter: isComplete ? "drop-shadow(0 0 6px rgba(0,230,118,0.7))" : "drop-shadow(0 0 4px rgba(0,230,118,0.4))",
-        }}
-      />
-      {/* Center text */}
-      <text x={cx} y={cy - 3} textAnchor="middle" fontSize="15" fontWeight="700" fontFamily="'Bebas Neue', sans-serif" fill="#00e676" letterSpacing="0.5">
-        {percentage}
-      </text>
-      <text x={cx} y={cy + 10} textAnchor="middle" fontSize="7.5" fontFamily="'Barlow Condensed', sans-serif" fill="rgba(61,110,80,0.9)" letterSpacing="0.5" fontWeight="700">
-        %
-      </text>
-    </svg>
-  );
-};
-
-const ChevronRightIcon = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    style={{ display: "block" }}
-  >
-    <path d="m9 18 6-6-6-6" />
-  </svg>
-);
-
-const buttonVariants = {
-  initial: { scale: 1, y: 0 },
-  hover: (completed: boolean) => ({
-    scale: 1.01,
-    y: -1,
-    backgroundColor: completed ? "rgba(0, 230, 118, 0.02)" : "rgba(0, 230, 118, 0.06)",
-    borderColor: completed ? "rgba(0, 230, 118, 0.15)" : "rgba(0, 230, 118, 0.35)",
-    boxShadow: completed ? "0 2px 8px rgba(0,0,0,0.15)" : "0 4px 16px rgba(0, 0, 0, 0.25)",
-  }),
-  tap: { scale: 0.98 },
-};
-
-const arrowVariants = {
-  initial: { opacity: 0, x: -4 },
-  hover: { opacity: 1, x: 0 },
-};
 
 const getAvatarGradient = (username: string) => {
   if (!username) return "linear-gradient(135deg, #112018 0%, #1c3828 100%)";
@@ -172,7 +68,10 @@ export default function VotingProgress({
   const totalSteps = totalPlayers + 2; // players + awards + team rating
   const completedSteps = votedCount + (awardsComplete ? 1 : 0) + (teamRatingSaved ? 1 : 0);
   const percentage = totalSteps > 0 ? Math.floor((completedSteps / totalSteps) * 100) : 0;
-
+  const shouldReduceMotion = useReducedMotion();
+  const progressTransition = shouldReduceMotion
+    ? { duration: 0 }
+    : ({ type: "spring", stiffness: 100, damping: 20 } as const);
 
   const { scrollY } = useScroll();
   const [showStickyFills, setShowStickyFills] = useState(false);
@@ -249,106 +148,104 @@ export default function VotingProgress({
       <style>{`
         /* --- Card base --- */
         .sticky-progress-card {
-          background: 
-            radial-gradient(ellipse at 0% 0%, rgba(0,230,118,0.04) 0%, transparent 55%),
-            linear-gradient(160deg, #0d1f14 0%, #08120c 100%);
-          border: 1px solid rgba(28, 56, 40, 0.75);
-          border-top: 1px solid rgba(0, 230, 118, 0.3);
-          border-radius: 16px;
-          padding: 1.25rem 1.25rem 1.5rem;
+          background: var(--bg-card) !important;
+          border: 1px solid var(--border-subtle) !important;
+          border-top: 3px solid var(--accent-lime) !important;
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6) !important;
+          padding: 1.25rem 1.5rem !important;
           position: relative;
-          transition: border-color 300ms ease, box-shadow 300ms ease;
-          overflow: hidden;
+          border-radius: 12px;
+          transition: all 250ms cubic-bezier(0.23, 1, 0.32, 1);
         }
-        .sticky-progress-card::before {
-          content: '';
+        .sticky-progress-card::after {
+          content: "";
           position: absolute;
           inset: 0;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-          opacity: 0.022;
+          background: linear-gradient(
+            135deg,
+            rgba(0, 230, 118, 0.02) 0%,
+            transparent 55%
+          );
           pointer-events: none;
           border-radius: inherit;
         }
         .sticky-progress-card:hover {
-          border-top-color: rgba(0, 230, 118, 0.55);
-          box-shadow: 0 0 30px rgba(0, 230, 118, 0.06);
+          box-shadow: 0 12px 36px rgba(0, 230, 118, 0.05) !important;
+          border-color: rgba(0, 230, 118, 0.25) !important;
         }
 
-        @media (min-width: 768px) {
-          .sticky-progress-card {
-            border-radius: 18px;
-            padding: 1.5rem 1.5rem 1.75rem;
-          }
-        }
-
-        /* --- Task rows --- */
-        .task-list {
+        /* --- Stepper track layout --- */
+        .stepper-container {
           display: flex;
           flex-direction: column;
-          gap: 0.4rem;
-          margin-top: 1.1rem;
-          width: 100%;
+          gap: 1.25rem;
+          position: relative;
+          margin-top: 1.25rem;
+          padding-left: 0.25rem;
         }
-
-        .progress-task-btn {
+        .stepper-line {
+          position: absolute;
+          left: 8px; /* centers with 18px circle container */
+          top: 9px;
+          bottom: 9px;
+          width: 2px;
+          background: var(--border-subtle);
+          z-index: 0;
+        }
+        .stepper-step {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          width: 100%;
-          padding: 0.7rem 0.85rem;
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(28, 56, 40, 0.45);
-          border-left: 3px solid rgba(28, 56, 40, 0.45);
-          border-radius: 10px;
+          gap: 0.85rem;
           cursor: pointer;
-          font-family: 'Barlow Condensed', sans-serif;
-          font-size: 0.82rem;
-          font-weight: 600;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
           position: relative;
-          overflow: hidden;
-          transition: all 250ms cubic-bezier(0.23, 1, 0.32, 1);
+          z-index: 1;
         }
-        .progress-task-btn.is-done {
-          background: rgba(0, 230, 118, 0.045);
-          border-color: rgba(0, 230, 118, 0.2);
-          border-left-color: rgba(0, 230, 118, 0.6);
-        }
-        .progress-task-btn.is-pending {
-          border-left-color: rgba(255, 82, 82, 0.4);
-        }
-        .progress-task-btn:hover {
-          background: rgba(0, 230, 118, 0.07);
-          border-color: rgba(0, 230, 118, 0.3);
-          border-left-color: rgba(0, 230, 118, 0.7);
-          transform: translateX(2px);
-        }
-
-        .task-arrow {
-          display: inline-flex;
+        .stepper-bubble {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          display: flex;
           align-items: center;
-          color: rgba(0, 230, 118, 0.5);
-          margin-left: 0.4rem;
+          justify-content: center;
+          background: var(--bg-field);
+          border: 2px solid var(--border-subtle);
+          transition: all 250ms cubic-bezier(0.23, 1, 0.32, 1);
           flex-shrink: 0;
-          transition: color 200ms ease;
+          z-index: 2;
         }
-        .progress-task-btn:hover .task-arrow {
-          color: #00e676;
+        .stepper-bubble.is-active {
+          border-color: var(--accent-lime);
+          background: rgba(0, 230, 118, 0.05);
+          box-shadow: 
+            0 0 12px rgba(0, 230, 118, 0.35),
+            inset 0 0 4px rgba(0, 230, 118, 0.2);
         }
-
-        /* --- Progress arc ring shimmer --- */
-        @keyframes progress-shimmer {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 200% 50%; }
+        .stepper-bubble.is-done {
+          background: var(--accent-lime);
+          border-color: var(--accent-lime);
+          box-shadow: 0 0 10px rgba(0, 230, 118, 0.25);
         }
-        .progress-bar-fill {
-          height: 100%;
-          background: linear-gradient(90deg, #00e676, #0ff884 50%, #00e676);
-          background-size: 200% 100%;
-          animation: progress-shimmer 2.5s linear infinite;
-          border-radius: 3px;
-        } }
+        .stepper-label {
+          font-family: 'Barlow Condensed', sans-serif;
+          font-weight: 700;
+          font-size: 0.85rem;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          color: var(--text-muted);
+          transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        @media (hover: hover) and (pointer: fine) {
+          .stepper-step:hover .stepper-label {
+            color: var(--text-primary);
+            transform: translateX(4px);
+          }
+        }
+        .stepper-label.is-active {
+          color: var(--text-primary);
+        }
+        .stepper-label.is-done {
+          color: rgba(228, 240, 232, 0.45);
+        }
 
         /* --- Desktop Sidebar Capsule --- */
         .voting-sidebar {
@@ -600,6 +497,8 @@ export default function VotingProgress({
           scrollbar-width: none;
           -ms-overflow-style: none;
           width: 100%;
+          -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 24px, #000 calc(100% - 24px), transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0%, #000 24px, #000 calc(100% - 24px), transparent 100%);
         }
         .mobile-dock-carousel::-webkit-scrollbar {
           display: none;
@@ -676,153 +575,130 @@ export default function VotingProgress({
         }
       `}</style>
       
-      {/* ── Header ── */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "1rem",
-          marginBottom: "0.5rem",
-        }}
-      >
-        {/* Arc Ring */}
-        <ArcProgress percentage={percentage} />
-
-        {/* Label + count */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
+      {/* Header */}
+      <div style={{ marginBottom: "1rem" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            marginBottom: "0.5rem",
+          }}
+        >
+          <span
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 700,
-              fontSize: "0.65rem",
-              letterSpacing: "0.2em",
+              fontSize: "0.75rem",
+              letterSpacing: "0.15em",
               textTransform: "uppercase",
-              color: "rgba(61,110,80,0.9)",
-              marginBottom: "0.25rem",
+              color: "#3d6e50",
             }}
           >
             Progreso
-          </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: "0.2rem" }}>
+          </span>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "0.25rem" }}>
             <span
               style={{
                 fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "2rem",
-                color: percentage === 100 ? "#00e676" : "#e4f0e8",
+                fontSize: "1.8rem",
+                color: "#00e676",
                 letterSpacing: "0.04em",
                 lineHeight: 1,
-                transition: "color 300ms ease",
               }}
             >
-              {completedSteps}
+              {percentage}%
             </span>
             <span
               style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
-                fontSize: "1rem",
-                color: "rgba(61,110,80,0.8)",
-                letterSpacing: "0.02em",
+                fontSize: "0.85rem",
+                color: "#3d6e50",
               }}
             >
-              /{totalSteps}
+              ({completedSteps}/{totalSteps})
             </span>
           </div>
-          <div
+        </div>
+
+        {/* Thin linear progress bar */}
+        <div
+          style={{
+            width: "100%",
+            height: "4px",
+            background: "#1c3828",
+            borderRadius: "2px",
+            overflow: "hidden",
+            position: "relative",
+          }}
+        >
+          <motion.div
+            animate={{ width: `${percentage}%` }}
+            transition={progressTransition}
             style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: "0.7rem",
-              color: "rgba(61,110,80,0.65)",
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              marginTop: "0.1rem",
+              height: "100%",
+              background: "#00e676",
+              borderRadius: "2px",
+              boxShadow: "0 0 8px rgba(0, 230, 118, 0.4)",
             }}
-          >
-            {percentage === 100 ? "✓ Todo completado" : "Tareas restantes"}
-          </div>
+          />
         </div>
       </div>
 
-        <div className="task-list">
-        <motion.button
+      {/* Stepper Steps */}
+      <div className="stepper-container">
+        <div className="stepper-line" />
+        
+        {/* Step 1: Jugadores */}
+        <div 
           onClick={() => handleScrollTo("players-section")}
-          variants={buttonVariants}
-          custom={votedCount === totalPlayers}
-          initial="initial"
-          whileHover="hover"
-          whileTap="tap"
-          className={`progress-task-btn ${votedCount === totalPlayers ? "is-done" : "is-pending"}`}
+          className="stepper-step"
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", zIndex: 5 }}>
-            <TaskIndicator completed={votedCount === totalPlayers} />
-            <span style={{ 
-              color: votedCount === totalPlayers ? "rgba(107,168,131,0.9)" : "#e4f0e8",
-              transition: "color 200ms ease"
-            }}>
-              Jugadores
-            </span>
-            <span style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: "0.72rem",
-              color: "rgba(61,110,80,0.7)",
-              fontWeight: 400,
-              letterSpacing: "0.02em",
-              textTransform: "none",
-              marginLeft: "auto",
-              paddingRight: "0.25rem",
-            }}>
-              {votedCount}/{totalPlayers}
-            </span>
+          <div className={`stepper-bubble ${votedCount === totalPlayers ? "is-done" : activeSectionId?.startsWith("player-card-") ? "is-active" : ""}`}>
+            {votedCount === totalPlayers && (
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#060d09" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            )}
           </div>
-          <motion.span variants={arrowVariants} className="task-arrow">
-            <ChevronRightIcon />
-          </motion.span>
-        </motion.button>
+          <span className={`stepper-label ${votedCount === totalPlayers ? "is-done" : activeSectionId?.startsWith("player-card-") ? "is-active" : ""}`}>
+            Jugadores ({votedCount}/{totalPlayers})
+          </span>
+        </div>
 
-        <motion.button
+        {/* Step 2: Premios */}
+        <div 
           onClick={() => handleScrollTo("awards-section")}
-          variants={buttonVariants}
-          custom={awardsComplete}
-          initial="initial"
-          whileHover="hover"
-          whileTap="tap"
-          className={`progress-task-btn ${awardsComplete ? "is-done" : "is-pending"}`}
+          className="stepper-step"
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", zIndex: 5 }}>
-            <TaskIndicator completed={awardsComplete} />
-            <span style={{ 
-              color: awardsComplete ? "rgba(107,168,131,0.9)" : "#e4f0e8",
-              transition: "color 200ms ease"
-            }}>
-              Premios
-            </span>
+          <div className={`stepper-bubble ${awardsComplete ? "is-done" : activeSectionId === "awards-section" ? "is-active" : ""}`}>
+            {awardsComplete && (
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#060d09" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            )}
           </div>
-          <motion.span variants={arrowVariants} className="task-arrow">
-            <ChevronRightIcon />
-          </motion.span>
-        </motion.button>
+          <span className={`stepper-label ${awardsComplete ? "is-done" : activeSectionId === "awards-section" ? "is-active" : ""}`}>
+            Premios
+          </span>
+        </div>
 
-        <motion.button
+        {/* Step 3: Rendimiento de Equipo */}
+        <div 
           onClick={() => handleScrollTo("team-rating-section")}
-          variants={buttonVariants}
-          custom={teamRatingSaved}
-          initial="initial"
-          whileHover="hover"
-          whileTap="tap"
-          className={`progress-task-btn ${teamRatingSaved ? "is-done" : "is-pending"}`}
+          className="stepper-step"
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", zIndex: 5 }}>
-            <TaskIndicator completed={teamRatingSaved} />
-            <span style={{ 
-              color: teamRatingSaved ? "rgba(107,168,131,0.9)" : "#e4f0e8",
-              transition: "color 200ms ease"
-            }}>
-              Equipo
-            </span>
+          <div className={`stepper-bubble ${teamRatingSaved ? "is-done" : activeSectionId === "team-rating-section" ? "is-active" : ""}`}>
+            {teamRatingSaved && (
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#060d09" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6L9 17l-5-5" />
+              </svg>
+            )}
           </div>
-          <motion.span variants={arrowVariants} className="task-arrow">
-            <ChevronRightIcon />
-          </motion.span>
-        </motion.button>
+          <span className={`stepper-label ${teamRatingSaved ? "is-done" : activeSectionId === "team-rating-section" ? "is-active" : ""}`}>
+            Equipo
+          </span>
+        </div>
       </div>
 
       {/* --- MOBILE STORIES DOCK (portal) --- */}
