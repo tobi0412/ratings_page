@@ -183,15 +183,7 @@ export default function VotingProgress({
           margin-top: 1.25rem;
           padding-left: 0.25rem;
         }
-        .stepper-line {
-          position: absolute;
-          left: 8px; /* centers with 18px circle container */
-          top: 9px;
-          bottom: 9px;
-          width: 2px;
-          background: var(--border-subtle);
-          z-index: 0;
-        }
+
         .stepper-step {
           display: flex;
           align-items: center;
@@ -647,7 +639,6 @@ export default function VotingProgress({
 
       {/* Stepper Steps */}
       <div className="stepper-container">
-        <div className="stepper-line" />
         
         {/* Step 1: Jugadores */}
         <div 
