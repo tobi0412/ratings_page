@@ -804,3 +804,33 @@
   git add src/components/session/VotingProgress.tsx
   git commit -m "feat: implement responsive navigation layout with web sidebar capsule and mobile stories dock"
   ```
+
+---
+
+### Task 3: Visual Polish & Scrolling Enhancements (Instagram Rings & Debounce Auto-Reveal)
+
+**Files:**
+- Modify: `src/components/session/VotingProgress.tsx`
+
+- [ ] **Step 1: Implement Scroll-End Auto-Reveal logic in VotingProgress.tsx**
+  Add a `scrollTimeoutRef` to track scrolling state. Update `useMotionValueEvent(scrollY, "change", ...)` to debounce and auto-reveal the bottom dock when scrolling stops (200ms duration).
+
+- [ ] **Step 2: Update Mobile Stories Dock Badge Styles**
+  Refactor the mobile badge items. Differentiate between:
+  - Active: scaled up, highlighted with a high-contrast white ring border and active indicator dot under the avatar.
+  - Voted: continuous lime-green gradient border ring.
+  - Skipped ("No coincidí"): dashed red-orange border ring.
+  - Pending: quiet dark-green border ring.
+
+- [ ] **Step 3: Update Web Sidebar Visuals & Active Indicator**
+  Upgrade desktop sidebar capsule border, background blur, and custom tooltips.
+
+- [ ] **Step 4: Verify the build and run checks**
+  Run: `npm run build`
+  Expected: Clean compilation with 0 errors.
+
+- [ ] **Step 5: Commit changes**
+  ```bash
+  git add src/components/session/VotingProgress.tsx
+  git commit -m "style: visual polish for voting progress sidebar and stories dock with scroll auto-reveal"
+  ```
