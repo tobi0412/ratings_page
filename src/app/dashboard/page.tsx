@@ -1,7 +1,7 @@
 "use client";
 
 import { getActiveSessions, getSessionParticipants } from "@/actions/sessions";
-import { getPlayerVotes } from "@/actions/ratings";
+import { getPlayerVotes, getTeamRating } from "@/actions/ratings";
 import { getCurrentProfile } from "@/actions/auth";
 import SessionStatus from "@/components/session/SessionStatus";
 import VotingCard from "@/components/session/VotingCard";
@@ -18,6 +18,7 @@ export default function DashboardPage() {
   const [players, setPlayers] = useState<Profile[]>([]);
   const [myVotes, setMyVotes] = useState<Rating[]>([]);
   const [isParticipant, setIsParticipant] = useState(true);
+  const [teamRatingSaved, setTeamRatingSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,6 +41,9 @@ export default function DashboardPage() {
       if (participating) {
         const votesData = await getPlayerVotes(activeSession.id, profileData.id);
         setMyVotes(votesData);
+
+        const savedTeamRating = await getTeamRating(activeSession.id);
+        setTeamRatingSaved(savedTeamRating !== null);
 
         // Exclude yourself from the voting list
         setPlayers(participants.filter((p) => p.id !== profileData.id));
@@ -173,17 +177,6 @@ export default function DashboardPage() {
     );
   }
 
-  // Calculate card completeness
-  const isCardCompleted = (player: Profile) => {
-    const vote = myVotes.find((v) => v.receiver_id === player.id);
-    if (!vote) return false;
-    if (vote.tecnica !== null) return true;
-    if (!vote.is_mvp && !vote.is_bigpaper && !vote.is_poop) return true;
-    return false;
-  };
-
-  const votedCount = players.filter(isCardCompleted).length;
-  const totalPlayers = players.length;
   const awardsComplete = myVotes.some((v) => v.is_mvp);
 
   return (
@@ -227,16 +220,19 @@ export default function DashboardPage() {
         <SessionStatus session={session} />
       </div>
 
-      <div className="animate-slide-up stagger-2">
-        <VotingProgress
-          totalPlayers={totalPlayers}
-          votedCount={votedCount}
-          awardsComplete={awardsComplete}
-        />
+      <div className="sticky-progress-wrapper">
+        <div className="animate-slide-up stagger-2">
+          <VotingProgress
+            players={players}
+            myVotes={myVotes}
+            awardsComplete={awardsComplete}
+            teamRatingSaved={teamRatingSaved}
+          />
+        </div>
       </div>
 
       {/* Centralized Awards selector card */}
-      <div className="animate-slide-up stagger-2" style={{ position: "relative", zIndex: 30 }}>
+      <div className="animate-slide-up stagger-2" style={{ position: "relative", zIndex: 30 }} id="awards-section">
         <SessionAwardsCard
           players={players}
           matchId={session.id}
@@ -280,102 +276,105 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Players grid */}
+      <div id="players-section">
+        {players.length > 0 ? (
+          <div className="animate-slide-up stagger-3">
+            <div className="section-heading">
+              <h2
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: "1.5rem",
+                  letterSpacing: "0.06em",
+                  color: "#e4f0e8",
+                  margin: 0,
+                }}
+              >
+                Jugadores
+              </h2>
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+                gap: "1rem",
+              }}
+            >
+              {players.map((player) => (
+                <VotingCard
+                  key={player.id}
+                  receiver={player}
+                  matchId={session.id}
+                  existingRating={myVotes.find(
+                    (v) => v.receiver_id === player.id,
+                  )}
+                  onSuccess={(newRating) => {
+                    setMyVotes((prev) => {
+                      const exists = prev.some((v) => v.receiver_id === newRating.receiver_id);
+                      if (exists) {
+                        return prev.map((v) =>
+                          v.receiver_id === newRating.receiver_id
+                            ? {
+                                ...newRating,
+                                is_mvp: v.is_mvp,
+                                is_bigpaper: v.is_bigpaper,
+                                is_poop: v.is_poop,
+                              }
+                            : v
+                        );
+                      }
+                      return [...prev, newRating];
+                    });
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div
+            className="card-sport animate-slide-up stagger-3"
+            style={{
+              padding: "3rem 2rem",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
+              <StadiumIcon size="3rem" style={{ color: "#3d6e50" }} />
+            </div>
+            <h3
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: "1.6rem",
+                color: "#e4f0e8",
+                margin: "0 0 0.5rem",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Sin jugadores aún
+            </h3>
+            <p
+              style={{
+                fontFamily: "'Barlow', sans-serif",
+                fontSize: "0.9rem",
+                color: "#3d6e50",
+                margin: 0,
+              }}
+            >
+              Los jugadores aparecerán aquí cuando estén disponibles en la sesión.
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Team performance rating card */}
-      <div className="animate-slide-up stagger-2" style={{ position: "relative", zIndex: 25 }}>
+      <div className="animate-slide-up stagger-4" style={{ position: "relative", zIndex: 25 }} id="team-rating-section">
         <TeamRatingCard
           matchId={session.id}
           players={players}
           myVotes={myVotes}
+          onTeamRatingSaved={setTeamRatingSaved}
         />
       </div>
-
-      {/* Players grid */}
-      {players.length > 0 ? (
-        <div className="animate-slide-up stagger-3">
-          <div className="section-heading">
-            <h2
-              style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "1.5rem",
-                letterSpacing: "0.06em",
-                color: "#e4f0e8",
-                margin: 0,
-              }}
-            >
-              Jugadores
-            </h2>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            {players.map((player) => (
-              <VotingCard
-                key={player.id}
-                receiver={player}
-                matchId={session.id}
-                existingRating={myVotes.find(
-                  (v) => v.receiver_id === player.id,
-                )}
-                onSuccess={(newRating) => {
-                  setMyVotes((prev) => {
-                    const exists = prev.some((v) => v.receiver_id === newRating.receiver_id);
-                    if (exists) {
-                      return prev.map((v) =>
-                        v.receiver_id === newRating.receiver_id
-                          ? {
-                              ...newRating,
-                              is_mvp: v.is_mvp,
-                              is_bigpaper: v.is_bigpaper,
-                              is_poop: v.is_poop,
-                            }
-                          : v
-                      );
-                    }
-                    return [...prev, newRating];
-                  });
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div
-          className="card-sport animate-slide-up stagger-3"
-          style={{
-            padding: "3rem 2rem",
-            textAlign: "center",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
-            <StadiumIcon size="3rem" style={{ color: "#3d6e50" }} />
-          </div>
-          <h3
-            style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: "1.6rem",
-              color: "#e4f0e8",
-              margin: "0 0 0.5rem",
-              letterSpacing: "0.05em",
-            }}
-          >
-            Sin jugadores aún
-          </h3>
-          <p
-            style={{
-              fontFamily: "'Barlow', sans-serif",
-              fontSize: "0.9rem",
-              color: "#3d6e50",
-              margin: 0,
-            }}
-          >
-            Los jugadores aparecerán aquí cuando estén disponibles en la sesión.
-          </p>
-        </div>
-      )}
     </div>
   );
 }
