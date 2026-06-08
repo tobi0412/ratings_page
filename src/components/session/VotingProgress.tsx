@@ -13,19 +13,22 @@ interface VotingProgressProps {
   teamRatingSaved: boolean;
 }
 
-const TaskIndicator = ({ completed }: { completed: boolean }) => (
+const TaskIndicator = ({ completed, size = 18 }: { completed: boolean; size?: number }) => (
   <div
     style={{
-      width: "16px",
-      height: "16px",
+      width: `${size}px`,
+      height: `${size}px`,
       borderRadius: "50%",
-      border: `1.5px solid ${completed ? "#00e676" : "#ff5252"}`,
-      background: completed ? "rgba(0, 230, 118, 0.15)" : "transparent",
+      border: `1.5px solid ${completed ? "#00e676" : "rgba(255,82,82,0.5)"}`,
+      background: completed
+        ? "rgba(0, 230, 118, 0.15)"
+        : "rgba(255, 82, 82, 0.05)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       flexShrink: 0,
-      transition: "all 200ms cubic-bezier(0.23, 1, 0.32, 1)",
+      transition: "all 300ms cubic-bezier(0.23, 1, 0.32, 1)",
+      boxShadow: completed ? "0 0 8px rgba(0, 230, 118, 0.25)" : "none",
     }}
   >
     {completed ? (
@@ -35,15 +38,52 @@ const TaskIndicator = ({ completed }: { completed: boolean }) => (
     ) : (
       <div
         style={{
-          width: "4px",
-          height: "4px",
+          width: "5px",
+          height: "5px",
           borderRadius: "50%",
-          background: "#ff5252",
+          background: "rgba(255, 82, 82, 0.6)",
         }}
       />
     )}
   </div>
 );
+
+const ArcProgress = ({ percentage }: { percentage: number }) => {
+  const r = 28;
+  const cx = 36;
+  const cy = 36;
+  const circ = 2 * Math.PI * r;
+  const dashoffset = circ - (percentage / 100) * circ;
+  const isComplete = percentage === 100;
+  return (
+    <svg width="72" height="72" viewBox="0 0 72 72" style={{ display: "block", flexShrink: 0 }}>
+      {/* Track */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(28,56,40,0.6)" strokeWidth="5" />
+      {/* Fill */}
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke={isComplete ? "#00e676" : "#00e676"}
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeDasharray={circ}
+        strokeDashoffset={dashoffset}
+        transform={`rotate(-90 ${cx} ${cy})`}
+        style={{
+          transition: "stroke-dashoffset 0.7s cubic-bezier(0.23,1,0.32,1)",
+          filter: isComplete ? "drop-shadow(0 0 6px rgba(0,230,118,0.7))" : "drop-shadow(0 0 4px rgba(0,230,118,0.4))",
+        }}
+      />
+      {/* Center text */}
+      <text x={cx} y={cy - 3} textAnchor="middle" fontSize="15" fontWeight="700" fontFamily="'Bebas Neue', sans-serif" fill="#00e676" letterSpacing="0.5">
+        {percentage}
+      </text>
+      <text x={cx} y={cy + 10} textAnchor="middle" fontSize="7.5" fontFamily="'Barlow Condensed', sans-serif" fill="rgba(61,110,80,0.9)" letterSpacing="0.5" fontWeight="700">
+        %
+      </text>
+    </svg>
+  );
+};
 
 const ChevronRightIcon = () => (
   <svg
@@ -134,9 +174,6 @@ export default function VotingProgress({
   const percentage = totalSteps > 0 ? Math.floor((completedSteps / totalSteps) * 100) : 0;
 
   const shouldReduceMotion = useReducedMotion();
-  const progressTransition = shouldReduceMotion
-    ? { duration: 0 }
-    : ({ type: "spring", stiffness: 100, damping: 20 } as const);
 
   const { scrollY } = useScroll();
   const [showStickyFills, setShowStickyFills] = useState(false);
@@ -211,31 +248,46 @@ export default function VotingProgress({
   return (
     <div className="card-sport sticky-progress-card">
       <style>{`
+        /* --- Card base --- */
         .sticky-progress-card {
-          background: linear-gradient(135deg, rgba(11, 24, 16, 0.85) 0%, rgba(6, 13, 9, 0.9) 100%);
-          background-image: 
-            repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(0, 230, 118, 0.008) 14px, rgba(0, 230, 118, 0.008) 28px),
-            linear-gradient(135deg, rgba(11, 24, 16, 0.85) 0%, rgba(6, 13, 9, 0.9) 100%);
-          border: 1px solid rgba(28, 56, 40, 0.7);
-          border-top: 1px solid rgba(0, 230, 118, 0.25);
-          border-radius: 12px;
-          padding: 1.25rem 1.5rem;
+          background: 
+            radial-gradient(ellipse at 0% 0%, rgba(0,230,118,0.04) 0%, transparent 55%),
+            linear-gradient(160deg, #0d1f14 0%, #08120c 100%);
+          border: 1px solid rgba(28, 56, 40, 0.75);
+          border-top: 1px solid rgba(0, 230, 118, 0.3);
+          border-radius: 16px;
+          padding: 1.25rem 1.25rem 1.5rem;
           position: relative;
-          transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1);
+          transition: border-color 300ms ease, box-shadow 300ms ease;
+          overflow: hidden;
+        }
+        .sticky-progress-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+          opacity: 0.022;
+          pointer-events: none;
+          border-radius: inherit;
+        }
+        .sticky-progress-card:hover {
+          border-top-color: rgba(0, 230, 118, 0.55);
+          box-shadow: 0 0 30px rgba(0, 230, 118, 0.06);
         }
 
         @media (min-width: 768px) {
           .sticky-progress-card {
-            border-radius: 16px;
-            padding: 1.5rem 1.75rem;
+            border-radius: 18px;
+            padding: 1.5rem 1.5rem 1.75rem;
           }
         }
 
+        /* --- Task rows --- */
         .task-list {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
-          margin-top: 1rem;
+          gap: 0.4rem;
+          margin-top: 1.1rem;
           width: 100%;
         }
 
@@ -244,43 +296,52 @@ export default function VotingProgress({
           align-items: center;
           justify-content: space-between;
           width: 100%;
-          padding: 0.65rem 0.9rem;
-          background: rgba(0, 0, 0, 0.3);
-          border: 1px solid rgba(28, 56, 40, 0.5);
-          border-radius: 8px;
+          padding: 0.7rem 0.85rem;
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(28, 56, 40, 0.45);
+          border-left: 3px solid rgba(28, 56, 40, 0.45);
+          border-radius: 10px;
           cursor: pointer;
           font-family: 'Barlow Condensed', sans-serif;
-          font-size: 0.8rem;
-          font-weight: 700;
-          letter-spacing: 0.03em;
+          font-size: 0.82rem;
+          font-weight: 600;
+          letter-spacing: 0.04em;
           text-transform: uppercase;
           position: relative;
           overflow: hidden;
-          transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1);
+          transition: all 250ms cubic-bezier(0.23, 1, 0.32, 1);
         }
-        @media (min-width: 768px) {
-          .progress-task-btn {
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            background: rgba(0, 0, 0, 0.25);
-          }
+        .progress-task-btn.is-done {
+          background: rgba(0, 230, 118, 0.045);
+          border-color: rgba(0, 230, 118, 0.2);
+          border-left-color: rgba(0, 230, 118, 0.6);
+        }
+        .progress-task-btn.is-pending {
+          border-left-color: rgba(255, 82, 82, 0.4);
+        }
+        .progress-task-btn:hover {
+          background: rgba(0, 230, 118, 0.07);
+          border-color: rgba(0, 230, 118, 0.3);
+          border-left-color: rgba(0, 230, 118, 0.7);
+          transform: translateX(2px);
         }
 
         .task-arrow {
-          display: inline-block;
-          color: #00e676;
-          margin-left: 0.5rem;
+          display: inline-flex;
+          align-items: center;
+          color: rgba(0, 230, 118, 0.5);
+          margin-left: 0.4rem;
           flex-shrink: 0;
+          transition: color 200ms ease;
+        }
+        .progress-task-btn:hover .task-arrow {
+          color: #00e676;
         }
 
+        /* --- Progress arc ring shimmer --- */
         @keyframes progress-shimmer {
-          0% {
-            background-position: 0% 50%;
-          }
-          100% {
-            background-position: 200% 50%;
-          }
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
         }
         .progress-bar-fill {
           height: 100%;
@@ -288,7 +349,7 @@ export default function VotingProgress({
           background-size: 200% 100%;
           animation: progress-shimmer 2.5s linear infinite;
           border-radius: 3px;
-        }
+        } }
 
         /* --- Desktop Sidebar Capsule --- */
         .voting-sidebar {
@@ -504,22 +565,24 @@ export default function VotingProgress({
           bottom: 1.5rem;
           left: 50%;
           transform: translateX(-50%);
-          width: calc(100% - 2.5rem);
-          max-width: 480px;
+          width: calc(100% - 2rem);
+          max-width: 500px;
           z-index: 90;
           display: flex;
           align-items: center;
           overflow: visible;
-          background: linear-gradient(135deg, rgba(11, 24, 16, 0.94) 0%, rgba(6, 13, 9, 0.98) 100%);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(28, 56, 40, 0.85);
-          border-top: 1px solid rgba(0, 230, 118, 0.25);
-          border-radius: 28px;
-          padding: 0.3rem 0.9rem;
+          background: linear-gradient(160deg, rgba(9, 20, 13, 0.97) 0%, rgba(5, 11, 7, 0.99) 100%);
+          backdrop-filter: blur(24px) saturate(160%);
+          -webkit-backdrop-filter: blur(24px) saturate(160%);
+          border: 1px solid rgba(28, 56, 40, 0.7);
+          border-top: 1px solid rgba(0, 230, 118, 0.3);
+          border-radius: 32px;
+          padding: 0.5rem 1rem;
           box-shadow: 
-            0 20px 50px rgba(0, 0, 0, 0.85),
-            0 0 25px rgba(0, 230, 118, 0.05),
-            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            0 24px 64px rgba(0, 0, 0, 0.9),
+            0 0 0 1px rgba(0,0,0,0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.04),
+            0 0 30px rgba(0, 230, 118, 0.04);
         }
 
         @media (min-width: 1200px) {
@@ -531,10 +594,10 @@ export default function VotingProgress({
         .mobile-dock-carousel {
           display: flex;
           align-items: center;
-          gap: 0.85rem;
+          gap: 0.65rem;
           overflow-x: auto;
           overflow-y: visible;
-          padding: 0.75rem 0.25rem;
+          padding: 0.65rem 0.2rem;
           scrollbar-width: none;
           -ms-overflow-style: none;
           width: 100%;
@@ -544,8 +607,8 @@ export default function VotingProgress({
         }
 
         .mobile-badge-item {
-          width: 52px;
-          height: 52px;
+          width: 48px;
+          height: 48px;
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -559,31 +622,35 @@ export default function VotingProgress({
         .mobile-badge-item.is-active .mobile-badge-inner {
           border-color: #ffffff;
           box-shadow:
-            0 0 0 2px rgba(255, 255, 255, 0.25),
-            0 0 14px rgba(255, 255, 255, 0.3),
+            0 0 0 2.5px rgba(255, 255, 255, 0.2),
+            0 0 18px rgba(255, 255, 255, 0.25),
             0 4px 16px rgba(0, 0, 0, 0.5);
         }
 
         .mobile-badge-inner {
-          width: 42px;
-          height: 42px;
+          width: 40px;
+          height: 40px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: #060d09;
-          padding: 2.5px;
-          border: 2px solid rgba(28, 56, 40, 0.85);
+          background: rgba(8, 18, 11, 0.95);
+          border: 2px solid rgba(28, 56, 40, 0.7);
           transition: all 250ms ease;
+          overflow: hidden;
         }
 
         .mobile-badge-inner.is-voted {
-          border-color: #00e676;
-          box-shadow: 0 0 8px rgba(0, 230, 118, 0.25);
+          border-color: rgba(0, 230, 118, 0.8);
+          box-shadow: 
+            0 0 0 1px rgba(0, 230, 118, 0.15),
+            0 0 10px rgba(0, 230, 118, 0.2);
+          background: rgba(0, 230, 118, 0.06);
         }
 
         .mobile-badge-inner.is-blank {
-          border: 2px dashed #ff5252;
+          border: 1.5px dashed rgba(255, 82, 82, 0.6);
+          background: rgba(255, 82, 82, 0.04);
         }
 
         .mobile-badge-inner .badge-avatar-container {
@@ -591,7 +658,6 @@ export default function VotingProgress({
           height: 100%;
           border-radius: 50%;
           overflow: hidden;
-          background: rgba(28, 56, 40, 0.35);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -605,80 +671,79 @@ export default function VotingProgress({
           width: 4px;
           height: 4px;
           border-radius: 50%;
-          background: #e4f0e8;
-          box-shadow: 0 0 5px #e4f0e8;
+          background: #ffffff;
+          box-shadow: 0 0 6px rgba(255,255,255,0.8);
           pointer-events: none;
         }
       `}</style>
       
-      {/* Header Info */}
+      {/* ── Header ── */}
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          marginBottom: "0.75rem",
+          alignItems: "center",
+          gap: "1rem",
+          marginBottom: "0.5rem",
         }}
       >
-        <span
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontWeight: 700,
-            fontSize: "0.8rem",
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "#3d6e50",
-          }}
-        >
-          Progreso de Votación
-        </span>
-        <div
-          style={{ display: "flex", alignItems: "baseline", gap: "0.25rem" }}
-        >
-          <span
-            style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: "1.6rem",
-              color: "#00e676",
-              letterSpacing: "0.04em",
-              lineHeight: 1,
-            }}
-          >
-            {completedSteps}
-          </span>
-          <span
+        {/* Arc Ring */}
+        <ArcProgress percentage={percentage} />
+
+        {/* Label + count */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: "0.85rem",
-              color: "#3d6e50",
+              fontWeight: 700,
+              fontSize: "0.65rem",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              color: "rgba(61,110,80,0.9)",
+              marginBottom: "0.25rem",
             }}
           >
-            / {totalSteps} tareas
-          </span>
+            Progreso
+          </div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "0.2rem" }}>
+            <span
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: "2rem",
+                color: percentage === 100 ? "#00e676" : "#e4f0e8",
+                letterSpacing: "0.04em",
+                lineHeight: 1,
+                transition: "color 300ms ease",
+              }}
+            >
+              {completedSteps}
+            </span>
+            <span
+              style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: "1rem",
+                color: "rgba(61,110,80,0.8)",
+                letterSpacing: "0.02em",
+              }}
+            >
+              /{totalSteps}
+            </span>
+          </div>
+          <div
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: "0.7rem",
+              color: "rgba(61,110,80,0.65)",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              marginTop: "0.1rem",
+            }}
+          >
+            {percentage === 100 ? "✓ Todo completado" : "Tareas restantes"}
+          </div>
         </div>
       </div>
 
-      {/* Progress Track */}
-      <div
-        style={{
-          width: "100%",
-          height: "6px",
-          background: "#1c3828",
-          borderRadius: "3px",
-          overflow: "hidden",
-        }}
-      >
-        <motion.div
-          animate={{ width: `${percentage}%` }}
-          transition={progressTransition}
-          className="progress-bar-fill"
-          style={{
-            boxShadow: "0 0 10px rgba(0,230,118,0.5)",
-          }}
-        />
-      </div>
-
-      <div className="task-list">
+        <div className="task-list">
         <motion.button
           onClick={() => handleScrollTo("players-section")}
           variants={buttonVariants}
@@ -686,28 +751,27 @@ export default function VotingProgress({
           initial="initial"
           whileHover="hover"
           whileTap="tap"
-          className="progress-task-btn"
+          className={`progress-task-btn ${votedCount === totalPlayers ? "is-done" : "is-pending"}`}
         >
-          <div
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: "3px",
-              background: votedCount === totalPlayers ? "#00e676" : "#ff5252",
-              opacity: votedCount === totalPlayers ? 0.6 : 0.4,
-              transition: "background 200ms ease, opacity 200ms ease",
-            }}
-          />
-
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", zIndex: 5 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", zIndex: 5 }}>
             <TaskIndicator completed={votedCount === totalPlayers} />
             <span style={{ 
-              color: votedCount === totalPlayers ? "#6ba883" : "#e4f0e8",
+              color: votedCount === totalPlayers ? "rgba(107,168,131,0.9)" : "#e4f0e8",
               transition: "color 200ms ease"
             }}>
-              Calificar jugadores ({votedCount} / {totalPlayers})
+              Jugadores
+            </span>
+            <span style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: "0.72rem",
+              color: "rgba(61,110,80,0.7)",
+              fontWeight: 400,
+              letterSpacing: "0.02em",
+              textTransform: "none",
+              marginLeft: "auto",
+              paddingRight: "0.25rem",
+            }}>
+              {votedCount}/{totalPlayers}
             </span>
           </div>
           <motion.span variants={arrowVariants} className="task-arrow">
@@ -722,28 +786,15 @@ export default function VotingProgress({
           initial="initial"
           whileHover="hover"
           whileTap="tap"
-          className="progress-task-btn"
+          className={`progress-task-btn ${awardsComplete ? "is-done" : "is-pending"}`}
         >
-          <div
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: "3px",
-              background: awardsComplete ? "#00e676" : "#ff5252",
-              opacity: awardsComplete ? 0.6 : 0.4,
-              transition: "background 200ms ease, opacity 200ms ease",
-            }}
-          />
-
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", zIndex: 5 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", zIndex: 5 }}>
             <TaskIndicator completed={awardsComplete} />
             <span style={{ 
-              color: awardsComplete ? "#6ba883" : "#e4f0e8",
+              color: awardsComplete ? "rgba(107,168,131,0.9)" : "#e4f0e8",
               transition: "color 200ms ease"
             }}>
-              Elegir los Premios de la Sesión
+              Premios
             </span>
           </div>
           <motion.span variants={arrowVariants} className="task-arrow">
@@ -758,28 +809,15 @@ export default function VotingProgress({
           initial="initial"
           whileHover="hover"
           whileTap="tap"
-          className="progress-task-btn"
+          className={`progress-task-btn ${teamRatingSaved ? "is-done" : "is-pending"}`}
         >
-          <div
-            style={{
-              position: "absolute",
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: "3px",
-              background: teamRatingSaved ? "#00e676" : "#ff5252",
-              opacity: teamRatingSaved ? 0.6 : 0.4,
-              transition: "background 200ms ease, opacity 200ms ease",
-            }}
-          />
-
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", zIndex: 5 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", zIndex: 5 }}>
             <TaskIndicator completed={teamRatingSaved} />
             <span style={{ 
-              color: teamRatingSaved ? "#6ba883" : "#e4f0e8",
+              color: teamRatingSaved ? "rgba(107,168,131,0.9)" : "#e4f0e8",
               transition: "color 200ms ease"
             }}>
-              Calificar el Rendimiento del Equipo
+              Equipo
             </span>
           </div>
           <motion.span variants={arrowVariants} className="task-arrow">
