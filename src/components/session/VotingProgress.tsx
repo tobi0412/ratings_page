@@ -304,7 +304,10 @@ export default function VotingProgress({
             display: flex;
             flex-direction: column;
             gap: 0.8rem;
-            z-index: 100;
+            z-index: 90;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            scrollbar-width: none;
             background: linear-gradient(180deg, rgba(11, 24, 16, 0.85) 0%, rgba(6, 13, 9, 0.9) 100%);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(0, 230, 118, 0.2);
@@ -316,6 +319,9 @@ export default function VotingProgress({
               inset 0 1px 0 rgba(255, 255, 255, 0.05);
             align-items: center;
             transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+          }
+          .voting-sidebar::-webkit-scrollbar {
+            display: none;
           }
           .voting-sidebar:hover {
             border-color: rgba(0, 230, 118, 0.45);
@@ -500,15 +506,16 @@ export default function VotingProgress({
           transform: translateX(-50%);
           width: calc(100% - 2.5rem);
           max-width: 480px;
-          z-index: 100;
+          z-index: 90;
           display: flex;
           align-items: center;
+          overflow: visible;
           background: linear-gradient(135deg, rgba(11, 24, 16, 0.94) 0%, rgba(6, 13, 9, 0.98) 100%);
           backdrop-filter: blur(20px);
           border: 1px solid rgba(28, 56, 40, 0.85);
           border-top: 1px solid rgba(0, 230, 118, 0.25);
           border-radius: 28px;
-          padding: 0.65rem 0.9rem;
+          padding: 0.3rem 0.9rem;
           box-shadow: 
             0 20px 50px rgba(0, 0, 0, 0.85),
             0 0 25px rgba(0, 230, 118, 0.05),
@@ -526,7 +533,8 @@ export default function VotingProgress({
           align-items: center;
           gap: 0.85rem;
           overflow-x: auto;
-          padding: 0.5rem 0.15rem;
+          overflow-y: visible;
+          padding: 0.75rem 0.25rem;
           scrollbar-width: none;
           -ms-overflow-style: none;
           width: 100%;
