@@ -160,7 +160,12 @@ export default function VotingCard({
             ? "rgba(61, 110, 80, 0.4)" // Muted border for saved blank vote
             : "rgba(0, 230, 118, 0.4)" // Lime border for normal saved rating
           : undefined,
-        transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+        boxShadow: saved
+          ? isBlank
+            ? "0 0 24px rgba(255, 82, 82, 0.05)"
+            : "0 0 24px rgba(0, 230, 118, 0.12)"
+          : undefined,
+        transition: "border-color 250ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 250ms cubic-bezier(0.23, 1, 0.32, 1)",
       }}
     >
       {/* Player header */}
@@ -285,7 +290,7 @@ export default function VotingCard({
           borderRadius: "8px",
           background: isBlank ? "var(--accent-red-soft)" : "rgba(0, 0, 0, 0.25)",
           border: `1px solid ${isBlank ? "rgba(255, 82, 82, 0.35)" : "var(--border-subtle)"}`,
-          transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+          transition: "background 250ms cubic-bezier(0.23, 1, 0.32, 1), border-color 250ms cubic-bezier(0.23, 1, 0.32, 1)",
         }}
       >
         <span
@@ -296,7 +301,7 @@ export default function VotingCard({
             letterSpacing: "0.08em",
             textTransform: "uppercase",
             color: isBlank ? "var(--accent-red)" : "var(--text-muted)",
-            transition: "color 0.25s ease",
+            transition: "color 250ms cubic-bezier(0.23, 1, 0.32, 1)",
           }}
         >
           No coincidí en cancha
@@ -309,7 +314,7 @@ export default function VotingCard({
             background: isBlank ? "var(--accent-red)" : "var(--bg-field)",
             border: `1px solid ${isBlank ? "var(--accent-red)" : "var(--border-subtle)"}`,
             position: "relative",
-            transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: "background 250ms cubic-bezier(0.23, 1, 0.32, 1), border-color 250ms cubic-bezier(0.23, 1, 0.32, 1)",
             padding: "1px",
           }}
         >
@@ -320,8 +325,9 @@ export default function VotingCard({
               borderRadius: "50%",
               background: isBlank ? "#060d09" : "var(--text-muted)",
               position: "absolute",
-              left: isBlank ? "17px" : "1px",
-              transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+              left: "1px",
+              transform: isBlank ? "translateX(16px)" : "translateX(0)",
+              transition: "transform 250ms cubic-bezier(0.23, 1, 0.32, 1), background-color 250ms cubic-bezier(0.23, 1, 0.32, 1)",
             }}
           />
         </div>
@@ -341,65 +347,112 @@ export default function VotingCard({
             : undefined,
           opacity: isBlank ? 0.35 : 1,
           pointerEvents: isBlank ? "none" : "auto",
-          transition: "all 0.2s ease",
+          transition: "opacity 200ms cubic-bezier(0.23, 1, 0.32, 1)",
         }}
       >
         {(["tecnica", "fisico", "actitud", "vision_juego"] as const).map(
-          (metric) => (
-            <div key={metric}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "0.35rem",
-                }}
-              >
-                <span
+          (metric) => {
+            const metricValue = metrics[metric];
+            const ratingColor = getRatingColor(metricValue);
+
+            const glowSoft = ratingColor === "#00e676" 
+              ? "rgba(0, 230, 118, 0.15)" 
+              : ratingColor === "#ffab40" 
+                ? "rgba(255, 171, 64, 0.15)" 
+                : "rgba(255, 82, 82, 0.15)";
+            const glowMedium = ratingColor === "#00e676" 
+              ? "rgba(0, 230, 118, 0.55)" 
+              : ratingColor === "#ffab40" 
+                ? "rgba(255, 171, 64, 0.55)" 
+                : "rgba(255, 82, 82, 0.55)";
+            const glowHoverSoft = ratingColor === "#00e676" 
+              ? "rgba(0, 230, 118, 0.18)" 
+              : ratingColor === "#ffab40" 
+                ? "rgba(255, 171, 64, 0.18)" 
+                : "rgba(255, 82, 82, 0.18)";
+            const glowHoverMedium = ratingColor === "#00e676" 
+              ? "rgba(0, 230, 118, 0.75)" 
+              : ratingColor === "#ffab40" 
+                ? "rgba(255, 171, 64, 0.75)" 
+                : "rgba(255, 82, 82, 0.75)";
+            const glowActiveSoft = ratingColor === "#00e676" 
+              ? "rgba(0, 230, 118, 0.2)" 
+              : ratingColor === "#ffab40" 
+                ? "rgba(255, 171, 64, 0.2)" 
+                : "rgba(255, 82, 82, 0.2)";
+            const glowActiveMedium = ratingColor === "#00e676" 
+              ? "rgba(0, 230, 118, 0.6)" 
+              : ratingColor === "#ffab40" 
+                ? "rgba(255, 171, 64, 0.6)" 
+                : "rgba(255, 82, 82, 0.6)";
+
+            return (
+              <div key={metric}>
+                <div
                   style={{
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    fontWeight: 600,
-                    fontSize: "0.78rem",
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "var(--text-muted)",
-                    display: "inline-flex",
+                    display: "flex",
+                    justifyContent: "space-between",
                     alignItems: "center",
-                    gap: "0.4rem",
+                    marginBottom: "0.35rem",
                   }}
                 >
-                  {METRIC_ICONS[metric]}
-                  <span>{METRIC_LABELS[metric]}</span>
-                </span>
-                <span
+                  <span
+                    style={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontWeight: 600,
+                      fontSize: "0.78rem",
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      color: "var(--text-muted)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    {METRIC_ICONS[metric]}
+                    <span>{METRIC_LABELS[metric]}</span>
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: "1.1rem",
+                      color: isBlank ? "var(--text-muted)" : ratingColor,
+                      letterSpacing: "0.04em",
+                      minWidth: "28px",
+                      textAlign: "right",
+                      transition: "color 150ms ease-out",
+                    }}
+                  >
+                    {isBlank ? "—" : metricValue}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={metricValue}
+                  disabled={isBlank}
+                  onChange={(e) => {
+                    setMetrics({
+                      ...metrics,
+                      [metric]: parseInt(e.target.value),
+                    });
+                    setSaved(false);
+                  }}
                   style={{
-                    fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: "1.1rem",
-                    color: isBlank ? "var(--text-muted)" : getRatingColor(metrics[metric]),
-                    letterSpacing: "0.04em",
-                    minWidth: "28px",
-                    textAlign: "right",
+                    ["--range-fill" as any]: `${((metricValue - 1) / 9) * 100}%`,
+                    ["--range-fill-color" as any]: ratingColor,
+                    ["--range-fill-glow-soft" as any]: glowSoft,
+                    ["--range-fill-glow-medium" as any]: glowMedium,
+                    ["--range-fill-glow-hover-soft" as any]: glowHoverSoft,
+                    ["--range-fill-glow-hover-medium" as any]: glowHoverMedium,
+                    ["--range-fill-glow-active-soft" as any]: glowActiveSoft,
+                    ["--range-fill-glow-active-medium" as any]: glowActiveMedium,
                   }}
-                >
-                  {isBlank ? "—" : metrics[metric]}
-                </span>
+                />
               </div>
-              <input
-                type="range"
-                min="1"
-                max="10"
-                value={metrics[metric]}
-                disabled={isBlank}
-                onChange={(e) => {
-                  setMetrics({
-                    ...metrics,
-                    [metric]: parseInt(e.target.value),
-                  });
-                  setSaved(false);
-                }}
-              />
-            </div>
-          ),
+            );
+          }
         )}
       </div>
 
