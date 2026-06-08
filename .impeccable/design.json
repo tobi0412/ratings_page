@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-07T20:56:00Z",
+  "title": "Design System: Cotorra Analytics",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Floodlit Turf Lime", "canonical": "#00e676", "tonalRamp": ["#02341b", "#035029", "#046d37", "#058b45", "#00e676", "#3eff99", "#82ffbe", "#c1ffd7"] },
+      "neutral-bg": { "role": "neutral", "displayName": "Deep Pitch Background", "canonical": "#060d09", "tonalRamp": ["#020403", "#040806", "#060d09", "#0d1d14", "#132d1f", "#1b3c29", "#245037", "#326e4b"] },
+      "bg-card": { "role": "neutral", "displayName": "Card Surface", "canonical": "#0b1810", "tonalRamp": ["#040a06", "#0b1810", "#12251a", "#1b3626", "#254834", "#305c43", "#3d7355", "#4d8c69"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Scoreboard headlines and page titles." },
+      "body": { "displayName": "Body", "purpose": "General statistics, descriptions, and ratings." },
+      "label": { "displayName": "Label", "purpose": "Buttons, form labels, and badge headers." }
+    },
+    "shadows": [
+      { "name": "active-glow", "value": "0 0 24px rgba(0, 230, 118, 0.12)", "purpose": "Floodlight bloom effect on hovered or saved elements." }
+    ],
+    "motion": [
+      { "name": "standard-ease", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Smooth transition for inputs, buttons, and layouts." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Standard action button for voting submission.",
+      "html": "<button class=\"ds-btn-primary\">GUARDAR VOTO</button>",
+      "css": ".ds-btn-primary { background: #00e676; color: #040a06; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.65rem 1.75rem; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s ease; } .ds-btn-primary:hover { background: #1ded87; box-shadow: 0 0 24px rgba(0, 230, 118, 0.5); transform: translateY(-1px); } .ds-btn-primary:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Voting Card",
+      "kind": "card",
+      "refersTo": "card-sport",
+      "description": "Individual teammate voting item container.",
+      "html": "<div class=\"ds-card-sport\"><div class=\"ds-header\">PLAYER NAME</div></div>",
+      "css": ".ds-card-sport { background: #0b1810; border: 1px solid #1c3828; border-radius: 12px; padding: 1.25rem; position: relative; overflow: hidden; } .ds-card-sport::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0, 230, 118, 0.035) 0%, transparent 55%); pointer-events: none; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Floodlit Pitch",
+    "overview": "Cotorra Analytics is a peer-voting performance tracker that channels the raw energy of playing football under stadium floodlights. It rejects corporate SaaS minimalism in favor of a dark, immersive, high-contrast athletic aesthetic. The canvas is a pitch-black night, with lines and elements illuminated by a brilliant turf-lime green.",
+    "keyCharacteristics": [
+      "Deep green-black surfaces resembling night football turf.",
+      "High-visibility lime accents (#00e676) for primary interactive states.",
+      "Condensed, athletic display fonts in uppercase for strong visual hierarchy.",
+      "Seamless transitions, hover glows, and distinct status colorization."
+    ],
+    "rules": [
+      { "name": "The Floodlight Rule", "body": "The primary lime accent is used on <=15% of any given screen. Its rarity is the point; too much lime makes the dashboard look like a neon billboard rather than a sleek analytics tool.", "section": "colors" },
+      { "name": "The Scoreboard Rule", "body": "Display text (Bebas Neue) must always be in uppercase or represent numerical statistics. Sentence-case Bebas Neue is forbidden.", "section": "typography" },
+      { "name": "The Glow-Response Rule", "body": "Box shadows are not used as generic drop shadows. They are strictly reactive: applied as a high-intensity glow response on active or hovered states to simulate floodlight bloom.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use OKLCH tints dynamically for rating colorization (lime for high, amber for mid, red for low).",
+      "Do ensure contrast of body text is kept high against the dark turf background.",
+      "Do clamp heading font-sizes on mobile viewports to prevent overflow."
+    ],
+    "donts": [
+      "Don't use generic gray drop-shadows on cards.",
+      "Don't use side-stripe borders on cards.",
+      "Don't use gradient text under any circumstances.",
+      "Don't use all-caps body copy for descriptions."
+    ]
+  }
+}

@@ -9,8 +9,10 @@ interface TeamRatingCardProps {
   matchId: string;
   players: Profile[];
   myVotes: Rating[];
+  onTeamRatingSaved?: (saved: boolean) => void;
 }
 
+// Custom SVGs retrieved via better-icons format to replace emojis
 function LockIcon({ size = 20, ...props }: { size?: number; style?: React.CSSProperties }) {
   return (
     <svg
@@ -31,7 +33,6 @@ function LockIcon({ size = 20, ...props }: { size?: number; style?: React.CSSPro
   );
 }
 
-// Custom SVGs retrieved via better-icons format to replace emojis
 const TrophyIcon = ({ color }: { color: string }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
@@ -78,6 +79,7 @@ export default function TeamRatingCard({
   matchId,
   players,
   myVotes,
+  onTeamRatingSaved,
 }: TeamRatingCardProps) {
   const [teamRating, setTeamRating] = useState<number>(7.0);
   const [saved, setSaved] = useState(false);
@@ -85,6 +87,11 @@ export default function TeamRatingCard({
   const [error, setError] = useState("");
   const [voterAverage, setVoterAverage] = useState<number>(0);
   const [maxCap, setMaxCap] = useState<number>(10.0);
+
+  // Synchronize saved state with the parent callback
+  useEffect(() => {
+    onTeamRatingSaved?.(saved);
+  }, [saved, onTeamRatingSaved]);
 
   // Calculate completed players
   const completedPlayers = players.filter((p) => {
@@ -257,7 +264,7 @@ export default function TeamRatingCard({
     const progressPercent = totalPlayers > 0 ? (votedCount / totalPlayers) * 100 : 0;
     return (
       <div
-        className="card-sport stripe-texture animate-slide-up"
+        className="card-sport animate-slide-up"
         style={{
           padding: "2rem 1.5rem",
           background: "rgba(11, 24, 16, 0.5)",
@@ -389,11 +396,13 @@ export default function TeamRatingCard({
                       background: "rgba(0,0,0,0.3)",
                       border: "1px solid var(--border-subtle)",
                       cursor: "pointer",
-                      transition: "all 0.15s ease",
+                      transition: "border-color 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1)",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "var(--accent-lime)";
-                      e.currentTarget.style.transform = "translateY(-1px)";
+                      if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                        e.currentTarget.style.borderColor = "var(--accent-lime)";
+                        e.currentTarget.style.transform = "translateY(-1px)";
+                      }
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = "var(--border-subtle)";

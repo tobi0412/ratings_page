@@ -236,6 +236,7 @@ export default function SessionAwardsCard({
               display: "flex",
               flexDirection: "column",
               gap: "0.2rem",
+              transformOrigin: "top center",
             }}
           >
             {awardType !== "mvp" && (
@@ -250,11 +251,13 @@ export default function SessionAwardsCard({
                   borderRadius: "6px",
                   cursor: "pointer",
                   background: selectedId === "" ? `${color}15` : "transparent",
-                  transition: "all 0.15s ease",
+                  transition: "background-color 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = selectedId === "" ? `${color}25` : "rgba(0, 230, 118, 0.08)";
-                  e.currentTarget.style.transform = "translateX(3px)";
+                  if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                    e.currentTarget.style.background = selectedId === "" ? `${color}25` : "rgba(0, 230, 118, 0.08)";
+                    e.currentTarget.style.transform = "translateX(3px)";
+                  }
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = selectedId === "" ? `${color}15` : "transparent";
@@ -306,11 +309,13 @@ export default function SessionAwardsCard({
                     borderRadius: "6px",
                     cursor: "pointer",
                     background: isSelected ? `${color}15` : "transparent",
-                    transition: "all 0.15s ease",
+                    transition: "background-color 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1)",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = isSelected ? `${color}25` : "rgba(0, 230, 118, 0.08)";
-                    e.currentTarget.style.transform = "translateX(3px)";
+                    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                      e.currentTarget.style.background = isSelected ? `${color}25` : "rgba(0, 230, 118, 0.08)";
+                      e.currentTarget.style.transform = "translateX(3px)";
+                    }
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = isSelected ? `${color}15` : "transparent";
@@ -372,18 +377,6 @@ export default function SessionAwardsCard({
         overflow: "visible",
       }}
     >
-      {/* Background diagonal stripe subtle texture */}
-      <div
-        className="stripe-texture"
-        style={{
-          position: "absolute",
-          inset: 0,
-          opacity: 0.6,
-          pointerEvents: "none",
-          zIndex: 0
-        }}
-      />
-
       <div style={{ position: "relative", zIndex: 10 }}>
         <h2
           style={{

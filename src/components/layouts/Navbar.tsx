@@ -140,10 +140,12 @@ export default function Navbar({ profile }: NavbarProps) {
                     cursor: "pointer",
                     padding: "0.25rem 0.5rem",
                     borderRadius: "6px",
-                    transition: "background 0.2s ease",
+                    transition: "background-color 160ms cubic-bezier(0.23, 1, 0.32, 1)",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(28, 56, 40, 0.2)";
+                    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                      e.currentTarget.style.background = "rgba(28, 56, 40, 0.2)";
+                    }
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = "transparent";
@@ -189,7 +191,7 @@ export default function Navbar({ profile }: NavbarProps) {
                   >
                     {profile.username}
                   </span>
-                  <span style={{ color: "#3d6e50", fontSize: "0.75rem", display: "inline-block", transform: dropdownOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s ease" }}>
+                  <span style={{ color: "#3d6e50", fontSize: "0.75rem", display: "inline-block", transform: dropdownOpen ? "rotate(180deg)" : "none", transition: "transform 180ms cubic-bezier(0.23, 1, 0.32, 1)" }}>
                     ▼
                   </span>
                 </div>
@@ -234,11 +236,13 @@ export default function Navbar({ profile }: NavbarProps) {
                         textTransform: "uppercase",
                         textDecoration: "none",
                         textAlign: "left",
-                        transition: "all 0.2s ease",
+                        transition: "color 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms cubic-bezier(0.23, 1, 0.32, 1)",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "rgba(0, 230, 118, 0.08)";
-                        e.currentTarget.style.color = "#00e676";
+                        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                          e.currentTarget.style.background = "rgba(0, 230, 118, 0.08)";
+                          e.currentTarget.style.color = "#00e676";
+                        }
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "transparent";
@@ -251,7 +255,7 @@ export default function Navbar({ profile }: NavbarProps) {
                       <Link
                         href="/admin"
                         onClick={() => setDropdownOpen(false)}
-                        style={{
+                         style={{
                           padding: "0.6rem 1rem",
                           color: isActive("/admin") ? "#00e676" : "#a0c4ac",
                           fontFamily: "'Barlow Condensed', sans-serif",
@@ -261,11 +265,13 @@ export default function Navbar({ profile }: NavbarProps) {
                           textTransform: "uppercase",
                           textDecoration: "none",
                           textAlign: "left",
-                          transition: "all 0.2s ease",
+                          transition: "color 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms cubic-bezier(0.23, 1, 0.32, 1)",
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "rgba(0, 230, 118, 0.08)";
-                          e.currentTarget.style.color = "#00e676";
+                          if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                            e.currentTarget.style.background = "rgba(0, 230, 118, 0.08)";
+                            e.currentTarget.style.color = "#00e676";
+                          }
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "transparent";
@@ -293,10 +299,12 @@ export default function Navbar({ profile }: NavbarProps) {
                         textAlign: "left",
                         cursor: "pointer",
                         width: "100%",
-                        transition: "all 0.2s ease",
+                        transition: "background-color 160ms cubic-bezier(0.23, 1, 0.32, 1)",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "rgba(255, 82, 82, 0.08)";
+                        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                          e.currentTarget.style.background = "rgba(255, 82, 82, 0.08)";
+                        }
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "transparent";
@@ -326,19 +334,33 @@ export default function Navbar({ profile }: NavbarProps) {
                   color: "#040a06",
                   borderRadius: "5px",
                   marginLeft: "0.25rem",
-                  transition: "all 0.2s ease",
+                  transition: "background-color 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1)",
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.background =
-                    "#1ded87";
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow =
-                    "0 0 16px rgba(0,230,118,0.4)";
+                  if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                    (e.currentTarget as HTMLAnchorElement).style.background =
+                      "#1ded87";
+                    (e.currentTarget as HTMLAnchorElement).style.boxShadow =
+                      "0 0 16px rgba(0,230,118,0.4)";
+                  }
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLAnchorElement).style.background =
                     "#00e676";
                   (e.currentTarget as HTMLAnchorElement).style.boxShadow =
                     "none";
+                }}
+                onMouseDown={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.transform = "scale(0.96)";
+                }}
+                onMouseUp={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.transform = "none";
+                }}
+                onTouchStart={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.transform = "scale(0.96)";
+                }}
+                onTouchEnd={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.transform = "none";
                 }}
               >
                 Registrarse
@@ -373,7 +395,7 @@ function NavLink({
         textDecoration: "none",
         color: active ? "#00e676" : "#7aaa8a",
         background: active ? "rgba(0, 230, 118, 0.08)" : "transparent",
-        transition: "all 0.18s ease",
+        transition: "color 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms cubic-bezier(0.23, 1, 0.32, 1)",
         position: "relative",
       }}
       className="text-[0.75rem] sm:text-[0.85rem] px-2 sm:px-3 py-1.5 sm:py-1 rounded-[5px]"

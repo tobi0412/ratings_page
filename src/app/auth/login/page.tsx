@@ -83,7 +83,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="card-sport stripe-texture" style={{ padding: "2rem" }}>
+        <div className="card-sport" style={{ padding: "2rem" }}>
           <LoginForm />
 
           <hr className="divider-sport" style={{ margin: "1.5rem 0" }} />

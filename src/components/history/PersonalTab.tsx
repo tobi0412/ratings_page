@@ -248,7 +248,19 @@ export default function PersonalTab({
                 : "rgba(28,56,40,0.3)",
               border: isActive ? "1px solid #00e676" : "1px solid #1c3828",
               color: isActive ? "#00e676" : "#a0c4ac",
-              transition: "all 0.15s ease",
+              transition: "background-color 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms cubic-bezier(0.23, 1, 0.32, 1), color 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1)",
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = "scale(0.96)";
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = "none";
+            }}
+            onTouchStart={(e) => {
+              e.currentTarget.style.transform = "scale(0.96)";
+            }}
+            onTouchEnd={(e) => {
+              e.currentTarget.style.transform = "none";
             }}
           >
             {stats[id]?.profile?.username ?? id}
@@ -782,7 +794,7 @@ export default function PersonalTab({
             Rendimiento del equipo
           </h2>
           <div
-            className="card-sport stripe-texture"
+            className="card-sport"
             style={{
               padding: "1.75rem",
               background: "linear-gradient(135deg, rgba(0, 230, 118, 0.05) 0%, rgba(28, 56, 40, 0.2) 100%)",
