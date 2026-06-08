@@ -1,82 +1,99 @@
-# Design Spec: Voting Usability and Progress Navigation Dock
+# Design Spec: Voting Usability and Progress Navigation (Sidebar & Stories Dock)
 
 **Date**: 2026-06-08  
-**Topic**: Floating Glassmorphic Bottom Progress & Navigation Dock for Voting Screen
+**Topic**: Responsive Navigation System (Web Sidebar & Mobile Stories Dock) for Voting Screen  
 
 ---
 
 ## 1. Goal Description
 
-Improve the usability of the match voting flow by providing a persistent, interactive progress and navigation panel. Currently, as users scroll through the list of players to vote on, they lose context of their overall progress and which players/tasks remain. This feature introduces a floating bottom dock that tracks overall completion, highlights which specific tasks (awards, players, team rating) are pending, and allows quick-jumping (smooth-scrolling) to any task on the page.
+Improve the match voting usability by replacing the previous floating progress dock with a responsive, device-optimized navigation system:
+1. **Web (Desktop)**: A fixed vertical sidebar capsule on the right side of the screen using the empty margin space. It tracks which player is currently in view using an `IntersectionObserver` and enables quick-jump navigation.
+2. **Mobile (Tablet/Phone)**: A floating bottom stories dock containing a horizontal carousel of avatars. It auto-hides on scroll-down to keep inputs clear, and re-appears on scroll-up or vote events.
+3. **Visual States**: Differentiates between rated, pending, and skipped ("No coincidí") players using distinct visual status borders/dots.
+4. **Header Integration**: The top-of-page progress card remains as a static welcoming summary, while the sidebar/dock handles floating interactions.
 
 ---
 
 ## 2. Component Architecture
 
-We will update [VotingProgress.tsx](file:///c:/Users/tobia/Desktop/Ratings_Cotorra/src/components/session/VotingProgress.tsx) to accept the list of players and the user's current votes, enabling it to track the exact rating status of each player.
+We will update [VotingProgress.tsx](file:///c:/Users/tobia/Desktop/Ratings_Cotorra/src/components/session/VotingProgress.tsx) to act as the single state listener and layout switcher.
 
-### Proposed Prop Interface Updates:
+### Prop Interface (Remains same):
 ```typescript
 interface VotingProgressProps {
   players: Profile[];
   myVotes: Rating[];
   awardsComplete: boolean;
   teamRatingSaved: boolean;
-  isCardCompleted: (player: Profile) => boolean;
 }
 ```
 
-### Component Structure:
-* **Static Dashboard Progress Card**: Renders at the top of the viewport at rest.
-* **Sticky/Floating Bottom Navigation Dock**: Renders fixed at the bottom of the viewport (`position: fixed; bottom: 1.5rem; left: 50%`) once the scroll position exceeds a threshold.
+### Inner Component Features:
+1. **Intersection Observer**: Observes `#awards-section`, `#player-card-[id]`, and `#team-rating-section` and updates `activeSectionId`.
+2. **Device Layout Switcher**:
+   - Above `1200px` viewport: Hide bottom dock, render fixed vertical sidebar.
+   - Below `1200px` viewport: Hide sidebar, render floating bottom horizontal stories carousel.
+3. **Task Completion Helper**: `isCardCompleted(player)` determines normal or blank vote completion status.
 
 ---
 
 ## 3. UI/UX Design
 
-### The Floating Dock Layout:
-* **Top Edge**: A 4px turf-lime (`#00e676`) progress bar matching the current total completion percentage.
-* **Left Segment**: Text progress stats: `[Completed Steps] / [Total Steps] Tareas` (e.g. `6 / 12 Tareas`).
-* **Center Segment**: A horizontally scrollable list of mini-badges:
-  - **Awards Task**: A star icon. Lights up in gold (`#ffc93c`) when complete.
-  - **Player Tasks**: Circular badges showing player initials (or avatar image if available).
-    - If rated: Turf-lime border (`1.5px solid #00e676`) with a tiny checkmark badge.
-    - If pending: Muted border (`1px solid #1c3828`) and `opacity: 0.5`.
-  - **Team Rating Task**: A shield icon. Lights up in turf-lime (`#00e676`) when complete.
-* **Right Segment**: A "Next Pending" button that autoscrolls the window to the first uncompleted task. When all tasks are complete, it transitions into a green success checkmark.
+### 3.1 🌐 Web Version: Sidebar Fijo Lateral
+- **Positioning**: Fixed on the right (`position: fixed; right: 2rem; top: 50%; transform: translateY(-50%)`).
+- **Structure**: Vertical capsule of player avatars and section icons (Awards at top, Team Rating at bottom).
+- **Background**: Translucent dark green-black (`rgba(6, 13, 9, 0.6)`) with blur (`backdrop-filter: blur(16px)`) and a subtle glow border.
+- **Scroll Tracking**: Active player capsule highlights with scale (`scale(1.1)`) and a turf-lime pulse shadow.
+- **Hover Tooltips**: Native `title` tooltips for player names.
 
-### Styling & Micro-Interactiveness (Emil Kowalski UI Polish)
-* **Glassmorphic Surface**: Dark green-black base background (`rgba(6, 13, 9, 0.85)`) with a blur filter (`backdrop-filter: blur(12px)`) and a turf-lime glow border (`1px solid rgba(0, 230, 118, 0.2)`).
-* **Hover Tooltips**: Hovering over a player circular badge displays a tooltip with their username.
-* **Scroll-Direction Awareness (Auto-Hide)**:
-  - When scrolling **down** (user is actively interacting/rating), the floating dock hides (`translateY(110%)`).
-  - When scrolling **up** (user is reviewing/navigating) or when a vote is successfully saved, the dock slides **up** into view (`translateY(0)`).
-* **Mobile Optimization**: Under mobile viewports, the dock layout collapses to hide text metrics and only show the horizontal icon navigation track to save screen real estate.
+### 3.2 📱 Versión Mobile: Barra Flotante de Historias (Dock Inferior)
+- **Positioning**: Fixed at the bottom center (`position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%)`). Capped at `480px` max-width.
+- **Structure**: Horizontal flex carousel (`overflow-x: auto; scrollbar-width: none`).
+- **Auto-Hide**: Translates off-screen (`translateY(120%)`) when scrolling down, transitions back on scroll-up or vote update.
+
+### 3.3 Visual States
+
+| State | Web Sidebar (Vertical) | Mobile Stories Dock (Horizontal) |
+|---|---|---|
+| **Voted & Saved** | Continuous turf-lime border (`2px solid #00e676`) + check (✓) badge | Solid turf-lime dot (`#00e676`) centered above avatar |
+| **No coincidí (Blank) Saved** | Dashed turf-lime border (`2px dashed #00e676`) + eye (👁) badge | Small grey/red eye-colored dot above avatar |
+| **Pending** | Muted border (`1px solid #1c3828`), opacity: 0.5 | Muted dark-grey dot (`#1c3828`) above avatar |
 
 ---
 
 ## 4. Interaction and Data Flow
 
-1. **State Management**: [page.tsx](file:///c:/Users/tobia/Desktop/Ratings_Cotorra/src/app/dashboard/page.tsx) maintains the state of `myVotes` and `teamRatingSaved`. Any updates from [VotingCard.tsx](file:///c:/Users/tobia/Desktop/Ratings_Cotorra/src/components/session/VotingCard.tsx) or [TeamRatingCard.tsx](file:///c:/Users/tobia/Desktop/Ratings_Cotorra/src/components/session/TeamRatingCard.tsx) immediately propagate back to the parent and flow into [VotingProgress.tsx](file:///c:/Users/tobia/Desktop/Ratings_Cotorra/src/components/session/VotingProgress.tsx), triggering real-time UI updates on the floating dock.
-2. **Jump-to-Section**: Clicking any badge triggers a smooth scroll to the target element:
-  - Awards: `#awards-section`
-  - Players: `#player-card-[player.id]`
-  - Team Rating: `#team-rating-section`
-3. **"Next Pending" Resolution**:
-  The button resolves target sections in the following order:
-  - If `!awardsComplete` -> `#awards-section`
-  - Else find first player `p` where `!isCardCompleted(p)` -> `#player-card-[p.id]`
-  - Else if `!teamRatingSaved` -> `#team-rating-section`
+1. **Observer Binding**:
+   ```typescript
+   useEffect(() => {
+     const observer = new IntersectionObserver((entries) => {
+       entries.forEach((entry) => {
+         if (entry.isIntersecting) {
+           setActiveSectionId(entry.target.id);
+         }
+       });
+     }, { threshold: 0.5, rootMargin: "-10% 0px -40% 0px" }); // Adjusted offsets for optimal card detection
+     
+     // Observe awards, cards, and team sections...
+     return () => observer.disconnect();
+   }, [players]);
+   ```
+2. **Smooth Scrolling**: Clicking a badge triggers `document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "center" })`.
 
 ---
 
 ## 5. Verification Plan
 
 ### Manual Verification:
-1. Verify static welcome card displays correctly at the top of the dashboard.
-2. Scroll down past 180px and verify that the glassmorphic floating bottom dock fades and slides into view.
-3. Verify that scrolling down hides the dock, and scrolling up or saving a vote shows it.
-4. Verify that each player has a corresponding badge in the center row.
-5. Save a rating for a player and verify that their badge immediately updates with a turf-lime border and checkmark.
-6. Click various badges and verify smooth-scrolling to the correct viewport position.
-7. Click the "Next Pending" button and verify it correctly jumps to the next unrated section.
+1. Verify the static welcome card displays at the top of the page.
+2. **Desktop (>1200px)**:
+   - Check that the vertical sidebar capsule is visible on the right.
+   - Verify that scrolling down the page changes the active scaled avatar bubble in real-time.
+   - Verify that saving a player as "Voted" adds the solid lime border and check badge (✓).
+   - Verify that saving a player as "No coincidí" changes the border to dashed lime and adds the eye badge (👁).
+   - Click avatars to ensure smooth scrolling.
+3. **Mobile (<1200px)**:
+   - Check that the sidebar hides and the bottom horizontal carousel appears.
+   - Verify that the bottom dock slides down on scroll-down and slides back up on scroll-up or vote updates.
+   - Verify that dots above the avatars change to green (voted) or red/grey (skipped) in sync with the state.
