@@ -15,7 +15,7 @@
 **Files:**
 - Modify: `src/app/dashboard/page.tsx:234-243`
 
-- [ ] **Step 1: Modify page.tsx invocation of VotingProgress**
+- [x] **Step 1: Modify page.tsx invocation of VotingProgress**
   Replace the old props with `players` and `myVotes`.
   
   *Code Diff:*
@@ -31,11 +31,11 @@
            />
   ```
 
-- [ ] **Step 2: Run build build checks to confirm compilation is clean (but with TypeScript error in VotingProgress expected)**
+- [x] **Step 2: Run build build checks to confirm compilation is clean (but with TypeScript error in VotingProgress expected)**
   Run: `npm run build`
   Expected: Lint/type checking fails on `VotingProgress` since props aren't updated there yet.
 
-- [ ] **Step 3: Commit current step**
+- [x] **Step 3: Commit current step**
   ```bash
   git add src/app/dashboard/page.tsx
   git commit -m "refactor: update VotingProgress props invocation in dashboard page"
@@ -48,7 +48,7 @@
 **Files:**
 - Modify: `src/components/session/VotingProgress.tsx:1-135`
 
-- [ ] **Step 1: Import Types, Icons, and Update Prop Interface**
+- [x] **Step 1: Import Types, Icons, and Update Prop Interface**
   Add imports for `Profile`, `Rating`, `StarIcon`, `StadiumIcon`, `CheckIcon`, and update the `VotingProgressProps` interface. Implement the `isCardCompleted` checking logic inside the component.
 
   *Code Content:*
@@ -66,7 +66,7 @@
   }
   ```
 
-- [ ] **Step 2: Replace props destructuring and update existing progress metrics calculations**
+- [x] **Step 2: Replace props destructuring and update existing progress metrics calculations**
   Update the main function signature and calculations inside `VotingProgress.tsx`:
   
   *Code Content:*
@@ -97,11 +97,11 @@
     const allTasksCompleted = tasksCompletedCount === 3;
   ```
 
-- [ ] **Step 3: Run build build checks to confirm no type issues in new props**
+- [x] **Step 3: Run build build checks to confirm no type issues in new props**
   Run: `npm run build`
   Expected: Clean build or only style issues if any elements were removed.
 
-- [ ] **Step 4: Commit current step**
+- [x] **Step 4: Commit current step**
   ```bash
   git add src/components/session/VotingProgress.tsx
   git commit -m "feat: update VotingProgress props interface and basic metrics logic"
@@ -114,7 +114,7 @@
 **Files:**
 - Modify: `src/components/session/VotingProgress.tsx:136-532`
 
-- [ ] **Step 1: Add Dock and Navigation Styles to Component `<style>` block**
+- [x] **Step 1: Add Dock and Navigation Styles to Component `<style>` block**
   Add the complete CSS rules for the floating progress dock, list scroll, quick-jump badges, tooltip, next buttons, and mobile overrides.
 
   *Code Content to append to `<style>`:*
@@ -299,7 +299,7 @@
             }
   ```
 
-- [ ] **Step 2: Add Logic for Scroll-Direction Tracking and Dock Auto-Hide**
+- [x] **Step 2: Add Logic for Scroll-Direction Tracking and Dock Auto-Hide**
   Implement scroll delta calculation and the side-effect to temporarily show the dock when votes updates are registered.
   
   *Code Content:*
@@ -342,7 +342,7 @@
     }, [votedCount, scrollY]);
   ```
 
-- [ ] **Step 3: Implement Scroll Helper and Next Pending Navigation Resolver**
+- [x] **Step 3: Implement Scroll Helper and Next Pending Navigation Resolver**
   Write calculations for scrolling to different element IDs.
   
   *Code Content:*
@@ -384,7 +384,7 @@
     }
   ```
 
-- [ ] **Step 4: Render the Glassmorphic Dock UI**
+- [x] **Step 4: Render the Glassmorphic Dock UI**
   Replace the old sticky progress bar & mobile floating pill with the unified floating bottom dock.
   
   *Code Content (to replace return statements from line 445 onwards):*
@@ -523,11 +523,11 @@
         </AnimatePresence>
   ```
 
-- [ ] **Step 5: Run npm run build build compilation test**
+- [x] **Step 5: Run npm run build build compilation test**
   Run: `npm run build`
   Expected: Clean compilation with 0 errors.
 
-- [ ] **Step 6: Commit current step**
+- [x] **Step 6: Commit current step**
   ```bash
   git add src/components/session/VotingProgress.tsx
   git commit -m "feat: replace old sticky bar with full glassmorphic bottom navigation dock"
