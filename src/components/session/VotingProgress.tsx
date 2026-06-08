@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Profile, Rating } from "@/types";
 import { StarIcon, StadiumIcon, CheckIcon, SpyIcon } from "@/components/Icons";
 
@@ -84,6 +85,11 @@ export default function VotingProgress({
   teamRatingSaved,
 }: VotingProgressProps) {
   const totalPlayers = players.length;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Helper to evaluate completeness of a player's card
   const isCardCompleted = (player: Profile) => {
@@ -606,150 +612,156 @@ export default function VotingProgress({
         </motion.button>
       </div>
 
-      {/* --- WEB SIDEBAR CAPSULE --- */}
-      <div className="voting-sidebar">
-        {/* Awards Badge */}
-        <div
-          onClick={() => handleScrollTo("awards-section")}
-          title="Premios de la Sesión"
-          className={`sidebar-badge-item ${
-            activeSectionId === "awards-section" ? "is-active" : ""
-          } ${awardsComplete ? "sidebar-badge-voted" : ""}`}
-        >
-          <StarIcon size={16} filled={awardsComplete} style={{ color: awardsComplete ? "#ffc93c" : undefined }} />
-          {awardsComplete && (
-            <div className="badge-overlay-icon badge-overlay-voted">
-              <CheckIcon size={8} strokeWidth={4} />
-            </div>
-          )}
-        </div>
-
-        {/* Player Avatars */}
-        {players.map((player) => {
-          const completed = isCardCompleted(player);
-          const isBlank = isPlayerBlankVote(player);
-          const initials = player.username ? player.username.substring(0, 2).toUpperCase() : "?";
-          const isActive = activeSectionId === `player-card-${player.id}`;
-
-          return (
+      {/* Render floating components in Portal to document.body to prevent parent transforms from breaking position: fixed */}
+      {mounted && typeof document !== "undefined" && createPortal(
+        <>
+          {/* --- WEB SIDEBAR CAPSULE --- */}
+          <div className="voting-sidebar">
+            {/* Awards Badge */}
             <div
-              key={player.id}
-              onClick={() => handleScrollTo(`player-card-${player.id}`)}
-              title={player.username}
-              className={`sidebar-badge-item ${isActive ? "is-active" : ""} ${
-                completed ? (isBlank ? "sidebar-badge-blank" : "sidebar-badge-voted") : ""
-              }`}
+              onClick={() => handleScrollTo("awards-section")}
+              title="Premios de la Sesión"
+              className={`sidebar-badge-item ${
+                activeSectionId === "awards-section" ? "is-active" : ""
+              } ${awardsComplete ? "sidebar-badge-voted" : ""}`}
             >
-              {initials}
-              {completed && (
-                isBlank ? (
-                  <div className="badge-overlay-icon badge-overlay-blank" title="No coincidí en cancha">
-                    <SpyIcon size={8} />
-                  </div>
-                ) : (
-                  <div className="badge-overlay-icon badge-overlay-voted">
-                    <CheckIcon size={8} strokeWidth={4} />
-                  </div>
-                )
+              <StarIcon size={16} filled={awardsComplete} style={{ color: awardsComplete ? "#ffc93c" : undefined }} />
+              {awardsComplete && (
+                <div className="badge-overlay-icon badge-overlay-voted">
+                  <CheckIcon size={8} strokeWidth={4} />
+                </div>
               )}
             </div>
-          );
-        })}
 
-        {/* Team Rating Badge */}
-        <div
-          onClick={() => handleScrollTo("team-rating-section")}
-          title="Rendimiento del Equipo"
-          className={`sidebar-badge-item ${
-            activeSectionId === "team-rating-section" ? "is-active" : ""
-          } ${teamRatingSaved ? "sidebar-badge-voted" : ""}`}
-        >
-          <StadiumIcon size={16} style={{ color: teamRatingSaved ? "#00e676" : undefined }} />
-          {teamRatingSaved && (
-            <div className="badge-overlay-icon badge-overlay-voted">
-              <CheckIcon size={8} strokeWidth={4} />
-            </div>
-          )}
-        </div>
-      </div>
+            {/* Player Avatars */}
+            {players.map((player) => {
+              const completed = isCardCompleted(player);
+              const isBlank = isPlayerBlankVote(player);
+              const initials = player.username ? player.username.substring(0, 2).toUpperCase() : "?";
+              const isActive = activeSectionId === `player-card-${player.id}`;
 
-      {/* --- MOBILE STORIES DOCK --- */}
-      <AnimatePresence>
-        {showStickyFills && (
-          <motion.div
-            initial={{ y: 100, x: "-50%", opacity: 0 }}
-            animate={{ 
-              y: dockVisible ? 0 : 120, 
-              x: "-50%",
-              opacity: dockVisible ? 1 : 0 
-            }}
-            exit={{ y: 100, x: "-50%", opacity: 0 }}
-            transition={{ type: "spring", stiffness: 260, damping: 26 }}
-            className="mobile-stories-dock"
-          >
-            <div className="mobile-dock-carousel">
-              {/* Awards */}
-              <div
-                onClick={() => handleScrollTo("awards-section")}
-                className={`mobile-badge-item ${
-                  activeSectionId === "awards-section" ? "is-active" : ""
-                }`}
-              >
+              return (
                 <div
-                  className="status-dot-above"
-                  style={{
-                    background: awardsComplete ? "#ffc93c" : "#1c3828"
-                  }}
-                />
-                <StarIcon size={14} filled={awardsComplete} style={{ color: awardsComplete ? "#ffc93c" : undefined }} />
-              </div>
+                  key={player.id}
+                  onClick={() => handleScrollTo(`player-card-${player.id}`)}
+                  title={player.username}
+                  className={`sidebar-badge-item ${isActive ? "is-active" : ""} ${
+                    completed ? (isBlank ? "sidebar-badge-blank" : "sidebar-badge-voted") : ""
+                  }`}
+                >
+                  {initials}
+                  {completed && (
+                    isBlank ? (
+                      <div className="badge-overlay-icon badge-overlay-blank" title="No coincidí en cancha">
+                        <SpyIcon size={8} />
+                      </div>
+                    ) : (
+                      <div className="badge-overlay-icon badge-overlay-voted">
+                        <CheckIcon size={8} strokeWidth={4} />
+                      </div>
+                    )
+                  )}
+                </div>
+              );
+            })}
 
-              {/* Players */}
-              {players.map((player) => {
-                const completed = isCardCompleted(player);
-                const isBlank = isPlayerBlankVote(player);
-                const initials = player.username ? player.username.substring(0, 2).toUpperCase() : "?";
-                const isActive = activeSectionId === `player-card-${player.id}`;
+            {/* Team Rating Badge */}
+            <div
+              onClick={() => handleScrollTo("team-rating-section")}
+              title="Rendimiento del Equipo"
+              className={`sidebar-badge-item ${
+                activeSectionId === "team-rating-section" ? "is-active" : ""
+              } ${teamRatingSaved ? "sidebar-badge-voted" : ""}`}
+            >
+              <StadiumIcon size={16} style={{ color: teamRatingSaved ? "#00e676" : undefined }} />
+              {teamRatingSaved && (
+                <div className="badge-overlay-icon badge-overlay-voted">
+                  <CheckIcon size={8} strokeWidth={4} />
+                </div>
+              )}
+            </div>
+          </div>
 
-                let dotColor = "#1c3828"; // Pending
-                if (completed) {
-                  dotColor = isBlank ? "#ff5252" : "#00e676"; // Red/Orange-ish for blank, lime green for voted
-                }
-
-                return (
+          {/* --- MOBILE STORIES DOCK --- */}
+          <AnimatePresence>
+            {showStickyFills && (
+              <motion.div
+                initial={{ y: 100, x: "-50%", opacity: 0 }}
+                animate={{ 
+                  y: dockVisible ? 0 : 120, 
+                  x: "-50%",
+                  opacity: dockVisible ? 1 : 0 
+                }}
+                exit={{ y: 100, x: "-50%", opacity: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 26 }}
+                className="mobile-stories-dock"
+              >
+                <div className="mobile-dock-carousel">
+                  {/* Awards */}
                   <div
-                    key={player.id}
-                    onClick={() => handleScrollTo(`player-card-${player.id}`)}
-                    className={`mobile-badge-item ${isActive ? "is-active" : ""}`}
+                    onClick={() => handleScrollTo("awards-section")}
+                    className={`mobile-badge-item ${
+                      activeSectionId === "awards-section" ? "is-active" : ""
+                    }`}
                   >
                     <div
                       className="status-dot-above"
-                      style={{ background: dotColor }}
+                      style={{
+                        background: awardsComplete ? "#ffc93c" : "#1c3828"
+                      }}
                     />
-                    {initials}
+                    <StarIcon size={14} filled={awardsComplete} style={{ color: awardsComplete ? "#ffc93c" : undefined }} />
                   </div>
-                );
-              })}
 
-              {/* Team Rating */}
-              <div
-                onClick={() => handleScrollTo("team-rating-section")}
-                className={`mobile-badge-item ${
-                  activeSectionId === "team-rating-section" ? "is-active" : ""
-                }`}
-              >
-                <div
-                  className="status-dot-above"
-                  style={{
-                    background: teamRatingSaved ? "#00e676" : "#1c3828"
-                  }}
-                />
-                <StadiumIcon size={14} style={{ color: teamRatingSaved ? "#00e676" : undefined }} />
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                  {/* Players */}
+                  {players.map((player) => {
+                    const completed = isCardCompleted(player);
+                    const isBlank = isPlayerBlankVote(player);
+                    const initials = player.username ? player.username.substring(0, 2).toUpperCase() : "?";
+                    const isActive = activeSectionId === `player-card-${player.id}`;
+
+                    let dotColor = "#1c3828"; // Pending
+                    if (completed) {
+                      dotColor = isBlank ? "#ff5252" : "#00e676"; // Red/Orange-ish for blank, lime green for voted
+                    }
+
+                    return (
+                      <div
+                        key={player.id}
+                        onClick={() => handleScrollTo(`player-card-${player.id}`)}
+                        className={`mobile-badge-item ${isActive ? "is-active" : ""}`}
+                      >
+                        <div
+                          className="status-dot-above"
+                          style={{ background: dotColor }}
+                        />
+                        {initials}
+                      </div>
+                    );
+                  })}
+
+                  {/* Team Rating */}
+                  <div
+                    onClick={() => handleScrollTo("team-rating-section")}
+                    className={`mobile-badge-item ${
+                      activeSectionId === "team-rating-section" ? "is-active" : ""
+                    }`}
+                  >
+                    <div
+                      className="status-dot-above"
+                      style={{
+                        background: teamRatingSaved ? "#00e676" : "#1c3828"
+                      }}
+                    />
+                    <StadiumIcon size={14} style={{ color: teamRatingSaved ? "#00e676" : undefined }} />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>,
+        document.body
+      )}
     </div>
   );
 }
