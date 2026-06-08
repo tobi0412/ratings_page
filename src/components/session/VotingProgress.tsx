@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Profile, Rating } from "@/types";
@@ -173,7 +173,6 @@ export default function VotingProgress({
   const completedSteps = votedCount + (awardsComplete ? 1 : 0) + (teamRatingSaved ? 1 : 0);
   const percentage = totalSteps > 0 ? Math.floor((completedSteps / totalSteps) * 100) : 0;
 
-  const shouldReduceMotion = useReducedMotion();
 
   const { scrollY } = useScroll();
   const [showStickyFills, setShowStickyFills] = useState(false);
