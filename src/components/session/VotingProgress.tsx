@@ -3,7 +3,7 @@
 import { motion, useReducedMotion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { Profile, Rating } from "@/types";
-import { StarIcon, StadiumIcon, CheckIcon } from "@/components/Icons";
+import { StarIcon, StadiumIcon, CheckIcon, SpyIcon } from "@/components/Icons";
 
 interface VotingProgressProps {
   players: Profile[];
@@ -85,50 +85,69 @@ export default function VotingProgress({
 }: VotingProgressProps) {
   const totalPlayers = players.length;
 
+  // Helper to evaluate completeness of a player's card
   const isCardCompleted = (player: Profile) => {
     const vote = myVotes.find((v) => v.receiver_id === player.id);
     if (!vote) return false;
-    if (vote.tecnica !== null) return true;
-    if (!vote.is_mvp && !vote.is_bigpaper && !vote.is_poop) return true;
+    if (vote.tecnica !== null) return true; // Normal rated
+    if (!vote.is_mvp && !vote.is_bigpaper && !vote.is_poop) return true; // Blank vote ("No coincidí")
     return false;
+  };
+
+  // Helper to check if a player was voted "No coincidí"
+  const isPlayerBlankVote = (player: Profile) => {
+    const vote = myVotes.find((v) => v.receiver_id === player.id);
+    return !!vote && vote.tecnica === null && !vote.is_mvp && !vote.is_bigpaper && !vote.is_poop;
   };
 
   const votedCount = players.filter(isCardCompleted).length;
   const totalSteps = totalPlayers + 2; // players + awards + team rating
   const completedSteps = votedCount + (awardsComplete ? 1 : 0) + (teamRatingSaved ? 1 : 0);
   const percentage = totalSteps > 0 ? Math.floor((completedSteps / totalSteps) * 100) : 0;
-  
-  const tasksCompletedCount = (votedCount === totalPlayers ? 1 : 0) + (awardsComplete ? 1 : 0) + (teamRatingSaved ? 1 : 0);
-  const allTasksCompleted = tasksCompletedCount === 3;
 
   const shouldReduceMotion = useReducedMotion();
   const progressTransition = shouldReduceMotion
     ? { duration: 0 }
     : ({ type: "spring", stiffness: 100, damping: 20 } as const);
 
-  // Scroll tracking to show floating actions
   const { scrollY } = useScroll();
   const [showStickyFills, setShowStickyFills] = useState(false);
-
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    // Show sticky mini progress line and mobile pill on scroll
-    if (latest > 180) {
-      setShowStickyFills(true);
-    } else {
-      setShowStickyFills(false);
-    }
-  });
   const [dockVisible, setDockVisible] = useState(false);
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const lastScrollY = useRef(0);
 
+  // Intersection Observer to update active navigation bubble/badge
+  useEffect(() => {
+    if (players.length === 0) return;
+    const targetIds = ["awards-section", ...players.map((p) => `player-card-${p.id}`), "team-rating-section"];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSectionId(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.4, rootMargin: "-10% 0px -30% 0px" }
+    );
+
+    targetIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [players]);
+
+  // Handle show/hide logic on scroll for mobile stories dock
   useMotionValueEvent(scrollY, "change", (latest) => {
     if (latest > 180) {
       setShowStickyFills(true);
       const diff = latest - lastScrollY.current;
       if (diff > 5) {
-        setDockVisible(false);
+        setDockVisible(false); // Hide on scroll down
       } else if (diff < -5) {
-        setDockVisible(true);
+        setDockVisible(true); // Show on scroll up
       }
     } else {
       setShowStickyFills(false);
@@ -137,6 +156,7 @@ export default function VotingProgress({
     lastScrollY.current = latest;
   });
 
+  // Auto-reveal mobile dock briefly when a vote count increases
   const prevVotedCount = useRef(votedCount);
   useEffect(() => {
     if (votedCount !== prevVotedCount.current) {
@@ -154,307 +174,259 @@ export default function VotingProgress({
     }
   };
 
-  const getNextPendingElementId = () => {
-    if (!awardsComplete) {
-      return "awards-section";
-    }
-    
-    const incompletePlayer = players.find(p => !isCardCompleted(p));
-    if (incompletePlayer) {
-      return `player-card-${incompletePlayer.id}`;
-    }
-
-    if (!teamRatingSaved) {
-      return "team-rating-section";
-    }
-
-    return null;
-  };
-
-  const nextPendingId = getNextPendingElementId();
-  let nextLabel = "Siguiente";
-  if (nextPendingId === "awards-section") {
-    nextLabel = "Premios";
-  } else if (nextPendingId === "team-rating-section") {
-    nextLabel = "Equipo";
-  } else if (nextPendingId?.startsWith("player-card-")) {
-    const pId = nextPendingId.replace("player-card-", "");
-    const player = players.find(p => p.id === pId);
-    nextLabel = player ? player.username.split(" ")[0] : "Jugador";
-  }
-
   return (
     <div className="card-sport sticky-progress-card">
       <style>{`
+        .sticky-progress-card {
+          background: linear-gradient(135deg, rgba(11, 24, 16, 0.85) 0%, rgba(6, 13, 9, 0.9) 100%);
+          background-image: 
+            repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(0, 230, 118, 0.008) 14px, rgba(0, 230, 118, 0.008) 28px),
+            linear-gradient(135deg, rgba(11, 24, 16, 0.85) 0%, rgba(6, 13, 9, 0.9) 100%);
+          border: 1px solid rgba(28, 56, 40, 0.7);
+          border-top: 1px solid rgba(0, 230, 118, 0.25);
+          border-radius: 12px;
+          padding: 1.25rem 1.5rem;
+          position: relative;
+          transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @media (min-width: 768px) {
           .sticky-progress-card {
-            background: linear-gradient(135deg, rgba(11, 24, 16, 0.85) 0%, rgba(6, 13, 9, 0.9) 100%);
-            background-image: 
-              repeating-linear-gradient(-45deg, transparent, transparent 14px, rgba(0, 230, 118, 0.008) 14px, rgba(0, 230, 118, 0.008) 28px),
-              linear-gradient(135deg, rgba(11, 24, 16, 0.85) 0%, rgba(6, 13, 9, 0.9) 100%);
-            border: 1px solid rgba(28, 56, 40, 0.7);
-            border-top: 1px solid rgba(0, 230, 118, 0.25);
-            border-radius: 12px;
-            padding: 1.25rem 1.5rem;
-            position: relative;
-            transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1);
-          }
-
-          @media (min-width: 768px) {
-            .sticky-progress-card {
-              border-radius: 16px;
-              padding: 1.5rem 1.75rem;
-            }
-          }
-
-          /* Keep wrapper relative so the card does not stick and crowd the screen */
-          .sticky-progress-wrapper {
-            position: relative;
-            margin-bottom: 1.25rem;
-          }
-          @media (min-width: 768px) {
-            .sticky-progress-wrapper {
-              position: relative;
-              margin-bottom: 1.5rem;
-            }
-          }
-
-          .task-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            width: 100%;
-          }
-
-          .progress-task-btn {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(28, 56, 40, 0.5);
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            position: relative;
-            overflow: hidden;
-            transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1);
-          }
-          @media (min-width: 768px) {
-            .progress-task-btn {
-              padding: 0.75rem 1rem;
-              border-radius: 10px;
-              font-size: 0.85rem;
-              background: rgba(0, 0, 0, 0.25);
-            }
-          }
-
-          .task-arrow {
-            display: inline-block;
-            color: #00e676;
-            margin-left: 0.5rem;
-            flex-shrink: 0;
-          }
-
-          @keyframes progress-shimmer {
-            0% {
-              background-position: 0% 50%;
-            }
-            100% {
-              background-position: 200% 50%;
-            }
-          }
-          .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00e676, #0ff884 50%, #00e676);
-            background-size: 200% 100%;
-            animation: progress-shimmer 2.5s linear infinite;
-            border-radius: 3px;
-          }
-
-          .voting-dock-container {
-            background: linear-gradient(135deg, rgba(11, 24, 16, 0.9) 0%, rgba(6, 13, 9, 0.95) 100%);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 230, 118, 0.25);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 230, 118, 0.05);
             border-radius: 16px;
+            padding: 1.5rem 1.75rem;
+          }
+        }
+
+        .task-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          margin-top: 1rem;
+          width: 100%;
+        }
+
+        .progress-task-btn {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          padding: 0.65rem 0.9rem;
+          background: rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(28, 56, 40, 0.5);
+          border-radius: 8px;
+          cursor: pointer;
+          font-family: 'Barlow Condensed', sans-serif;
+          font-size: 0.8rem;
+          font-weight: 700;
+          letter-spacing: 0.03em;
+          text-transform: uppercase;
+          position: relative;
+          overflow: hidden;
+          transition: all 200ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        @media (min-width: 768px) {
+          .progress-task-btn {
             padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            background: rgba(0, 0, 0, 0.25);
+          }
+        }
+
+        .task-arrow {
+          display: inline-block;
+          color: #00e676;
+          margin-left: 0.5rem;
+          flex-shrink: 0;
+        }
+
+        @keyframes progress-shimmer {
+          0% {
+            background-position: 0% 50%;
+          }
+          100% {
+            background-position: 200% 50%;
+          }
+        }
+        .progress-bar-fill {
+          height: 100%;
+          background: linear-gradient(90deg, #00e676, #0ff884 50%, #00e676);
+          background-size: 200% 100%;
+          animation: progress-shimmer 2.5s linear infinite;
+          border-radius: 3px;
+        }
+
+        /* --- Desktop Sidebar Capsule --- */
+        .voting-sidebar {
+          display: none;
+        }
+
+        @media (min-width: 1200px) {
+          .voting-sidebar {
+            position: fixed;
+            top: 50%;
+            right: 2.5rem;
+            transform: translateY(-50%);
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            overflow: hidden;
-          }
-
-          .dock-top-progress {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: #1c3828;
-          }
-
-          .dock-content {
-            display: flex;
+            gap: 0.75rem;
+            z-index: 100;
+            background: rgba(6, 13, 9, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 230, 118, 0.15);
+            border-radius: 99px;
+            padding: 1.25rem 0.65rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
             align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            width: 100%;
+            transition: border-color 0.3s ease;
           }
+          .voting-sidebar:hover {
+            border-color: rgba(0, 230, 118, 0.35);
+          }
+        }
 
-          .dock-stats {
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-          }
+        .sidebar-badge-item {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          position: relative;
+          background: rgba(0, 0, 0, 0.4);
+          border: 1.5px solid #1c3828;
+          color: #3d6e50;
+          transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: 1.1rem;
+        }
+        
+        .sidebar-badge-item.is-active {
+          transform: scale(1.15);
+          box-shadow: 0 0 14px rgba(0, 230, 118, 0.35);
+          border-color: #00e676;
+          color: #e4f0e8;
+        }
 
-          .dock-stats-num {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 1.4rem;
-            color: #00e676;
-            line-height: 1;
-          }
+        .sidebar-badge-item:hover {
+          transform: scale(1.1);
+          border-color: rgba(0, 230, 118, 0.5);
+          color: #e4f0e8;
+        }
 
-          .dock-stats-label {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 0.65rem;
-            color: #3d6e50;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-          }
+        .sidebar-badge-voted {
+          border-color: #00e676;
+          background: rgba(0, 230, 118, 0.08);
+          color: #00e676;
+        }
 
-          .dock-scroll-area {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            overflow-x: auto;
-            padding: 0.25rem 0;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            flex-grow: 1;
-            justify-content: center;
-          }
-          .dock-scroll-area::-webkit-scrollbar {
-            display: none;
-          }
+        .sidebar-badge-blank {
+          border: 1.5px dashed rgba(0, 230, 118, 0.6);
+          background: rgba(0, 230, 118, 0.03);
+          color: rgba(0, 230, 118, 0.65);
+        }
 
-          .dock-badge {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: 0.9rem;
-            cursor: pointer;
-            position: relative;
-            flex-shrink: 0;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-          }
+        .badge-overlay-icon {
+          position: absolute;
+          bottom: -3px;
+          right: -3px;
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid #060d09;
+        }
 
-          .dock-badge-pending {
-            border: 1px solid #1c3828;
-            background: rgba(0, 0, 0, 0.4);
-            color: #3d6e50;
-            opacity: 0.6;
-          }
-          .dock-badge-pending:hover {
-            border-color: rgba(0, 230, 118, 0.4);
-            color: #e4f0e8;
-            opacity: 0.9;
-            scale: 1.05;
-          }
+        .badge-overlay-voted {
+          background: #00e676;
+          color: #060d09;
+        }
 
-          .dock-badge-completed {
-            border: 1.5px solid #00e676;
-            background: rgba(0, 230, 118, 0.12);
-            color: #00e676;
-            box-shadow: 0 0 10px rgba(0, 230, 118, 0.15);
-          }
-          .dock-badge-completed:hover {
-            scale: 1.05;
-            box-shadow: 0 0 12px rgba(0, 230, 118, 0.3);
-          }
+        .badge-overlay-blank {
+          background: #3d6e50;
+          color: #e4f0e8;
+        }
 
-          .dock-badge-checkmark {
-            position: absolute;
-            bottom: -2px;
-            right: -2px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #00e676;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #060d09;
-            border: 1px solid #060d09;
-          }
+        /* --- Mobile Stories Dock --- */
+        .mobile-stories-dock {
+          position: fixed;
+          bottom: 1.5rem;
+          left: 50%;
+          transform: translateX(-50%);
+          width: calc(100% - 2.5rem);
+          max-width: 480px;
+          z-index: 100;
+          display: flex;
+          align-items: center;
+          background: linear-gradient(135deg, rgba(11, 24, 16, 0.92) 0%, rgba(6, 13, 9, 0.96) 100%);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(0, 230, 118, 0.25);
+          border-radius: 20px;
+          padding: 0.6rem 0.85rem;
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+        }
 
-          .dock-btn-next {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.35rem;
-            padding: 0.5rem 0.75rem;
-            background: #00e676;
-            color: #040a06;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Barlow Condensed', sans-serif;
-            font-weight: 700;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
+        @media (min-width: 1200px) {
+          .mobile-stories-dock {
+            display: none !important;
           }
-          .dock-btn-next:hover {
-            background: #1ded87;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 230, 118, 0.3);
-          }
-          .dock-btn-next:active {
-            transform: translateY(0);
-          }
+        }
 
-          .dock-btn-complete {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.35rem;
-            padding: 0.5rem 0.75rem;
-            background: rgba(0, 230, 118, 0.15);
-            color: #00e676;
-            border: 1px solid rgba(0, 230, 118, 0.3);
-            border-radius: 8px;
-            font-family: 'Barlow Condensed', sans-serif;
-            font-weight: 700;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            flex-shrink: 0;
-          }
+        .mobile-dock-carousel {
+          display: flex;
+          align-items: center;
+          gap: 0.65rem;
+          overflow-x: auto;
+          padding: 0.4rem 0.1rem;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          width: 100%;
+        }
+        .mobile-dock-carousel::-webkit-scrollbar {
+          display: none;
+        }
 
-          @media (max-width: 640px) {
-            .dock-stats {
-              display: none;
-            }
-            .dock-btn-next, .dock-btn-complete {
-              padding: 0.45rem 0.6rem;
-              font-size: 0.7rem;
-            }
-            .dock-scroll-area {
-              justify-content: flex-start;
-            }
-          }
+        .mobile-badge-item {
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          position: relative;
+          background: rgba(0, 0, 0, 0.4);
+          border: 1px solid #1c3828;
+          color: #3d6e50;
+          transition: all 0.25s ease;
+          flex-shrink: 0;
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: 1rem;
+        }
+
+        .mobile-badge-item.is-active {
+          border-color: #00e676;
+          transform: scale(1.1);
+          box-shadow: 0 0 10px rgba(0, 230, 118, 0.25);
+        }
+
+        .mobile-badge-item:hover {
+          border-color: rgba(0, 230, 118, 0.4);
+        }
+
+        .status-dot-above {
+          position: absolute;
+          top: -6px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          transition: background-color 0.2s ease;
+        }
       `}</style>
       
       {/* Header Info */}
@@ -534,7 +506,6 @@ export default function VotingProgress({
           whileTap="tap"
           className="progress-task-btn"
         >
-          {/* Left Edge Status strip */}
           <div
             style={{
               position: "absolute",
@@ -571,7 +542,6 @@ export default function VotingProgress({
           whileTap="tap"
           className="progress-task-btn"
         >
-          {/* Left Edge Status strip */}
           <div
             style={{
               position: "absolute",
@@ -608,7 +578,6 @@ export default function VotingProgress({
           whileTap="tap"
           className="progress-task-btn"
         >
-          {/* Left Edge Status strip */}
           <div
             style={{
               position: "absolute",
@@ -637,134 +606,146 @@ export default function VotingProgress({
         </motion.button>
       </div>
 
-      {/* Floating Action & Navigation Dock */}
+      {/* --- WEB SIDEBAR CAPSULE --- */}
+      <div className="voting-sidebar">
+        {/* Awards Badge */}
+        <div
+          onClick={() => handleScrollTo("awards-section")}
+          title="Premios de la Sesión"
+          className={`sidebar-badge-item ${
+            activeSectionId === "awards-section" ? "is-active" : ""
+          } ${awardsComplete ? "sidebar-badge-voted" : ""}`}
+        >
+          <StarIcon size={16} filled={awardsComplete} style={{ color: awardsComplete ? "#ffc93c" : undefined }} />
+          {awardsComplete && (
+            <div className="badge-overlay-icon badge-overlay-voted">
+              <CheckIcon size={8} strokeWidth={4} />
+            </div>
+          )}
+        </div>
+
+        {/* Player Avatars */}
+        {players.map((player) => {
+          const completed = isCardCompleted(player);
+          const isBlank = isPlayerBlankVote(player);
+          const initials = player.username ? player.username.substring(0, 2).toUpperCase() : "?";
+          const isActive = activeSectionId === `player-card-${player.id}`;
+
+          return (
+            <div
+              key={player.id}
+              onClick={() => handleScrollTo(`player-card-${player.id}`)}
+              title={player.username}
+              className={`sidebar-badge-item ${isActive ? "is-active" : ""} ${
+                completed ? (isBlank ? "sidebar-badge-blank" : "sidebar-badge-voted") : ""
+              }`}
+            >
+              {initials}
+              {completed && (
+                isBlank ? (
+                  <div className="badge-overlay-icon badge-overlay-blank" title="No coincidí en cancha">
+                    <SpyIcon size={8} />
+                  </div>
+                ) : (
+                  <div className="badge-overlay-icon badge-overlay-voted">
+                    <CheckIcon size={8} strokeWidth={4} />
+                  </div>
+                )
+              )}
+            </div>
+          );
+        })}
+
+        {/* Team Rating Badge */}
+        <div
+          onClick={() => handleScrollTo("team-rating-section")}
+          title="Rendimiento del Equipo"
+          className={`sidebar-badge-item ${
+            activeSectionId === "team-rating-section" ? "is-active" : ""
+          } ${teamRatingSaved ? "sidebar-badge-voted" : ""}`}
+        >
+          <StadiumIcon size={16} style={{ color: teamRatingSaved ? "#00e676" : undefined }} />
+          {teamRatingSaved && (
+            <div className="badge-overlay-icon badge-overlay-voted">
+              <CheckIcon size={8} strokeWidth={4} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* --- MOBILE STORIES DOCK --- */}
       <AnimatePresence>
         {showStickyFills && (
           <motion.div
             initial={{ y: 100, x: "-50%", opacity: 0 }}
             animate={{ 
               y: dockVisible ? 0 : 120, 
+              x: "-50%",
               opacity: dockVisible ? 1 : 0 
             }}
             exit={{ y: 100, x: "-50%", opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 26 }}
-            style={{
-              position: "fixed",
-              bottom: "1.5rem",
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 1000,
-              width: "calc(100% - 2.5rem)",
-              maxWidth: "680px",
-            }}
-            className="voting-dock-container"
+            className="mobile-stories-dock"
           >
-            {/* Top Progress Line */}
-            <div className="dock-top-progress">
-              <motion.div
-                animate={{ width: `${percentage}%` }}
-                transition={progressTransition}
-                className="progress-bar-fill"
-                style={{
-                  boxShadow: "0 0 10px rgba(0,230,118,0.5)",
-                }}
-              />
-            </div>
-
-            {/* Main Dock Content */}
-            <div className="dock-content">
-              
-              {/* Stats */}
-              <div className="dock-stats">
-                <span className="dock-stats-num">{completedSteps} / {totalSteps}</span>
-                <span className="dock-stats-label">Tareas</span>
+            <div className="mobile-dock-carousel">
+              {/* Awards */}
+              <div
+                onClick={() => handleScrollTo("awards-section")}
+                className={`mobile-badge-item ${
+                  activeSectionId === "awards-section" ? "is-active" : ""
+                }`}
+              >
+                <div
+                  className="status-dot-above"
+                  style={{
+                    background: awardsComplete ? "#ffc93c" : "#1c3828"
+                  }}
+                />
+                <StarIcon size={14} filled={awardsComplete} style={{ color: awardsComplete ? "#ffc93c" : undefined }} />
               </div>
 
-              {/* Horizontal Indicators / Quick-Jump badges */}
-              <div className="dock-scroll-area">
-                {/* Awards Badge */}
-                <div
-                  onClick={() => handleScrollTo("awards-section")}
-                  title="Premios de la Sesión"
-                  className={`dock-badge ${
-                    awardsComplete 
-                      ? "dock-badge-completed" 
-                      : "dock-badge-pending"
-                  }`}
-                >
-                  <StarIcon size={14} filled={awardsComplete} style={{ color: awardsComplete ? "#ffc93c" : undefined }} />
-                  {awardsComplete && (
-                    <div className="dock-badge-checkmark">
-                      <CheckIcon size={8} strokeWidth={4} />
-                    </div>
-                  )}
-                </div>
+              {/* Players */}
+              {players.map((player) => {
+                const completed = isCardCompleted(player);
+                const isBlank = isPlayerBlankVote(player);
+                const initials = player.username ? player.username.substring(0, 2).toUpperCase() : "?";
+                const isActive = activeSectionId === `player-card-${player.id}`;
 
-                {/* Player Badges */}
-                {players.map((player) => {
-                  const completed = isCardCompleted(player);
-                  const initials = player.username ? player.username.substring(0, 2).toUpperCase() : "?";
-                  return (
-                    <div
-                      key={player.id}
-                      onClick={() => handleScrollTo(`player-card-${player.id}`)}
-                      title={player.username}
-                      className={`dock-badge ${
-                        completed 
-                          ? "dock-badge-completed" 
-                          : "dock-badge-pending"
-                      }`}
-                    >
-                      {initials}
-                      {completed && (
-                        <div className="dock-badge-checkmark">
-                          <CheckIcon size={8} strokeWidth={4} />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                let dotColor = "#1c3828"; // Pending
+                if (completed) {
+                  dotColor = isBlank ? "#ff5252" : "#00e676"; // Red/Orange-ish for blank, lime green for voted
+                }
 
-                {/* Team Rating Badge */}
-                <div
-                  onClick={() => handleScrollTo("team-rating-section")}
-                  title="Rendimiento del Equipo"
-                  className={`dock-badge ${
-                    teamRatingSaved 
-                      ? "dock-badge-completed" 
-                      : "dock-badge-pending"
-                  }`}
-                >
-                  <StadiumIcon size={14} style={{ color: teamRatingSaved ? "#00e676" : undefined }} />
-                  {teamRatingSaved && (
-                    <div className="dock-badge-checkmark">
-                      <CheckIcon size={8} strokeWidth={4} />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* CTA Action button */}
-              {allTasksCompleted ? (
-                <div className="dock-btn-complete animate-pulse">
-                  <CheckIcon size={12} strokeWidth={3} />
-                  <span>Listo!</span>
-                </div>
-              ) : (
-                nextPendingId && (
-                  <button
-                    onClick={() => handleScrollTo(nextPendingId)}
-                    className="dock-btn-next"
+                return (
+                  <div
+                    key={player.id}
+                    onClick={() => handleScrollTo(`player-card-${player.id}`)}
+                    className={`mobile-badge-item ${isActive ? "is-active" : ""}`}
                   >
-                    <span>{nextLabel}</span>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: "rotate(90deg)" }}>
-                      <path d="M5 12h14" />
-                      <path d="m12 5 7 7-7 7" />
-                    </svg>
-                  </button>
-                )
-              )}
+                    <div
+                      className="status-dot-above"
+                      style={{ background: dotColor }}
+                    />
+                    {initials}
+                  </div>
+                );
+              })}
 
+              {/* Team Rating */}
+              <div
+                onClick={() => handleScrollTo("team-rating-section")}
+                className={`mobile-badge-item ${
+                  activeSectionId === "team-rating-section" ? "is-active" : ""
+                }`}
+              >
+                <div
+                  className="status-dot-above"
+                  style={{
+                    background: teamRatingSaved ? "#00e676" : "#1c3828"
+                  }}
+                />
+                <StadiumIcon size={14} style={{ color: teamRatingSaved ? "#00e676" : undefined }} />
+              </div>
             </div>
           </motion.div>
         )}
