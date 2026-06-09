@@ -181,6 +181,7 @@ export default function DashboardPage() {
 
   return (
     <div
+      className="dashboard-mobile-wrapper"
       style={{
         maxWidth: "1280px",
         margin: "0 auto",
@@ -205,6 +206,9 @@ export default function DashboardPage() {
         @media (max-width: 1199px) {
           .dashboard-sidebar-col {
             display: none !important;
+          }
+          .dashboard-mobile-wrapper {
+            padding-bottom: 7rem !important;
           }
         }
       `}</style>
