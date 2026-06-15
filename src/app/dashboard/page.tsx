@@ -326,9 +326,9 @@ export default function DashboardPage() {
                             v.receiver_id === newRating.receiver_id
                               ? {
                                   ...newRating,
-                                  is_mvp: v.is_mvp,
-                                  is_bigpaper: v.is_bigpaper,
-                                  is_poop: v.is_poop,
+                                  is_mvp: newRating.tecnica === null ? false : v.is_mvp,
+                                  is_bigpaper: newRating.tecnica === null ? false : v.is_bigpaper,
+                                  is_poop: newRating.tecnica === null ? false : v.is_poop,
                                 }
                               : v
                           );
