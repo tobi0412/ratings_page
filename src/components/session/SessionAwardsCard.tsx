@@ -60,9 +60,39 @@ export default function SessionAwardsCard({
   }, []);
 
   const handleSave = async (updatedMvp: string, updatedBigpaper: string, updatedPoop: string) => {
+    const prevMvp = mvpId;
+    const prevBigpaper = bigpaperId;
+    const prevPoop = poopId;
+    const prevSaved = saved;
+
     setLoading(true);
     setError("");
     setSaved(false);
+
+    // Build optimistic awards ratings
+    const updatedRatings: Rating[] = [];
+    const uniqueReceivers = Array.from(new Set([updatedMvp, updatedBigpaper, updatedPoop]));
+    uniqueReceivers.forEach((receiverId) => {
+      if (!receiverId) return;
+      updatedRatings.push({
+        id: `temp-${receiverId}`,
+        match_id: matchId,
+        voter_id: "",
+        receiver_id: receiverId,
+        tecnica: null,
+        fisico: null,
+        actitud: null,
+        vision_juego: null,
+        is_mvp: receiverId === updatedMvp,
+        is_bigpaper: receiverId === updatedBigpaper,
+        is_poop: receiverId === updatedPoop,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
+    });
+
+    // Notify parent immediately for instant UI response
+    onAwardsChanged(updatedRatings);
 
     const res = await submitSessionAwards({
       match_id: matchId,
@@ -73,13 +103,17 @@ export default function SessionAwardsCard({
 
     if (res.error) {
       setError(res.error);
-    } else {
-      setSaved(true);
-      const updatedRatings: Rating[] = [];
-      const uniqueReceivers = Array.from(new Set([updatedMvp, updatedBigpaper, updatedPoop]));
-      uniqueReceivers.forEach((receiverId) => {
+      setMvpId(prevMvp);
+      setBigpaperId(prevBigpaper);
+      setPoopId(prevPoop);
+      setSaved(prevSaved);
+      
+      // Rollback parent ratings to original state
+      const originalRatings: Rating[] = [];
+      const origUniqueReceivers = Array.from(new Set([prevMvp, prevBigpaper, prevPoop]));
+      origUniqueReceivers.forEach((receiverId) => {
         if (!receiverId) return;
-        updatedRatings.push({
+        originalRatings.push({
           id: `temp-${receiverId}`,
           match_id: matchId,
           voter_id: "",
@@ -88,14 +122,16 @@ export default function SessionAwardsCard({
           fisico: null,
           actitud: null,
           vision_juego: null,
-          is_mvp: receiverId === updatedMvp,
-          is_bigpaper: receiverId === updatedBigpaper,
-          is_poop: receiverId === updatedPoop,
+          is_mvp: receiverId === prevMvp,
+          is_bigpaper: receiverId === prevBigpaper,
+          is_poop: receiverId === prevPoop,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
       });
-      onAwardsChanged(updatedRatings);
+      onAwardsChanged(originalRatings);
+    } else {
+      setSaved(true);
     }
     setLoading(false);
   };
@@ -203,7 +239,7 @@ export default function SessionAwardsCard({
               </>
             ) : (
               <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 600, fontSize: "0.92rem", color: "var(--text-muted)", opacity: 0.8 }}>
-                {awardType === "mvp" ? "Seleccionar jugador..." : "Ninguno (Opcional)"}
+                Ninguno (Opcional)
               </span>
             )}
           </div>
@@ -239,62 +275,60 @@ export default function SessionAwardsCard({
               transformOrigin: "top center",
             }}
           >
-            {awardType !== "mvp" && (
+            <div
+              key="none"
+              onClick={() => handleSelect("")}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.6rem",
+                padding: "0.5rem 0.65rem",
+                borderRadius: "6px",
+                cursor: "pointer",
+                background: selectedId === "" ? `${color}15` : "transparent",
+                transition: "background-color 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1)",
+              }}
+              onMouseEnter={(e) => {
+                if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                  e.currentTarget.style.background = selectedId === "" ? `${color}25` : "rgba(0, 230, 118, 0.08)";
+                  e.currentTarget.style.transform = "translateX(3px)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = selectedId === "" ? `${color}15` : "transparent";
+                e.currentTarget.style.transform = "none";
+              }}
+            >
               <div
-                key="none"
-                onClick={() => handleSelect("")}
                 style={{
+                  width: "24px",
+                  height: "24px",
+                  borderRadius: "50%",
+                  background: selectedId === "" ? `${color}25` : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${selectedId === "" ? color : "rgba(255,255,255,0.1)"}`,
                   display: "flex",
                   alignItems: "center",
-                  gap: "0.6rem",
-                  padding: "0.5rem 0.65rem",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                  background: selectedId === "" ? `${color}15` : "transparent",
-                  transition: "background-color 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1)",
-                }}
-                onMouseEnter={(e) => {
-                  if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-                    e.currentTarget.style.background = selectedId === "" ? `${color}25` : "rgba(0, 230, 118, 0.08)";
-                    e.currentTarget.style.transform = "translateX(3px)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = selectedId === "" ? `${color}15` : "transparent";
-                  e.currentTarget.style.transform = "none";
+                  justifyContent: "center",
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: "0.75rem",
+                  color: selectedId === "" ? color : "var(--text-muted)",
+                  overflow: "hidden",
+                  flexShrink: 0
                 }}
               >
-                <div
-                  style={{
-                    width: "24px",
-                    height: "24px",
-                    borderRadius: "50%",
-                    background: selectedId === "" ? `${color}25` : "rgba(255,255,255,0.03)",
-                    border: `1px solid ${selectedId === "" ? color : "rgba(255,255,255,0.1)"}`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: "0.75rem",
-                    color: selectedId === "" ? color : "var(--text-muted)",
-                    overflow: "hidden",
-                    flexShrink: 0
-                  }}
-                >
-                  ✖
-                </div>
-                <span
-                  style={{
-                    fontFamily: "'Barlow Condensed', sans-serif",
-                    fontWeight: 600,
-                    fontSize: "0.92rem",
-                    color: selectedId === "" ? color : "#e4f0e8"
-                  }}
-                >
-                  Ninguno (Opcional)
-                </span>
+                ✖
               </div>
-            )}
+              <span
+                style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "0.92rem",
+                  color: selectedId === "" ? color : "#e4f0e8"
+                }}
+              >
+                Ninguno (Opcional)
+              </span>
+            </div>
             {players.map((p) => {
               const isSelected = p.id === selectedId;
               return (

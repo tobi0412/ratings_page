@@ -10,6 +10,7 @@ interface TeamRatingCardProps {
   players: Profile[];
   myVotes: Rating[];
   onTeamRatingSaved?: (saved: boolean) => void;
+  initialSaved?: boolean;
 }
 
 // Custom SVGs retrieved via better-icons format to replace emojis
@@ -80,17 +81,26 @@ export default function TeamRatingCard({
   players,
   myVotes,
   onTeamRatingSaved,
+  initialSaved = false,
 }: TeamRatingCardProps) {
   const [teamRating, setTeamRating] = useState<number>(7.0);
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(initialSaved);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [voterAverage, setVoterAverage] = useState<number>(0);
   const [maxCap, setMaxCap] = useState<number>(10.0);
+  const [loadingSaved, setLoadingSaved] = useState(initialSaved);
 
-  // Synchronize saved state with the parent callback
+  // Synchronize saved state with prop when it changes
   useEffect(() => {
-    onTeamRatingSaved?.(saved);
+    setSaved(initialSaved);
+  }, [initialSaved]);
+
+  // Synchronize saved state with the parent callback (only when saved is true)
+  useEffect(() => {
+    if (saved) {
+      onTeamRatingSaved?.(true);
+    }
   }, [saved, onTeamRatingSaved]);
 
   // Calculate completed players
@@ -110,11 +120,13 @@ export default function TeamRatingCard({
   // Calculate limit bounds and load saved rating
   useEffect(() => {
     async function loadSaved() {
+      setLoadingSaved(true);
       const savedRating = await getTeamRating(matchId);
       if (savedRating !== null) {
         setTeamRating(savedRating);
         setSaved(true);
       }
+      setLoadingSaved(false);
     }
 
     // Calculate voter average based on non-blank votes
@@ -154,14 +166,18 @@ export default function TeamRatingCard({
   }, [matchId, isUnlocked, myVotes]);
 
   const handleSubmit = async () => {
+    const previousSaved = saved;
     setLoading(true);
     setError("");
+    
+    // Optimistically set saved state to true
+    setSaved(true);
+
     const result = await submitTeamRating({ match_id: matchId, rating: teamRating });
 
     if (result.error) {
       setError(result.error);
-    } else {
-      setSaved(true);
+      setSaved(previousSaved);
     }
     setLoading(false);
   };
@@ -451,6 +467,49 @@ export default function TeamRatingCard({
               </div>
             </div>
           )}
+        </div>
+      </div>
+    );
+  }
+
+  // LOADING STATE (subtle spinner while fetching rating from DB)
+  if (isUnlocked && loadingSaved) {
+    return (
+      <div
+        className="card-sport animate-slide-up"
+        style={{
+          padding: "1.75rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "260px",
+          background: "rgba(11, 24, 16, 0.5)",
+          border: "1.5px dashed var(--border-subtle)",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
+          <div
+            style={{
+              width: "36px",
+              height: "36px",
+              border: "2px solid rgba(0, 230, 118, 0.08)",
+              borderTop: "2px solid var(--accent-lime)",
+              borderRadius: "50%",
+              animation: "spin 0.8s linear infinite",
+            }}
+          />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <span
+            style={{
+              fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: "0.8rem",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--text-muted)",
+            }}
+          >
+            Cargando valoración...
+          </span>
         </div>
       </div>
     );

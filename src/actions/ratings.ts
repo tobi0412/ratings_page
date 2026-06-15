@@ -140,37 +140,42 @@ export async function getMatchRatings(matchId: string) {
 
 export async function submitTeamRating(input: { match_id: string; rating: number }) {
   const supabase = createSupabaseServerClient();
-  const profile = await getCurrentProfile();
+  
+  // 1. Fetch profile and session active check concurrently
+  const [profile, sessionRes] = await Promise.all([
+    getCurrentProfile(),
+    supabase
+      .from("match_sessions")
+      .select("is_active")
+      .eq("id", input.match_id)
+      .single()
+  ]);
 
   if (!profile) {
     return { error: "Not authenticated" };
   }
 
-  // 1. Verify session is active
-  const { data: session, error: sError } = await supabase
-    .from("match_sessions")
-    .select("is_active")
-    .eq("id", input.match_id)
-    .single();
-
+  const { data: session, error: sError } = sessionRes;
   if (sError || !session?.is_active) {
     return { error: "Voting is closed for this session" };
   }
 
-  // 2. Option A validation: Verify player rated all other participants
-  // Fetch all session participants excluding current voter
-  const { data: participants } = await supabase
-    .from("session_participants")
-    .select("player_id")
-    .eq("match_id", input.match_id)
-    .neq("player_id", profile.id);
+  // 2. Fetch participants and votes concurrently to verify player rated everyone
+  const [participantsRes, votesRes] = await Promise.all([
+    supabase
+      .from("session_participants")
+      .select("player_id")
+      .eq("match_id", input.match_id)
+      .neq("player_id", profile.id),
+    supabase
+      .from("ratings")
+      .select("receiver_id, tecnica, fisico, actitud, vision_juego")
+      .eq("match_id", input.match_id)
+      .eq("voter_id", profile.id)
+  ]);
 
-  // Fetch existing votes by this voter
-  const { data: votes } = await supabase
-    .from("ratings")
-    .select("receiver_id, tecnica, fisico, actitud, vision_juego")
-    .eq("match_id", input.match_id)
-    .eq("voter_id", profile.id);
+  const { data: participants } = participantsRes;
+  const { data: votes } = votesRes;
 
   const otherParticipantsIds = (participants || []).map((p) => p.player_id);
   const votesCast = votes || [];

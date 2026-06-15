@@ -4,7 +4,7 @@ import { motion, useReducedMotion, useScroll, useMotionValueEvent, AnimatePresen
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Profile, Rating } from "@/types";
-import { StarIcon, StadiumIcon, CheckIcon, SpyIcon } from "@/components/Icons";
+import { StarIcon, StadiumIcon, CheckIcon, UserMinusIcon } from "@/components/Icons";
 
 interface VotingProgressProps {
   players: Profile[];
@@ -762,7 +762,7 @@ export default function VotingProgress({
                         {completed && (
                           isBlank ? (
                             <div className="badge-overlay-icon badge-overlay-blank">
-                              <SpyIcon size={8} />
+                              <UserMinusIcon size={8} />
                             </div>
                           ) : (
                             <div className="badge-overlay-icon badge-overlay-voted">
