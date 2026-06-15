@@ -72,13 +72,19 @@ export async function submitSessionAwards(input: {
     // Check if a row already exists
     const { data: existing } = await supabase
       .from("ratings")
-      .select("id, tecnica, fisico, actitud, vision_juego")
+      .select("id, tecnica, is_mvp, is_bigpaper, is_poop")
       .eq("match_id", input.match_id)
       .eq("voter_id", profile.id)
       .eq("receiver_id", receiverId)
       .maybeSingle();
 
     if (existing) {
+      // If it exists and technique is null and no award is currently set, it represents a saved blank vote
+      const isBlankVote = existing.tecnica === null && !existing.is_mvp && !existing.is_bigpaper && !existing.is_poop;
+      if (isBlankVote) {
+        throw new Error("No es posible otorgar un premio a un jugador con el que no coincidió.");
+      }
+
       const { error } = await supabase
         .from("ratings")
         .update({ [awardField]: true })
