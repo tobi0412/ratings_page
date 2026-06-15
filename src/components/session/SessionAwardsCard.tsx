@@ -331,27 +331,37 @@ export default function SessionAwardsCard({
             </div>
             {players.map((p) => {
               const isSelected = p.id === selectedId;
+              const isPlayerBlank = initialVotes.some(
+                (v) => v.receiver_id === p.id && v.tecnica === null && !v.is_mvp && !v.is_bigpaper && !v.is_poop
+              );
+
               return (
                 <div
                   key={p.id}
-                  onClick={() => handleSelect(p.id)}
+                  onClick={() => {
+                    if (isPlayerBlank) return;
+                    handleSelect(p.id);
+                  }}
                   style={{
                     display: "flex",
                     alignItems: "center",
                     gap: "0.6rem",
                     padding: "0.5rem 0.65rem",
                     borderRadius: "6px",
-                    cursor: "pointer",
+                    cursor: isPlayerBlank ? "not-allowed" : "pointer",
                     background: isSelected ? `${color}15` : "transparent",
+                    opacity: isPlayerBlank ? 0.4 : 1,
                     transition: "background-color 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1)",
                   }}
                   onMouseEnter={(e) => {
+                    if (isPlayerBlank) return;
                     if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
                       e.currentTarget.style.background = isSelected ? `${color}25` : "rgba(0, 230, 118, 0.08)";
                       e.currentTarget.style.transform = "translateX(3px)";
                     }
                   }}
                   onMouseLeave={(e) => {
+                    if (isPlayerBlank) return;
                     e.currentTarget.style.background = isSelected ? `${color}15` : "transparent";
                     e.currentTarget.style.transform = "none";
                   }}
@@ -384,10 +394,31 @@ export default function SessionAwardsCard({
                       fontFamily: "'Barlow Condensed', sans-serif",
                       fontWeight: 600,
                       fontSize: "0.92rem",
-                      color: isSelected ? color : "#e4f0e8"
+                      color: isSelected ? color : "#e4f0e8",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.4rem"
                     }}
                   >
-                    {p.username}
+                    <span>{p.username}</span>
+                    {isPlayerBlank && (
+                      <span
+                        style={{
+                          fontSize: "0.72rem",
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          fontWeight: 700,
+                          color: "var(--accent-red)",
+                          background: "var(--accent-red-soft)",
+                          border: "1px solid rgba(255, 82, 82, 0.2)",
+                          padding: "0.1rem 0.35rem",
+                          borderRadius: "4px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.03em"
+                        }}
+                      >
+                        No coincidió
+                      </span>
+                    )}
                   </span>
                 </div>
               );
