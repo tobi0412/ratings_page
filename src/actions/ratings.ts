@@ -25,6 +25,8 @@ export async function submitRating(input: RatingInput) {
         fisico: input.fisico,
         actitud: input.actitud,
         vision_juego: input.vision_juego,
+        // Reset special awards flags if this is a blank vote
+        ...(input.tecnica === null ? { is_mvp: false, is_bigpaper: false, is_poop: false } : {}),
         updated_at: new Date().toISOString(),
       },
       { onConflict: "match_id,voter_id,receiver_id" },
