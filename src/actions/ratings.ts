@@ -25,6 +25,8 @@ export async function submitRating(input: RatingInput) {
         fisico: input.fisico,
         actitud: input.actitud,
         vision_juego: input.vision_juego,
+        // Reset special awards flags if this is a blank vote
+        ...(input.tecnica === null ? { is_mvp: false, is_bigpaper: false, is_poop: false } : {}),
         updated_at: new Date().toISOString(),
       },
       { onConflict: "match_id,voter_id,receiver_id" },
@@ -70,13 +72,19 @@ export async function submitSessionAwards(input: {
     // Check if a row already exists
     const { data: existing } = await supabase
       .from("ratings")
-      .select("id, tecnica, fisico, actitud, vision_juego")
+      .select("id, tecnica, is_mvp, is_bigpaper, is_poop")
       .eq("match_id", input.match_id)
       .eq("voter_id", profile.id)
       .eq("receiver_id", receiverId)
       .maybeSingle();
 
     if (existing) {
+      // If it exists and technique is null and no award is currently set, it represents a saved blank vote
+      const isBlankVote = existing.tecnica === null && !existing.is_mvp && !existing.is_bigpaper && !existing.is_poop;
+      if (isBlankVote) {
+        throw new Error("No es posible otorgar un premio a un jugador con el que no coincidió.");
+      }
+
       const { error } = await supabase
         .from("ratings")
         .update({ [awardField]: true })
@@ -140,37 +148,42 @@ export async function getMatchRatings(matchId: string) {
 
 export async function submitTeamRating(input: { match_id: string; rating: number }) {
   const supabase = createSupabaseServerClient();
-  const profile = await getCurrentProfile();
+  
+  // 1. Fetch profile and session active check concurrently
+  const [profile, sessionRes] = await Promise.all([
+    getCurrentProfile(),
+    supabase
+      .from("match_sessions")
+      .select("is_active")
+      .eq("id", input.match_id)
+      .single()
+  ]);
 
   if (!profile) {
     return { error: "Not authenticated" };
   }
 
-  // 1. Verify session is active
-  const { data: session, error: sError } = await supabase
-    .from("match_sessions")
-    .select("is_active")
-    .eq("id", input.match_id)
-    .single();
-
+  const { data: session, error: sError } = sessionRes;
   if (sError || !session?.is_active) {
     return { error: "Voting is closed for this session" };
   }
 
-  // 2. Option A validation: Verify player rated all other participants
-  // Fetch all session participants excluding current voter
-  const { data: participants } = await supabase
-    .from("session_participants")
-    .select("player_id")
-    .eq("match_id", input.match_id)
-    .neq("player_id", profile.id);
+  // 2. Fetch participants and votes concurrently to verify player rated everyone
+  const [participantsRes, votesRes] = await Promise.all([
+    supabase
+      .from("session_participants")
+      .select("player_id")
+      .eq("match_id", input.match_id)
+      .neq("player_id", profile.id),
+    supabase
+      .from("ratings")
+      .select("receiver_id, tecnica, fisico, actitud, vision_juego")
+      .eq("match_id", input.match_id)
+      .eq("voter_id", profile.id)
+  ]);
 
-  // Fetch existing votes by this voter
-  const { data: votes } = await supabase
-    .from("ratings")
-    .select("receiver_id, tecnica, fisico, actitud, vision_juego")
-    .eq("match_id", input.match_id)
-    .eq("voter_id", profile.id);
+  const { data: participants } = participantsRes;
+  const { data: votes } = votesRes;
 
   const otherParticipantsIds = (participants || []).map((p) => p.player_id);
   const votesCast = votes || [];

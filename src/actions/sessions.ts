@@ -294,9 +294,21 @@ export async function revealMysteryVote(sessionId: string) {
 export async function getSessionVotingProgress(sessionId: string) {
   const supabase = createSupabaseServerClient();
   const profile = await getCurrentProfile();
+  if (!profile) {
+    return { error: "Not authenticated", success: false };
+  }
 
-  if (!profile || profile.role !== "admin") {
-    return { error: "Only admins can view voting progress", success: false };
+  if (profile.role !== "admin") {
+    const { data: participation, error: pError } = await supabase
+      .from("session_participants")
+      .select("id")
+      .eq("match_id", sessionId)
+      .eq("player_id", profile.id)
+      .maybeSingle();
+
+    if (pError || !participation) {
+      return { error: "Only admins or session participants can view voting progress", success: false };
+    }
   }
 
   // 1. Get all session participants
@@ -335,14 +347,16 @@ export async function getSessionVotingProgress(sessionId: string) {
   const progress = participants.map((player) => {
     const voterRatings = (ratingsData || []).filter((r) => r.voter_id === player.id);
     
-    // Count rows where the user actually rated the player (tecnica is not null)
-    const votesSubmitted = voterRatings.filter((r) => r.tecnica !== null).length;
+    // Count rows where the user actually rated the player or explicitly submitted a blank vote
+    const votesSubmitted = voterRatings.filter(
+      (r) => r.tecnica !== null || (!r.is_mvp && !r.is_bigpaper && !r.is_poop)
+    ).length;
     
     // Check if the user selected each of the session awards
     const hasMvp = voterRatings.some((r) => r.is_mvp === true);
     const hasBigpaper = voterRatings.some((r) => r.is_bigpaper === true);
     const hasPoop = voterRatings.some((r) => r.is_poop === true);
-    const awardsCompleted = hasMvp;
+    const awardsCompleted = true;
 
     // Check if team rating was submitted
     const hasTeamRating = (teamRatingsData || []).some((tr) => tr.voter_id === player.id);

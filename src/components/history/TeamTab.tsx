@@ -179,10 +179,12 @@ export default function TeamTab({
                 padding: "0.2rem 0.5rem",
                 borderRadius: "4px",
                 border: "1px solid rgba(0, 230, 118, 0.2)",
-                transition: "all 0.15s ease",
+                transition: "background-color 160ms cubic-bezier(0.23, 1, 0.32, 1)",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(0, 230, 118, 0.1)";
+                if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                  e.currentTarget.style.background = "rgba(0, 230, 118, 0.1)";
+                }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
@@ -204,10 +206,12 @@ export default function TeamTab({
                 padding: "0.2rem 0.5rem",
                 borderRadius: "4px",
                 border: "1px solid rgba(255, 82, 82, 0.2)",
-                transition: "all 0.15s ease",
+                transition: "background-color 160ms cubic-bezier(0.23, 1, 0.32, 1)",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(255, 82, 82, 0.1)";
+                if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                  e.currentTarget.style.background = "rgba(255, 82, 82, 0.1)";
+                }
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
@@ -248,7 +252,7 @@ export default function TeamTab({
                   fontWeight: 600,
                   fontSize: "0.9rem",
                   letterSpacing: "0.02em",
-                  transition: "all 0.2s ease",
+                  transition: "background-color 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms cubic-bezier(0.23, 1, 0.32, 1), color 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1)",
                   display: "flex",
                   alignItems: "center",
                   gap: "0.4rem",
@@ -257,11 +261,13 @@ export default function TeamTab({
                     : "none",
                 }}
                 onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.border = `1px solid ${playerColor}88`;
-                    e.currentTarget.style.color = "#a0c4ac";
-                  } else {
-                    e.currentTarget.style.boxShadow = `0 0 12px ${playerColor}40`;
+                  if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+                    if (!isSelected) {
+                      e.currentTarget.style.border = `1px solid ${playerColor}88`;
+                      e.currentTarget.style.color = "#a0c4ac";
+                    } else {
+                      e.currentTarget.style.boxShadow = `0 0 12px ${playerColor}40`;
+                    }
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -271,6 +277,18 @@ export default function TeamTab({
                   } else {
                     e.currentTarget.style.boxShadow = `0 0 10px ${playerColor}25`;
                   }
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = "scale(0.96)";
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = "none";
+                }}
+                onTouchStart={(e) => {
+                  e.currentTarget.style.transform = "scale(0.96)";
+                }}
+                onTouchEnd={(e) => {
+                  e.currentTarget.style.transform = "none";
                 }}
               >
                 <span
@@ -306,7 +324,7 @@ export default function TeamTab({
             Rendimiento General de la Sesión
           </h2>
           <div
-            className="card-sport stripe-texture"
+            className="card-sport"
             style={{
               padding: "1.75rem",
               background: "linear-gradient(135deg, rgba(0, 230, 118, 0.05) 0%, rgba(28, 56, 40, 0.2) 100%)",
